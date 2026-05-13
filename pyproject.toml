@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm-vapt-framework"
+version = "0.1.0"
+description = "AI-native VAPT framework for LLM applications, RAG systems, agents, and orchestration layers."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Rahul Sharma" }]
+dependencies = [
+  "PyYAML>=6.0.1",
+  "requests>=2.31.0",
+  "rich>=13.7.0"
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0.0"]
+
+[project.scripts]
+llm-vapt = "scripts.run_scan:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["core*", "integrations*", "modules*", "rag_testing*", "agent_testing*", "reports*", "dashboards*", "scripts*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
