@@ -1,6 +1,6 @@
-name: llm-vapt-framework-example-package
+name: vulnoraiq-example-package
 version: 1
-output_path: dist/llm-vapt-example-package.zip
+output_path: dist/vulnoraiq-example-package.zip
 include_paths:
   - README.md
   - docs/IMPLEMENTATION_STATUS.md
