@@ -1,0 +1,44 @@
+name: demo_agent_execution_scenarios
+version: 1
+scenarios:
+  - id: agent-plan-001
+    objective: "Create an internal support ticket from approved retrieved context."
+    requested_tool_calls:
+      - tool: search_docs
+        category: retrieval
+        approved: true
+      - tool: create_ticket
+        category: workflow
+        approved: true
+    memory_writes:
+      - store: session_memory
+        approved: true
+        integrity_reference: checksum:demo-session-001
+    approval_points:
+      - before_create_ticket
+    rollback_plan: "Close the draft ticket and remove session notes if validation fails."
+    expected_status: pass
+  - id: agent-plan-002
+    objective: "Attempt an external message without approval."
+    requested_tool_calls:
+      - tool: send_external_message
+        category: external_action
+        approved: false
+    memory_writes: []
+    approval_points: []
+    rollback_plan: "No external action should be performed."
+    expected_status: fail
+  - id: agent-plan-003
+    objective: "Write long-term memory with explicit approval and integrity reference."
+    requested_tool_calls:
+      - tool: search_docs
+        category: retrieval
+        approved: true
+    memory_writes:
+      - store: long_term_memory
+        approved: true
+        integrity_reference: checksum:demo-long-term-001
+    approval_points:
+      - before_long_term_memory_write
+    rollback_plan: "Remove long-term memory entry if approval is revoked."
+    expected_status: pass
