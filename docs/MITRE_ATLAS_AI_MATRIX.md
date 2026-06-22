@@ -8,6 +8,8 @@ This file is the VulnoraIQ implementation planning register for MITRE ATLAS tact
 
 > **Mapping rule:** if a tactic or technique cannot be confidently mapped to OWASP or a VulnoraIQ coverage area, it is still listed and marked `Unmapped / map later`. No ATLAS item should disappear just because it is not mapped yet.
 
+> **Drift-control rule:** regenerate this file with `scripts/generate_mitre_atlas_matrix.py` and keep unmapped rows visible until they are deliberately mapped, excluded, or documented for later review.
+
 ## Official source alignment
 
 - Site: `https://atlas.mitre.org`
@@ -59,4 +61,4 @@ vulnoraiq-generate-atlas-matrix \
 
 ## Techniques and sub-techniques
 
-> The complete generated technique table follows below in the checked-in matrix. Keep regenerated IDs visible, including `Unmapped / map later` rows, so later implementation planning does not silently drop ATLAS coverage.
+> The complete generated technique table should be regenerated from `scripts/generate_mitre_atlas_matrix.py` before deeper ATLAS implementation work. Keep regenerated IDs visible, including `Unmapped / map later` rows, so later implementation planning does not silently drop ATLAS coverage.
