@@ -13,32 +13,37 @@ AI application security needs more than prompt-level checks. This repository pro
 The current implementation provides:
 
 - OWASP LLM 2025 starter mapping
+- MITRE ATLAS mapping catalog with AML technique IDs
 - Safe demo target with no external API keys
 - Baseline, RAG, agent, and full profile definitions
-- Scanner, starter check runner, scoring, and result model
-- Policy-as-code evaluation for governance controls
-- Markdown and JSON reports with evidence details
-- Markdown dashboard generation
+- Module protocol, starter modules, and registry-based module lookup
+- Safe YAML payload libraries mapped to module names
+- Scanner, scoring, result model, policy evaluation, and scoped policy exceptions
+- RAG corpus manifest validation
+- Agent runtime governance validation
+- Markdown, JSON, and SARIF-style reports with evidence details
+- Markdown and HTML dashboard generation
+- JSON/Markdown report diffing between assessment runs
 - Explicit non-demo authorisation gate
 - Minimal HTTP JSON target adapter for approved targets
 - Python CI across supported versions with demo report artifacts
 
-The roadmap includes deeper RAG fixtures, agent harnesses, expanded policy enforcement, MITRE ATLAS mapping, HTML dashboards, SARIF-style output, and a formal module plugin system.
+The roadmap includes deeper RAG retrieval harnesses, simulated agent execution, richer target adapters, packaged example outputs, trend tracking, and benchmark datasets.
 
 ## OWASP LLM 2025 coverage
 
-| OWASP ID | Risk | Module path / status |
+| OWASP ID | Risk | Module status |
 |---|---|---|
-| LLM01:2025 | Prompt Injection | Starter check |
-| LLM02:2025 | Sensitive Information Disclosure | Starter check |
-| LLM03:2025 | Supply Chain | Starter check |
-| LLM04:2025 | Data and Model Poisoning | Starter check |
-| LLM05:2025 | Improper Output Handling | Starter check |
-| LLM06:2025 | Excessive Agency | Starter check |
-| LLM07:2025 | System Prompt Leakage | Starter check |
-| LLM08:2025 | Vector and Embedding Weaknesses | Starter check |
-| LLM09:2025 | Misinformation | Starter check |
-| LLM10:2025 | Unbounded Consumption | Starter check |
+| LLM01:2025 | Prompt Injection | Starter check with ATLAS mapping |
+| LLM02:2025 | Sensitive Information Disclosure | Starter check with ATLAS mapping |
+| LLM03:2025 | Supply Chain | Starter check with ATLAS mapping |
+| LLM04:2025 | Data and Model Poisoning | Starter check with ATLAS mapping |
+| LLM05:2025 | Improper Output Handling | Starter check with ATLAS mapping |
+| LLM06:2025 | Excessive Agency | Starter check with ATLAS mapping |
+| LLM07:2025 | System Prompt Leakage | Starter check with ATLAS mapping |
+| LLM08:2025 | Vector and Embedding Weaknesses | Starter check with ATLAS mapping |
+| LLM09:2025 | Misinformation | Starter check with ATLAS mapping |
+| LLM10:2025 | Unbounded Consumption | Starter check with ATLAS mapping |
 
 ## Architecture
 
@@ -49,9 +54,15 @@ Integration Layer: DemoEchoClient | HttpJsonTargetClient
         ↓
 Core Engine: Scanner | Test Runner | Results Engine | Risk Scoring | Policy Engine
         ↓
+Module Layer: AssessmentModule protocol | ModuleRegistry | starter modules
+        ↓
+Payload Layer: safe YAML payload libraries
+        ↓
+Governance Layer: policy rules | exceptions | RAG manifest | agent runtime manifest | ATLAS mapping
+        ↓
 Assessment Profiles: baseline | rag | agent | full
         ↓
-Reporting: Markdown report | JSON report | Markdown dashboard
+Outputs: Markdown | JSON | SARIF-style | Markdown dashboard | HTML dashboard | report diff
 ```
 
 ## Repository structure
@@ -59,18 +70,18 @@ Reporting: Markdown report | JSON report | Markdown dashboard
 ```text
 llm-vapt-framework/
 ├── .github/workflows/       # Python CI
-├── config/                  # Targets, profiles, policies, mappings
-├── core/                    # Scanner, runner, scoring, policy, results model
+├── config/                  # Targets, profiles, policies, manifests, mappings
+├── core/                    # Scanner, runner, scoring, policy, exceptions, mapping, results model
 ├── integrations/            # Demo and HTTP JSON adapters
-├── modules/                 # Reserved for future pluggable module implementations
-├── rag_testing/             # Reserved for RAG fixtures and harnesses
-├── agent_testing/           # Reserved for agent fixtures and harnesses
-├── payloads/                # Reserved for safe starter input libraries
-├── reports/                 # Markdown and JSON report generation
-├── dashboards/              # Dashboard generation helpers
+├── modules/                 # Module protocol, registry, and starter modules
+├── rag_testing/             # RAG corpus manifest validation
+├── agent_testing/           # Agent runtime manifest validation
+├── payloads/                # Safe payload schema and libraries
+├── reports/                 # Markdown, JSON, SARIF-style, and diff generation
+├── dashboards/              # Markdown and HTML dashboard generation
 ├── tests/                   # Unit tests
 ├── scripts/                 # CLI entry points
-└── docs/                    # Architecture, roadmap, mapping, governance docs
+└── docs/                    # Architecture, status, mapping, governance docs
 ```
 
 ## Quick start
@@ -88,7 +99,9 @@ The default command writes:
 
 - `reports/output/scan-report.md`
 - `reports/output/scan-report.json`
+- `reports/output/scan-report.sarif`
 - `reports/output/dashboard.md`
+- `reports/output/dashboard.html`
 
 ## Run tests
 
@@ -104,7 +117,9 @@ python scripts/run_scan.py \
   --profile baseline \
   --output reports/output/demo-report.md \
   --json-output reports/output/demo-report.json \
-  --dashboard-output reports/output/demo-dashboard.md
+  --sarif-output reports/output/demo-report.sarif \
+  --dashboard-output reports/output/demo-dashboard.md \
+  --html-dashboard-output reports/output/demo-dashboard.html
 ```
 
 ## Configured target command
@@ -118,14 +133,30 @@ python scripts/run_scan.py \
   --authorised \
   --output reports/output/authorised-target-report.md \
   --json-output reports/output/authorised-target-report.json \
-  --dashboard-output reports/output/authorised-target-dashboard.md
+  --sarif-output reports/output/authorised-target-report.sarif \
+  --dashboard-output reports/output/authorised-target-dashboard.md \
+  --html-dashboard-output reports/output/authorised-target-dashboard.html
 ```
 
 Before running against a configured target, replace the placeholder endpoint in `config/targets.yaml` and set any required token environment variable.
 
+## Report diff command
+
+Compare two structured JSON reports:
+
+```bash
+python -m reports.report_diff \
+  --baseline reports/output/baseline.json \
+  --current reports/output/current.json \
+  --json-output reports/output/report-diff.json \
+  --markdown-output reports/output/report-diff.md
+```
+
+Use `--fail-on-regression` in CI when added or changed findings or policy status changes should fail the job.
+
 ## Dashboard command
 
-Generate a dashboard from an existing JSON report:
+Generate a Markdown dashboard from an existing JSON report:
 
 ```bash
 python dashboards/generate_dashboard.py \
@@ -133,13 +164,24 @@ python dashboards/generate_dashboard.py \
   --output reports/output/dashboard.md
 ```
 
+The standard scan command also writes an HTML dashboard.
+
+## Module and payload authoring
+
+Read [`docs/module-authoring.md`](docs/module-authoring.md) before adding modules or payload libraries.
+
 ## Configuration
 
-- `config/default.yaml`: engine defaults, report outputs, approval gates, and RAG corpus integrity metadata
+- `config/default.yaml`: engine defaults, payload libraries, report outputs, approval gates, RAG corpus metadata, agent runtime metadata, and ATLAS mapping path
 - `config/targets.yaml`: target definitions
 - `config/attack_profiles.yaml`: selective module execution
 - `config/policies.yaml`: governance thresholds and blocking conditions
+- `config/policy_exceptions.yaml`: scoped exception register
 - `config/owasp_llm_2025_mapping.yaml`: audit-friendly OWASP mapping
+- `config/mitre_atlas_mapping.yaml`: MITRE ATLAS mapping catalog
+- `config/rag_corpus_manifest.yaml`: RAG corpus metadata manifest
+- `config/agent_runtime.yaml`: agent tool, memory, and orchestration governance manifest
+- `payloads/schema.yaml`: payload library schema and safety rules
 
 ## Design principles
 
