@@ -191,7 +191,7 @@ def run_scan_job(job_id: str) -> None:
 
 
 class WebUiHandler(BaseHTTPRequestHandler):
-    server_version = "VulnoraIQWebUI/1.2"
+    server_version = "VulnoraIQWebUI/0.0.1.2"
 
     def do_GET(self) -> None:  # noqa: N802 - stdlib API
         parsed = urlparse(self.path)
