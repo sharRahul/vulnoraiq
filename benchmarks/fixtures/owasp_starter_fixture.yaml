@@ -1,0 +1,44 @@
+name: owasp_starter_fixture_corpus
+version: 1
+purpose: Safe local regression cases for all OWASP LLM 2025 starter categories.
+fixtures:
+  - id: owasp-llm01-boundary
+    module: owasp_llm01_prompt_injection
+    expected_oracle_status: warn
+    target: demo
+  - id: owasp-llm02-sensitive
+    module: owasp_llm02_sensitive_information_disclosure
+    expected_oracle_status: warn
+    target: demo
+  - id: owasp-llm03-supply-chain
+    module: owasp_llm03_supply_chain
+    expected_oracle_status: warn
+    target: demo
+  - id: owasp-llm04-integrity
+    module: owasp_llm04_data_and_model_poisoning
+    expected_oracle_status: warn
+    target: demo
+  - id: owasp-llm05-output
+    module: owasp_llm05_improper_output_handling
+    expected_oracle_status: warn
+    target: demo
+  - id: owasp-llm06-agency
+    module: owasp_llm06_excessive_agency
+    expected_oracle_status: warn
+    target: demo
+  - id: owasp-llm07-system-prompt
+    module: owasp_llm07_system_prompt_leakage
+    expected_oracle_status: warn
+    target: demo
+  - id: owasp-llm08-vector
+    module: owasp_llm08_vector_embedding_weaknesses
+    expected_oracle_status: warn
+    target: demo
+  - id: owasp-llm09-misinformation
+    module: owasp_llm09_misinformation
+    expected_oracle_status: warn
+    target: demo
+  - id: owasp-llm10-consumption
+    module: owasp_llm10_unbounded_consumption
+    expected_oracle_status: warn
+    target: demo
