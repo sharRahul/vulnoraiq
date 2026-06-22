@@ -2,7 +2,7 @@
 
 An AI security assessment framework for **LLM applications, RAG pipelines, AI agents, and orchestration layers**.
 
-> **Current maturity:** this repository is evolving from a starter framework into an enterprise platform. Start with [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md) to see what is implemented, partial, or planned.
+> **Current maturity:** version `1.0.0` provides a working local/demo-safe enterprise starter platform. Start with [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md) to see what is implemented, partial, or planned.
 
 > **Responsible use only:** run this framework only against systems you own or are explicitly authorised to assess. The default demo target is safe and local. Configured non-demo targets require an explicit authorisation flag.
 
@@ -13,25 +13,30 @@ AI application security needs more than prompt-level checks. This repository pro
 The current implementation provides:
 
 - OWASP LLM 2025 starter mapping
-- MITRE ATLAS mapping catalog with AML technique IDs
+- MITRE ATLAS mapping catalog with AML technique IDs and refresh tooling
 - Safe demo target with no external API keys
+- Local demo HTTP target and control-gap fixture examples
 - Baseline, RAG, agent, and full profile definitions
 - Module protocol, starter modules, and registry-based module lookup
 - Safe YAML payload libraries mapped to module names
 - Scanner, scoring, result model, policy evaluation, and scoped policy exceptions
+- Signed approval evidence validation for policy exceptions
 - RAG corpus manifest validation
 - RAG retrieval scenario validation and source-trust scoring
 - Agent runtime governance validation
 - Agent execution scenario validation for tools, memory, approvals, and rollback planning
+- Richer configured target adapters: HTTP JSON, chat-completions-compatible, Ollama-style generate, and webhook JSON
 - Markdown, JSON, and SARIF-style reports with evidence details
 - Markdown and HTML dashboard generation
 - JSON/Markdown report diffing between assessment runs
+- Policy-result trend tracking
+- Report-diff trend dashboards
+- Benchmark regression suite
 - Safe release-package builder for demo outputs and non-sensitive examples
 - Explicit non-demo authorisation gate
-- Minimal HTTP JSON target adapter for approved targets
-- Python CI across supported versions with baseline, RAG, agent, diff, and release-package artifacts
+- Python CI across supported versions with baseline, RAG, agent, diff, benchmark, trend, and release-package artifacts
 
-The roadmap includes richer target adapters, trend tracking, benchmark datasets, signed approval evidence validation, report-diff regression gates, and package metadata validation.
+The roadmap now focuses on deeper production adapters, larger benchmark corpora, richer report branding, and automated release governance.
 
 ## OWASP LLM 2025 coverage
 
@@ -51,9 +56,9 @@ The roadmap includes richer target adapters, trend tracking, benchmark datasets,
 ## Architecture
 
 ```text
-Target AI Systems: demo echo target | configured HTTP JSON target
+Target AI Systems: demo echo target | local demo app | configured HTTP/Chat/Ollama/Webhook targets
         ↓
-Integration Layer: DemoEchoClient | HttpJsonTargetClient
+Integration Layer: DemoEchoClient | HttpJsonTargetClient | ChatCompletionsTargetClient | OllamaGenerateTargetClient | WebhookJsonTargetClient
         ↓
 Core Engine: Scanner | Test Runner | Results Engine | Risk Scoring | Policy Engine
         ↓
@@ -61,11 +66,11 @@ Module Layer: AssessmentModule protocol | ModuleRegistry | starter modules
         ↓
 Payload Layer: safe YAML payload libraries
         ↓
-Governance Layer: policy rules | exceptions | RAG manifest | RAG retrieval scenarios | agent runtime manifest | agent execution scenarios | ATLAS mapping
+Governance Layer: policy rules | exceptions | approval evidence | RAG manifest | RAG retrieval scenarios | agent runtime manifest | agent execution scenarios | ATLAS mapping
         ↓
 Assessment Profiles: baseline | rag | agent | full
         ↓
-Outputs: Markdown | JSON | SARIF-style | Markdown dashboard | HTML dashboard | report diff | release package
+Outputs: Markdown | JSON | SARIF-style | dashboards | report diff | trends | benchmarks | release package
 ```
 
 ## Repository structure
@@ -73,17 +78,19 @@ Outputs: Markdown | JSON | SARIF-style | Markdown dashboard | HTML dashboard | r
 ```text
 llm-vapt-framework/
 ├── .github/workflows/       # Python CI
+├── benchmarks/              # Regression benchmark suite and runner
 ├── config/                  # Targets, profiles, policies, manifests, mappings, scenarios
-├── core/                    # Scanner, runner, scoring, policy, exceptions, mapping, results model
-├── integrations/            # Demo and HTTP JSON adapters
+├── core/                    # Scanner, runner, scoring, policy, exceptions, approvals, mapping, results model
+├── examples/                # Safe local demo targets and fixtures
+├── integrations/            # Demo, HTTP JSON, chat, Ollama-style, and webhook adapters
 ├── modules/                 # Module protocol, registry, and starter modules
 ├── rag_testing/             # RAG corpus and retrieval validation
 ├── agent_testing/           # Agent runtime and execution validation
 ├── payloads/                # Safe payload schema and libraries
-├── reports/                 # Markdown, JSON, SARIF-style, and diff generation
-├── dashboards/              # Markdown and HTML dashboard generation
+├── reports/                 # Markdown, JSON, SARIF-style, diff, and policy-trend generation
+├── dashboards/              # Markdown, HTML, and diff-trend dashboard generation
 ├── tests/                   # Unit tests
-├── scripts/                 # CLI entry points and release package builder
+├── scripts/                 # CLI entry points, release package builder, ATLAS refresh
 └── docs/                    # Architecture, status, mapping, governance docs
 ```
 
@@ -157,6 +164,27 @@ python -m reports.report_diff \
 
 Use `--fail-on-regression` in CI when added or changed findings or policy status changes should fail the job.
 
+## Trend commands
+
+```bash
+python -m reports.policy_trends --input-dir reports/output
+python -m dashboards.diff_trend_dashboard --input-dir reports/output
+```
+
+## Benchmark command
+
+```bash
+python -m benchmarks.run_benchmarks --manifest benchmarks/benchmark_suite.yaml --fail-on-regression
+```
+
+## ATLAS refresh command
+
+Use local fixture mode in CI and review generated mappings before committing refreshed data:
+
+```bash
+python scripts/refresh_mitre_atlas.py --source path/to/ATLAS.yaml --output config/mitre_atlas_mapping.yaml
+```
+
 ## Release package command
 
 Build a ZIP package with safe demo outputs and non-sensitive examples after generating demo reports:
@@ -185,18 +213,21 @@ Read [`docs/module-authoring.md`](docs/module-authoring.md) before adding module
 
 ## Configuration
 
-- `config/default.yaml`: engine defaults, payload libraries, report outputs, approval gates, RAG corpus metadata, RAG retrieval scenarios, agent runtime metadata, agent execution scenarios, ATLAS mapping path, and release package manifest
-- `config/targets.yaml`: target definitions
+- `config/default.yaml`: engine defaults and paths for reports, approvals, RAG, agent, ATLAS, benchmarks, and release packaging
+- `config/targets.yaml`: target definitions and adapter examples
 - `config/attack_profiles.yaml`: selective module execution
 - `config/policies.yaml`: governance thresholds and blocking conditions
 - `config/policy_exceptions.yaml`: scoped exception register
+- `config/approval_evidence.yaml`: signed approval evidence register
 - `config/owasp_llm_2025_mapping.yaml`: audit-friendly OWASP mapping
 - `config/mitre_atlas_mapping.yaml`: MITRE ATLAS mapping catalog
+- `config/atlas_refresh.yaml`: ATLAS refresh settings
 - `config/rag_corpus_manifest.yaml`: RAG corpus metadata manifest
 - `config/rag_retrieval_scenarios.yaml`: RAG retrieval scenario manifest
 - `config/agent_runtime.yaml`: agent tool, memory, and orchestration governance manifest
 - `config/agent_execution_scenarios.yaml`: agent execution scenario manifest
 - `config/release_package.yaml`: release package manifest
+- `benchmarks/benchmark_suite.yaml`: regression benchmark suite
 - `payloads/schema.yaml`: payload library schema and safety rules
 
 ## Design principles
@@ -204,8 +235,8 @@ Read [`docs/module-authoring.md`](docs/module-authoring.md) before adding module
 1. Audit-friendly by default.
 2. Safe local demo first.
 3. Explicit authorisation for configured targets.
-4. System-level coverage roadmap across LLM, RAG, tool, memory, and orchestration layers.
-5. CI/CD-ready direction for prompt, corpus, agent, and release-gate checks.
+4. System-level coverage across LLM, RAG, tool, memory, and orchestration layers.
+5. CI/CD-ready direction for prompt, corpus, agent, release-gate, and regression checks.
 
 ## License
 
