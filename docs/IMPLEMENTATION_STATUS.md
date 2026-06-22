@@ -6,7 +6,7 @@ This document separates current working capability from roadmap items so users c
 
 | Area | Status | Notes |
 | --- | --- | --- |
-| Python package scaffold | Working | The project installs as a Python package with CLI entry points for assessment, dashboard generation, and report diffing. |
+| Python package scaffold | Working | The project installs as a Python package with CLI entry points for assessment, dashboard generation, report diffing, and release package building. |
 | Demo target | Working | The default `demo` target uses an in-memory echo client and requires no external API keys. |
 | Profiles | Working | `baseline`, `rag`, `agent`, and `full` profiles are defined in `config/attack_profiles.yaml`. |
 | Scanner | Working | The scanner loads config, selects a profile, runs configured modules, scores findings, attaches metadata, evaluates policy, and returns a scan result. |
@@ -18,6 +18,7 @@ This document separates current working capability from roadmap items so users c
 | Report generation | Working | Markdown, JSON, and SARIF-style reports include findings, evidence, and policy evaluation. |
 | Report diffing | Working starter | `reports/report_diff.py` compares two structured JSON reports, emits JSON/Markdown diffs, and can fail on regression. |
 | Dashboard generation | Working | Markdown and HTML dashboards are generated from the structured JSON report. |
+| Release packaging | Working starter | `config/release_package.yaml` and `scripts/build_release_package.py` package safe demo outputs and non-sensitive examples into a ZIP artifact. |
 | HTTP JSON target adapter | Starter | A minimal HTTP JSON adapter exists for explicitly authorised local or owned targets. |
 | OWASP LLM 2025 mapping | Partial | Checks are mapped to OWASP LLM 2025 IDs in config and module metadata. |
 | MITRE ATLAS mapping | Working starter | `config/mitre_atlas_mapping.yaml` and `core/mitre_atlas.py` validate a local ATLAS mapping catalog and populate starter findings with AML technique IDs. |
@@ -25,7 +26,7 @@ This document separates current working capability from roadmap items so users c
 | RAG retrieval testing | Working starter | `config/rag_retrieval_scenarios.yaml` and `rag_testing/retrieval_harness.py` validate expected retrieval, access boundaries, approved sources, and source-trust scoring. |
 | Agent runtime governance | Working starter | `config/agent_runtime.yaml` and `agent_testing/runtime_manifest.py` validate tool allowlists, high-impact approvals, memory integrity settings, and orchestration plan requirements. |
 | Agent execution testing | Working starter | `config/agent_execution_scenarios.yaml` and `agent_testing/execution_harness.py` validate simulated tool calls, approval points, memory writes, integrity references, and rollback-plan coverage. |
-| CI | Working starter | GitHub Actions installs the package, runs tests across supported Python versions, and runs a demo smoke assessment producing Markdown, JSON, SARIF, and dashboard artifacts. |
+| CI | Working starter | GitHub Actions installs the package, runs tests across supported Python versions, runs baseline/RAG/agent smoke assessments, generates report diffs, builds the release package, and uploads artifacts. |
 
 ## Current safe usage
 
@@ -49,6 +50,12 @@ Compare two structured JSON reports:
 python -m reports.report_diff --baseline reports/output/baseline.json --current reports/output/current.json
 ```
 
+Build a safe local release package after generating demo outputs:
+
+```bash
+python scripts/build_release_package.py --manifest config/release_package.yaml
+```
+
 For any configured target outside demo mode:
 
 1. Confirm the target is owned by you or explicitly approved for assessment.
@@ -59,16 +66,16 @@ For any configured target outside demo mode:
 
 ## Gap backlog
 
-1. Add release versioning and packaged example outputs.
-2. Add richer target adapters for common enterprise patterns.
-3. Add example vulnerable local demo applications.
-4. Add benchmark datasets for repeatable regression testing.
-5. Add signed approval evidence validation for exceptions.
-6. Add policy-result trend tracking across repeated runs.
-7. Add automatic ATLAS data refresh tooling.
-8. Add report diff trend dashboards.
-9. Add CI jobs for report-diff regression gates.
-10. Add HTML report branding and export packaging.
+1. Add richer target adapters for common enterprise patterns.
+2. Add example vulnerable local demo applications.
+3. Add benchmark datasets for repeatable regression testing.
+4. Add signed approval evidence validation for exceptions.
+5. Add policy-result trend tracking across repeated runs.
+6. Add automatic ATLAS data refresh tooling.
+7. Add report diff trend dashboards.
+8. Add CI jobs for report-diff regression gates.
+9. Add HTML report branding and export packaging.
+10. Add package metadata validation before release.
 
 ## Documentation rule
 
