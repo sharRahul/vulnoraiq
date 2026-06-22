@@ -20,6 +20,7 @@ EXPECTED_OWASP_DOCS = [
     "LLM09_MISINFORMATION.md",
     "LLM10_UNBOUNDED_CONSUMPTION.md",
 ]
+EXPECTED_MITRE_ATLAS_DOC = Path("docs/MITRE_ATLAS_AI_MATRIX.md")
 
 
 @dataclass(slots=True)
@@ -69,6 +70,8 @@ class PackageMetadataValidator:
         for expected_doc in EXPECTED_OWASP_DOCS:
             if not (owasp_dir / expected_doc).exists():
                 errors.append(f"Missing OWASP implementation doc: {expected_doc}")
+        if not EXPECTED_MITRE_ATLAS_DOC.exists():
+            errors.append(f"Missing MITRE ATLAS AI matrix doc: {EXPECTED_MITRE_ATLAS_DOC}")
         if not Path("examples/local_demo_targets/owasp_fixture_targets.py").exists():
             errors.append("Missing OWASP fixture target file")
         if not Path("core/evaluators.py").exists():
