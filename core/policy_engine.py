@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from agent_testing.execution_harness import AgentExecutionHarness
 from agent_testing.runtime_manifest import AgentRuntimeValidator
 from core.exception_registry import PolicyExceptionRegistry
 from core.types import Finding, PolicyResult, ScanResult
@@ -104,17 +105,24 @@ class PolicyEngine:
             )
 
         validation = self._validate_agent_runtime(config)
+        execution = self._run_agent_execution(config)
+        status = "fail" if "fail" in {validation.status, execution.status} else "warn" if "warn" in {validation.status, execution.status} else "pass"
         return PolicyResult(
             policy_id="tool_execution_requires_allowlist",
-            status=validation.status,
+            status=status,
             decision=policy.get("decision", "fail_on_medium"),
-            message=f"Agent runtime tool governance validation completed with status: {validation.status}.",
+            message=f"Agent tool and execution governance validation completed with status: {status}.",
             evidence={
                 "manifest_path": validation.manifest_path,
                 "tool_count": validation.tool_count,
                 "memory_store_count": validation.memory_store_count,
-                "errors": validation.errors,
-                "warnings": validation.warnings,
+                "runtime_errors": validation.errors,
+                "runtime_warnings": validation.warnings,
+                "execution_status": execution.status,
+                "execution_scenario_count": execution.scenario_count,
+                "execution_passed_count": execution.passed_count,
+                "execution_failed_count": execution.failed_count,
+                "execution_results": self._serialise_agent_execution_results(execution),
             },
         )
 
@@ -177,17 +185,24 @@ class PolicyEngine:
     def _evaluate_approval_policy(self, result: ScanResult, config: dict[str, Any], policy: dict[str, Any]) -> PolicyResult:
         if result.profile_name == "agent":
             validation = self._validate_agent_runtime(config)
+            execution = self._run_agent_execution(config)
+            status = "fail" if "fail" in {validation.status, execution.status} else "warn" if "warn" in {validation.status, execution.status} else "pass"
             return PolicyResult(
                 policy_id="critical_ai_action_requires_human_approval",
-                status=validation.status,
+                status=status,
                 decision=policy.get("decision", "fail_on_high"),
-                message=f"Agent runtime approval and memory governance validation completed with status: {validation.status}.",
+                message=f"Agent approval, memory, and orchestration validation completed with status: {status}.",
                 evidence={
                     "manifest_path": validation.manifest_path,
                     "tool_count": validation.tool_count,
                     "memory_store_count": validation.memory_store_count,
-                    "errors": validation.errors,
-                    "warnings": validation.warnings,
+                    "runtime_errors": validation.errors,
+                    "runtime_warnings": validation.warnings,
+                    "execution_status": execution.status,
+                    "execution_scenario_count": execution.scenario_count,
+                    "execution_passed_count": execution.passed_count,
+                    "execution_failed_count": execution.failed_count,
+                    "execution_results": self._serialise_agent_execution_results(execution),
                 },
             )
 
@@ -213,3 +228,27 @@ class PolicyEngine:
     def _validate_agent_runtime(config: dict[str, Any]):
         manifest_path = config.get("default", {}).get("agent_runtime", {}).get("manifest_path", "config/agent_runtime.yaml")
         return AgentRuntimeValidator().validate(Path(manifest_path))
+
+    @staticmethod
+    def _run_agent_execution(config: dict[str, Any]):
+        agent_config = config.get("default", {}).get("agent_runtime", {})
+        return AgentExecutionHarness(
+            runtime_manifest_path=agent_config.get("manifest_path", "config/agent_runtime.yaml"),
+            scenario_path=agent_config.get("execution_scenarios_path", "config/agent_execution_scenarios.yaml"),
+        ).run()
+
+    @staticmethod
+    def _serialise_agent_execution_results(execution) -> list[dict[str, Any]]:
+        return [
+            {
+                "scenario_id": item.scenario_id,
+                "status": item.status,
+                "observed_status": item.observed_status,
+                "expected_status": item.expected_status,
+                "tool_call_count": item.tool_call_count,
+                "memory_write_count": item.memory_write_count,
+                "errors": item.errors,
+                "warnings": item.warnings,
+            }
+            for item in execution.results
+        ]
