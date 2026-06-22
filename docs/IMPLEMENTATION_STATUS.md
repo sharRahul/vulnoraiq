@@ -2,32 +2,36 @@
 
 This document separates current working capability from roadmap items so users can understand what is ready today.
 
+> **Current maturity:** Vulnora-IQ version `0.0.1.2` is an early development build. It is suitable for local demos, framework development, UI workflow validation, and report-pipeline testing. It is **not ready for real-world VAPT testing or production security assessment use**.
+
+> **Important limitation:** OWASP LLM 2025 coverage is only partially mapped and currently implemented as starter checks. Treat output as development evidence, not validated security assurance.
+
 ## Current working capability
 
 | Area | Status | Notes |
 | --- | --- | --- |
-| Python package scaffold | Working | VulnoraIQ version `1.2.0` installs as a Python package with CLI entry points for assessment, Web UI, dashboard generation, report diffing, benchmark runs, trend outputs, ATLAS refresh, and release package building. |
-| Modern Web UI | Working starter | `webui/server.py` and `webui/static/` provide a browser console for launching scans, realtime progress via Server-Sent Events, completed dashboard views, scan history, and artifact downloads. |
+| Python package scaffold | Working starter | Vulnora-IQ version `0.0.1.2` installs as a Python package with CLI entry points for assessment, Web UI, dashboard generation, report diffing, benchmark runs, trend outputs, ATLAS refresh, and release package building. |
+| Modern Web UI | Working starter | `webui/server.py` and `webui/static/` provide a browser console for launching demo scans, realtime progress via Server-Sent Events, completed dashboard views, scan history, and artifact downloads. |
 | Demo target | Working | The default `demo` target uses an in-memory echo client and requires no external API keys. |
 | Local demo targets | Working starter | `examples/local_demo_targets/` contains a safe HTTP JSON target and a control-gap fixture for local demonstration and tests. |
-| Configured target adapters | Working starter | `integrations/adapters.py` supports chat-completions-compatible, Ollama-style generate, webhook JSON, and HTTP JSON endpoints, all gated by explicit authorisation. |
-| Profiles | Working | `baseline`, `rag`, `agent`, and `full` profiles are defined in `config/attack_profiles.yaml`. |
-| Scanner | Working | The scanner loads config, selects a profile, runs configured modules, scores findings, attaches metadata, evaluates policy, and returns a scan result. |
+| Configured target adapters | Starter only | `integrations/adapters.py` supports chat-completions-compatible, Ollama-style generate, webhook JSON, and HTTP JSON endpoint shapes, but these adapters need validation against real authorised target contracts before real VAPT use. |
+| Profiles | Working starter | `baseline`, `rag`, `agent`, and `full` profiles are defined in `config/attack_profiles.yaml`, but coverage depth is still starter-level. |
+| Scanner | Working starter | The scanner loads config, selects a profile, runs configured modules, scores findings, attaches metadata, evaluates policy, and returns a scan result. Findings are not yet validated as production-grade security assertions. |
 | Module plugin interface | Working starter | `modules/base.py`, `modules/starter.py`, and `modules/registry.py` provide a formal module protocol, starter module implementation, and registry lookup. |
 | Payload libraries | Working starter | `core/payload_loader.py` loads safe YAML payload libraries from `payloads/` and maps them to module names. |
 | Non-demo authorisation gate | Working | Configured targets outside demo mode require the explicit CLI authorisation flag. |
 | Policy-as-code | Working starter | Policy YAML is evaluated by `core/policy_engine.py` for sensitive marker checks, severity thresholds, agent runtime governance, RAG corpus/retrieval integrity, approval gates, and scoped exceptions. |
 | Policy exceptions | Working starter | `config/policy_exceptions.yaml` and `core/exception_registry.py` support owner, reason, expiry, target, profile, approval reference, and compensating control metadata. |
 | Approval evidence validation | Working starter | `config/approval_evidence.yaml` and `core/approval_evidence.py` validate approval references and local SHA-256 integrity signatures before exceptions suppress policy outcomes. |
-| Report generation | Working | Markdown, JSON, and SARIF-style reports include findings, evidence, and policy evaluation. |
+| Report generation | Working starter | Markdown, JSON, and SARIF-style reports include findings, evidence, and policy evaluation, but report conclusions are only as mature as the starter checks. |
 | Report diffing | Working starter | `reports/report_diff.py` compares two structured JSON reports, emits JSON/Markdown diffs, and can fail on regression. |
 | Policy trend tracking | Working starter | `reports/policy_trends.py` builds JSON/Markdown trend summaries across assessment reports. |
 | Diff trend dashboards | Working starter | `dashboards/diff_trend_dashboard.py` builds Markdown/HTML dashboards from report-diff files. |
-| Dashboard generation | Working | Markdown and HTML dashboards are generated from the structured JSON report. |
+| Dashboard generation | Working starter | Markdown and HTML dashboards are generated from the structured JSON report. |
 | Release packaging | Working starter | `config/release_package.yaml` and `scripts/build_release_package.py` package safe demo outputs and non-sensitive examples into a ZIP artifact. |
 | Benchmarks | Working starter | `benchmarks/benchmark_suite.yaml` and `benchmarks/run_benchmarks.py` provide repeatable local regression checks. |
-| HTTP JSON target adapter | Working starter | The original HTTP JSON adapter remains available for explicitly authorised local or owned targets. |
-| OWASP LLM 2025 mapping | Partial | Checks are mapped to OWASP LLM 2025 IDs in config and module metadata. |
+| HTTP JSON target adapter | Starter only | The original HTTP JSON adapter remains available, but it requires real-world contract validation before production assessment. |
+| OWASP LLM 2025 mapping | Partial | Checks are mapped to OWASP LLM 2025 IDs in config and module metadata, but coverage is incomplete and not yet production-validated. |
 | MITRE ATLAS mapping | Working starter | `config/mitre_atlas_mapping.yaml` and `core/mitre_atlas.py` validate a local ATLAS mapping catalog and populate starter findings with AML technique IDs. |
 | ATLAS refresh tooling | Working starter | `config/atlas_refresh.yaml` and `scripts/refresh_mitre_atlas.py` can refresh local technique metadata from a local ATLAS YAML fixture or configured source URL. |
 | RAG corpus manifest validation | Working starter | `config/rag_corpus_manifest.yaml` and `rag_testing/corpus_manifest.py` validate source metadata, approvals, hashes, and access groups. |
@@ -81,18 +85,21 @@ For any configured target outside demo mode:
 2. Replace the placeholder endpoint in `config/targets.yaml`.
 3. Set any required token environment variable.
 4. Run with the CLI authorisation flag or tick the Web UI authorisation confirmation.
-5. Store reports securely and review evidence before sharing.
+5. Treat results as experimental until OWASP coverage and checks are validated.
+6. Store reports securely and review evidence before sharing.
 
 ## Remaining roadmap
 
-1. Add authentication and role separation for hosted multi-user Web UI deployments.
-2. Add persistent job storage instead of in-memory Web UI scan history.
-3. Add deeper production-specific adapters once real authorised target contracts are known.
-4. Expand benchmark corpora with more local safe fixtures.
-5. Add richer HTML branding and export packaging.
-6. Add package metadata validation before release.
-7. Add scheduled ATLAS refresh workflows if maintainers want automated external data updates.
+1. Complete OWASP LLM 2025 coverage with validated checks.
+2. Add stronger evidence models and test oracles for each OWASP category.
+3. Add authentication and role separation for hosted multi-user Web UI deployments.
+4. Add persistent job storage instead of in-memory Web UI scan history.
+5. Add deeper production-specific adapters once real authorised target contracts are known.
+6. Expand benchmark corpora with more local safe fixtures.
+7. Add richer HTML branding and export packaging.
+8. Add package metadata validation before release.
+9. Add scheduled ATLAS refresh workflows if maintainers want automated external data updates.
 
 ## Documentation rule
 
-README claims should stay aligned to this file. If a capability is only a starter, placeholder, or roadmap item, mark it as such in both places.
+README claims should stay aligned to this file. If a capability is only a starter, placeholder, partial, or roadmap item, mark it as such in both places.
