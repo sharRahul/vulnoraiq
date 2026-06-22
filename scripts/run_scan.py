@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 from core.scanner import Scanner
 from dashboards.generate_dashboard import DashboardGenerator
+from dashboards.html_dashboard import HtmlDashboardGenerator
 from reports.json_report_generator import JsonReportGenerator
 from reports.report_generator import MarkdownReportGenerator
+from reports.sarif_report_generator import SarifReportGenerator
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -15,7 +18,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--profile", default="baseline", help="Assessment profile from config/attack_profiles.yaml. Default: baseline")
     parser.add_argument("--output", default="reports/output/scan-report.md", help="Markdown report output path.")
     parser.add_argument("--json-output", default="reports/output/scan-report.json", help="Structured JSON report output path.")
+    parser.add_argument("--sarif-output", default="reports/output/scan-report.sarif", help="SARIF-style report output path.")
     parser.add_argument("--dashboard-output", default="reports/output/dashboard.md", help="Markdown dashboard output path.")
+    parser.add_argument("--html-dashboard-output", default="reports/output/dashboard.html", help="HTML dashboard output path.")
     parser.add_argument(
         "--authorised",
         action="store_true",
@@ -31,17 +36,17 @@ def main() -> None:
 
     markdown_output = MarkdownReportGenerator().generate(result, args.output)
     json_output = JsonReportGenerator().generate(result, args.json_output)
-
-    import json
+    sarif_output = SarifReportGenerator().generate(result, args.sarif_output)
 
     report_data = json.loads(Path(json_output).read_text(encoding="utf-8"))
     dashboard_output = DashboardGenerator().generate_from_report(report_data, args.dashboard_output)
+    html_dashboard_output = HtmlDashboardGenerator().generate_from_report(report_data, args.html_dashboard_output)
 
     print(
         "Assessment complete: "
         f"{result.finding_count} findings. "
         f"Policy status: {result.policy_status}. "
-        f"Reports written to {markdown_output}, {json_output}, and {dashboard_output}"
+        f"Reports written to {markdown_output}, {json_output}, {sarif_output}, {dashboard_output}, and {html_dashboard_output}"
     )
 
 
