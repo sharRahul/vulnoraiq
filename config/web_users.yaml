@@ -1,6 +1,17 @@
+# Web UI authentication configuration.
+#
+# Auth is enabled by default. In production, set these env vars:
+#   VULNORAIQ_AUTH_ENABLED=true
+#   VULNORAIQ_ADMIN_TOKEN=<strong-random-token>
+#   VULNORAIQ_ANALYST_TOKEN=<analyst-token>
+#   VULNORAIQ_VIEWER_TOKEN=<viewer-token>
+#
+# The file-based user list below is used only when no token env vars are set.
+# The hashes below are for demo/development only -- replace in production.
+
 auth:
-  enabled: false
-  default_role: analyst
+  enabled: true
+  default_role: viewer
   header_name: X-VulnoraIQ-Token
 users:
   - username: admin

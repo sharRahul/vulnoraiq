@@ -4,7 +4,15 @@ from webui.auth import WebAuthManager
 from webui.persistent_jobs import PersistentJobStore
 
 
-def test_auth_manager_anonymous_role_when_disabled() -> None:
+def test_auth_manager_returns_none_when_auth_enabled_and_no_token() -> None:
+    manager = WebAuthManager()
+    principal = manager.authenticate_token(None)
+
+    assert principal is None
+
+
+def test_auth_manager_anonymous_role_when_disabled(monkeypatch) -> None:
+    monkeypatch.setenv("VULNORAIQ_AUTH_ENABLED", "false")
     manager = WebAuthManager()
     principal = manager.authenticate_token(None)
 

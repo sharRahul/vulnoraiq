@@ -4,7 +4,7 @@ from collections.abc import Mapping
 
 from core.production_detection import ProductionOwaspDetector
 from core.types import ScanContext
-from modules.base import AssessmentModule, ModuleMetadata
+from modules.base import AssessmentModule
 
 
 class ProductionAssessmentModule:

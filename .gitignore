@@ -13,4 +13,5 @@ reports/output/*.json
 .env.*
 *.key
 *.pem
+*.db
 config/local*.yaml

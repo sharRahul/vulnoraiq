@@ -33,7 +33,8 @@ def test_container_and_deployment_baseline_exist():
     deployment = DEPLOYMENT_DOC.read_text(encoding="utf-8")
     assert "/healthz" in dockerfile
     assert "VULNORAIQ_WEB_USERS_PATH" in deployment
-    assert "PRODUCTION_HARDENING_BACKLOG.md" in deployment
+    assert "VULNORAIQ_ADMIN_TOKEN" in deployment
+    assert "Production Checklist" in deployment
 
 
 @pytest.mark.parametrize(

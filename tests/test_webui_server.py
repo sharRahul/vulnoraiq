@@ -4,8 +4,7 @@ from pathlib import Path
 
 import pytest
 
-import webui.server as web_server
-from webui.server import JobStore, ScanJob, validate_scan_request
+from webui.hosted_server import validate_scan_request
 
 
 def test_validate_scan_request_accepts_demo_defaults() -> None:
@@ -21,32 +20,18 @@ def test_validate_scan_request_rejects_unknown_target() -> None:
         validate_scan_request({"target": "missing", "profile": "baseline"})
 
 
-def test_scan_job_serialisation_can_exclude_events() -> None:
-    job = ScanJob(id="job1", target="demo", profile="baseline", authorised=False)
-    job.add_event("queued", "queued", 0)
-
-    data = job.to_dict(include_events=False)
-
-    assert data["id"] == "job1"
-    assert "events" not in data
-
-
-def test_job_store_create_and_list() -> None:
-    store = JobStore()
-
-    job = store.create("demo", "baseline", False)
-
-    assert store.get(job.id) is job
-    assert store.list()[0].id == job.id
-
-
 def test_run_scan_job_generates_webui_outputs(tmp_path, monkeypatch) -> None:
-    monkeypatch.setattr(web_server, "OUTPUT_ROOT", Path(tmp_path))
-    store = JobStore()
-    monkeypatch.setattr(web_server, "JOB_STORE", store)
+    from webui.hosted_server import run_scan_job
+
+    monkeypatch.setattr("webui.hosted_server.OUTPUT_ROOT", Path(tmp_path))
+    # Use a fresh in-process JSON store for testing
+    from webui.persistent_jobs import PersistentJobStore
+
+    store = PersistentJobStore(tmp_path / "jobs.json")
+    monkeypatch.setattr("webui.hosted_server.JOB_STORE", store)
     job = store.create("demo", "baseline", False)
 
-    web_server.run_scan_job(job.id)
+    run_scan_job(job.id)
 
     completed = store.get(job.id)
     assert completed is not None
