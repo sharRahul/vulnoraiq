@@ -11,3 +11,25 @@ targets:
     endpoint: https://example.invalid/agent
     auth: bearer_env
     token_env_var: LLM_VAPT_TARGET_TOKEN
+
+  local_chat_completions:
+    type: chat_completions_compatible
+    description: Placeholder for an authorised local chat-completions-compatible endpoint.
+    endpoint: https://example.invalid/v1/chat/completions
+    model: local-model
+    auth: bearer_env
+    token_env_var: LLM_VAPT_TARGET_TOKEN
+
+  local_ollama_generate:
+    type: ollama_generate
+    description: Placeholder for an authorised local Ollama-style generate endpoint.
+    endpoint: https://example.invalid/api/generate
+    model: llama3
+    auth: none
+
+  internal_webhook_json:
+    type: webhook_json
+    description: Placeholder for an authorised internal webhook JSON endpoint.
+    endpoint: https://example.invalid/assessment-webhook
+    auth: header_env
+    token_env_var: LLM_VAPT_TARGET_TOKEN
