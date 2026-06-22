@@ -2,7 +2,7 @@
 
 An AI security assessment framework for **LLM applications, RAG pipelines, AI agents, and orchestration layers**.
 
-> **Current maturity:** this repository is a working starter framework, not a complete enterprise platform yet. Start with [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md) to see what is implemented, partial, or planned.
+> **Current maturity:** this repository is evolving from a starter framework into an enterprise platform. Start with [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md) to see what is implemented, partial, or planned.
 
 > **Responsible use only:** run this framework only against systems you own or are explicitly authorised to assess. The default demo target is safe and local. Configured non-demo targets require an explicit authorisation flag.
 
@@ -16,11 +16,14 @@ The current implementation provides:
 - Safe demo target with no external API keys
 - Baseline, RAG, agent, and full profile definitions
 - Scanner, starter check runner, scoring, and result model
-- Markdown reporting with evidence details
+- Policy-as-code evaluation for governance controls
+- Markdown and JSON reports with evidence details
+- Markdown dashboard generation
 - Explicit non-demo authorisation gate
 - Minimal HTTP JSON target adapter for approved targets
+- Python CI across supported versions with demo report artifacts
 
-The roadmap includes deeper RAG fixtures, agent harnesses, policy enforcement, MITRE ATLAS mapping, dashboards, and CI-friendly output formats.
+The roadmap includes deeper RAG fixtures, agent harnesses, expanded policy enforcement, MITRE ATLAS mapping, HTML dashboards, SARIF-style output, and a formal module plugin system.
 
 ## OWASP LLM 2025 coverage
 
@@ -44,29 +47,30 @@ Target AI Systems: demo echo target | configured HTTP JSON target
         ↓
 Integration Layer: DemoEchoClient | HttpJsonTargetClient
         ↓
-Core Engine: Scanner | Test Runner | Results Engine | Risk Scoring
+Core Engine: Scanner | Test Runner | Results Engine | Risk Scoring | Policy Engine
         ↓
-Testing Profiles: baseline | rag | agent | full
+Assessment Profiles: baseline | rag | agent | full
         ↓
-Reporting: Markdown report with finding evidence and recommendations
+Reporting: Markdown report | JSON report | Markdown dashboard
 ```
 
 ## Repository structure
 
 ```text
 llm-vapt-framework/
-├── config/                 # Targets, profiles, policies, mappings
-├── core/                   # Scanner, runner, scoring, results model
-├── integrations/           # Demo and HTTP JSON adapters
-├── modules/                # Reserved for future pluggable module implementations
-├── rag_testing/            # Reserved for RAG fixtures and harnesses
-├── agent_testing/          # Reserved for agent fixtures and harnesses
-├── payloads/               # Reserved for safe starter payload libraries
-├── reports/                # Markdown report generation and templates
-├── dashboards/             # Reserved for visualisation helpers
-├── tests/                  # Unit tests
-├── scripts/                # CLI and CI entry points
-└── docs/                   # Architecture, roadmap, mapping, governance docs
+├── .github/workflows/       # Python CI
+├── config/                  # Targets, profiles, policies, mappings
+├── core/                    # Scanner, runner, scoring, policy, results model
+├── integrations/            # Demo and HTTP JSON adapters
+├── modules/                 # Reserved for future pluggable module implementations
+├── rag_testing/             # Reserved for RAG fixtures and harnesses
+├── agent_testing/           # Reserved for agent fixtures and harnesses
+├── payloads/                # Reserved for safe starter input libraries
+├── reports/                 # Markdown and JSON report generation
+├── dashboards/              # Dashboard generation helpers
+├── tests/                   # Unit tests
+├── scripts/                 # CLI entry points
+└── docs/                    # Architecture, roadmap, mapping, governance docs
 ```
 
 ## Quick start
@@ -80,6 +84,12 @@ python scripts/run_scan.py --target demo --profile baseline
 
 The demo target uses an in-memory echo client, so the framework can be explored without external API keys.
 
+The default command writes:
+
+- `reports/output/scan-report.md`
+- `reports/output/scan-report.json`
+- `reports/output/dashboard.md`
+
 ## Run tests
 
 ```bash
@@ -92,7 +102,9 @@ pytest -q
 python scripts/run_scan.py \
   --target demo \
   --profile baseline \
-  --output reports/output/demo-report.md
+  --output reports/output/demo-report.md \
+  --json-output reports/output/demo-report.json \
+  --dashboard-output reports/output/demo-dashboard.md
 ```
 
 ## Configured target command
@@ -104,14 +116,26 @@ python scripts/run_scan.py \
   --target custom_http_agent \
   --profile baseline \
   --authorised \
-  --output reports/output/authorised-target-report.md
+  --output reports/output/authorised-target-report.md \
+  --json-output reports/output/authorised-target-report.json \
+  --dashboard-output reports/output/authorised-target-dashboard.md
 ```
 
 Before running against a configured target, replace the placeholder endpoint in `config/targets.yaml` and set any required token environment variable.
 
+## Dashboard command
+
+Generate a dashboard from an existing JSON report:
+
+```bash
+python dashboards/generate_dashboard.py \
+  --report reports/output/scan-report.json \
+  --output reports/output/dashboard.md
+```
+
 ## Configuration
 
-- `config/default.yaml`: engine defaults
+- `config/default.yaml`: engine defaults, report outputs, approval gates, and RAG corpus integrity metadata
 - `config/targets.yaml`: target definitions
 - `config/attack_profiles.yaml`: selective module execution
 - `config/policies.yaml`: governance thresholds and blocking conditions
