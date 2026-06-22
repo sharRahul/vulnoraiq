@@ -2,7 +2,7 @@
 
 This document separates current working capability from roadmap items so users can understand what is ready today.
 
-> **Current maturity:** Vulnora-IQ version `0.0.1.2` is an early development build. It is suitable for local demos, framework development, UI workflow validation, and report-pipeline testing. It is **not ready for real-world VAPT testing or production security assessment use**.
+> **Current maturity:** VulnoraIQ version `0.0.1.2` is an early development build. It is suitable for local demos, framework development, UI workflow validation, and report-pipeline testing. It is **not ready for real-world VAPT testing or production security assessment use**.
 
 > **Important limitation:** OWASP LLM 2025 coverage is only partially mapped and currently implemented as starter checks. Treat output as development evidence, not validated security assurance.
 
@@ -10,7 +10,7 @@ This document separates current working capability from roadmap items so users c
 
 | Area | Status | Notes |
 | --- | --- | --- |
-| Python package scaffold | Working starter | Vulnora-IQ version `0.0.1.2` installs as a Python package with CLI entry points for assessment, Web UI, dashboard generation, report diffing, benchmark runs, trend outputs, ATLAS refresh, and release package building. |
+| Python package scaffold | Working starter | VulnoraIQ version `0.0.1.2` installs as a Python package with CLI entry points for assessment, Web UI, dashboard generation, report diffing, benchmark runs, trend outputs, ATLAS refresh, and release package building. |
 | Modern Web UI | Working starter | `webui/server.py` and `webui/static/` provide a browser console for launching demo scans, realtime progress via Server-Sent Events, completed dashboard views, scan history, and artifact downloads. |
 | Demo target | Working | The default `demo` target uses an in-memory echo client and requires no external API keys. |
 | Local demo targets | Working starter | `examples/local_demo_targets/` contains a safe HTTP JSON target and a control-gap fixture for local demonstration and tests. |
