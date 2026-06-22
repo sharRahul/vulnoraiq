@@ -1,7 +1,7 @@
 framework:
   name: vulnoraiq
   display_name: VulnoraIQ
-  version: 0.0.1.3
+  version: 0.0.1.4
   safe_mode: true
 
 execution:
@@ -61,6 +61,7 @@ mitre_atlas:
   mapping_path: config/mitre_atlas_mapping.yaml
   refresh_config_path: config/atlas_refresh.yaml
   source_fixture_path: config/mitre_atlas_source_fixture.yaml
+  matrix_doc_path: docs/MITRE_ATLAS_AI_MATRIX.md
 
 benchmarks:
   manifest_path: benchmarks/benchmark_suite.yaml
