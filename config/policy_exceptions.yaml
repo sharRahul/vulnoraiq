@@ -1,0 +1,22 @@
+exceptions: []
+
+schema:
+  required_fields:
+    - id
+    - policy_id
+    - status
+    - owner
+    - reason
+    - expires_on
+  optional_fields:
+    - target
+    - profile
+    - finding_title
+    - approval_reference
+    - compensating_controls
+
+rules:
+  - Exceptions must have an owner and expiry date.
+  - Exceptions should be narrow: scope by policy, target, profile, or finding where possible.
+  - Expired exceptions must not suppress policy results.
+  - Compensating controls should be documented for every active exception.
