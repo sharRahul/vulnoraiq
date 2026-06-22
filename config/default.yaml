@@ -1,6 +1,6 @@
 framework:
   name: llm-vapt-framework
-  version: 0.3.0
+  version: 0.4.0
   safe_mode: true
 
 execution:
@@ -22,7 +22,9 @@ risk_model:
 reporting:
   default_output: reports/output/scan-report.md
   json_output: reports/output/scan-report.json
+  sarif_output: reports/output/scan-report.sarif
   dashboard_output: reports/output/dashboard.md
+  html_dashboard_output: reports/output/dashboard.html
   include_evidence: true
 
 approval_gates:
