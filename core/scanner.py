@@ -6,6 +6,7 @@ from typing import Any
 
 import yaml
 
+from core.evidence_model import OwaspOracleRegistry
 from core.policy_engine import PolicyEngine
 from core.test_runner import TestRunner
 from core.types import ScanContext, ScanResult, TargetClient
@@ -20,6 +21,7 @@ class Scanner:
         self.config_dir = Path(config_dir)
         self.runner = TestRunner()
         self.policy_engine = PolicyEngine()
+        self.oracle_registry = OwaspOracleRegistry()
 
     def scan(
         self,
@@ -52,6 +54,8 @@ class Scanner:
                 "framework": config.get("default", {}).get("framework", {}),
                 "profile_description": profile.get("description", ""),
                 "authorised": authorised or target_name == "demo",
+                "owasp_oracle_coverage": self.oracle_registry.coverage_summary(),
+                "production_validation_status": "not_validated_for_real_world_vapt",
             },
         )
         result.policy_results = self.policy_engine.evaluate(result, config)
