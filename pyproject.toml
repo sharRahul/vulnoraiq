@@ -29,6 +29,8 @@ vulnoraiq-benchmark = "benchmarks.run_benchmarks:main"
 vulnoraiq-policy-trend = "reports.policy_trends:main"
 vulnoraiq-diff-trend = "dashboards.diff_trend_dashboard:main"
 vulnoraiq-refresh-atlas = "scripts.refresh_mitre_atlas:main"
+vulnoraiq-html-export = "reports.html_export_package:main"
+vulnoraiq-validate-package = "scripts.validate_package_metadata:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
