@@ -29,7 +29,7 @@ def load_source(source: str | Path) -> dict[str, Any]:
 def refresh_mapping(source: str | Path, existing_mapping_path: str | Path = "config/mitre_atlas_mapping.yaml", output_path: str | Path | None = None) -> Path:
     atlas_data = load_source(source)
     existing = load_yaml(existing_mapping_path)
-    techniques = {
+    source_techniques = {
         str(item["id"]): {
             "name": str(item.get("name", item["id"])),
             "rationale": existing.get("techniques", {}).get(str(item["id"]), {}).get("rationale", "Imported from ATLAS source data."),
@@ -37,13 +37,15 @@ def refresh_mapping(source: str | Path, existing_mapping_path: str | Path = "con
         for item in atlas_data.get("matrices", [{}])[0].get("techniques", [])
         if str(item.get("id", "")).startswith("AML.T")
     }
+    preserved_techniques = dict(existing.get("techniques", {}))
+    preserved_techniques.update(source_techniques)
     refreshed = {
         "source": {
             **existing.get("source", {}),
             "atlas_version": atlas_data.get("version", existing.get("source", {}).get("atlas_version")),
             "refreshed_from": str(source),
         },
-        "techniques": {key: techniques[key] for key in sorted(set(existing.get("techniques", {})) & set(techniques))},
+        "techniques": {key: preserved_techniques[key] for key in sorted(preserved_techniques)},
         "module_mappings": existing.get("module_mappings", {}),
     }
     output = Path(output_path or existing_mapping_path)
