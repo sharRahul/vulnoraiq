@@ -22,6 +22,8 @@ EXPECTED_OWASP_DOCS = [
 ]
 EXPECTED_MITRE_ATLAS_DOC = Path("docs/MITRE_ATLAS_AI_MATRIX.md")
 EXPECTED_THIRD_PARTY_NOTICES = Path("THIRD_PARTY_NOTICES.md")
+EXPECTED_DASHBOARD_EXAMPLE = Path("docs/assets/vulnoraiq-dashboard-example.svg")
+EXPECTED_FUNCTIONAL_RUNNER = Path("scripts/run_functional_test.py")
 
 
 @dataclass(slots=True)
@@ -59,6 +61,7 @@ class PackageMetadataValidator:
             "vulnoraiq-diff",
             "vulnoraiq-package",
             "vulnoraiq-benchmark",
+            "vulnoraiq-functional-test",
             "vulnoraiq-generate-atlas-matrix",
             "vulnoraiq-html-export",
             "vulnoraiq-validate-package",
@@ -68,6 +71,8 @@ class PackageMetadataValidator:
         readme = Path("README.md").read_text(encoding="utf-8")
         if "not ready for real-world VAPT" not in readme:
             warnings.append("README maturity warning was not found")
+        if "docs/assets/vulnoraiq-dashboard-example.svg" not in readme:
+            errors.append("README must include the dashboard example image")
         owasp_dir = Path("docs/owasp")
         for expected_doc in EXPECTED_OWASP_DOCS:
             if not (owasp_dir / expected_doc).exists():
@@ -87,6 +92,14 @@ class PackageMetadataValidator:
                 errors.append("MITRE ATLAS matrix must link to THIRD_PARTY_NOTICES.md")
         if not Path("scripts/generate_mitre_atlas_matrix.py").exists():
             errors.append("Missing MITRE ATLAS matrix generator")
+        if not EXPECTED_FUNCTIONAL_RUNNER.exists():
+            errors.append(f"Missing functional acceptance runner: {EXPECTED_FUNCTIONAL_RUNNER}")
+        if not EXPECTED_DASHBOARD_EXAMPLE.exists():
+            errors.append(f"Missing dashboard example image: {EXPECTED_DASHBOARD_EXAMPLE}")
+        else:
+            image = EXPECTED_DASHBOARD_EXAMPLE.read_text(encoding="utf-8")
+            if not image.lstrip().startswith("<svg"):
+                errors.append("Dashboard example image must be an SVG file")
         if not Path("examples/local_demo_targets/owasp_fixture_targets.py").exists():
             errors.append("Missing OWASP fixture target file")
         if not Path("core/evaluators.py").exists():
