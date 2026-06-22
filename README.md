@@ -1,200 +1,117 @@
 # VulnoraIQ
 
-**VulnoraIQ** is an early-stage AI security assessment platform for **LLM applications, RAG pipelines, AI agents, and orchestration layers**.
+**VulnoraIQ** is an AI security assessment framework for **LLM applications, RAG pipelines, AI agents, tool-using systems, and orchestration layers**.
 
-> **Current maturity:** version `0.2.0` has passed the **controlled internal enterprise production-readiness gate** for single-organisation/internal deployment. It is **not recommended for unsupervised public internet exposure or multi-tenant SaaS hosting** without additional controls such as OIDC/SSO, tenant isolation, horizontal scaling, external penetration testing, WAF/CDN/DDoS protection, and HA database infrastructure. See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for the production checklist, [`docs/PRODUCTION_READINESS_SCORECARD.md`](docs/PRODUCTION_READINESS_SCORECARD.md) for scored readiness, [`docs/PRODUCTION_HARDENING_BACKLOG.md`](docs/PRODUCTION_HARDENING_BACKLOG.md) for remaining gaps, and [`docs/ASSESSMENT_ASSURANCE.md`](docs/ASSESSMENT_ASSURANCE.md) for scanner/evaluator assurance limitations.
+It gives security teams a structured way to run authorised AI-application assessments, collect evidence, score findings, generate reports, and track OWASP LLM / MITRE ATLAS coverage as the framework matures.
 
-> **Important limitation:** OWASP LLM 2025 coverage now has safe starter oracle coverage, implementation specs, evaluator primitives, and local good/bad fixtures for all 10 categories. MITRE ATLAS AI technique coverage has a source-driven documentation matrix, but not every listed technique is implemented as an active check yet. Unmapped tactics and techniques must still be listed as `Unmapped / map later`. Treat all scan output as framework-development evidence, not validated security assurance or certified VAPT output.
+---
 
-> **Responsible use only:** run this platform only against systems you own or are explicitly authorised to assess. The default demo target is safe and local. Configured non-demo targets require an explicit authorisation flag. Auth is enabled by default and fail-closed; configure real tokens before exposing the web UI beyond localhost.
+## Current status
+
+**Version:** `0.2.0`  
+**Deployment posture:** controlled internal enterprise production-readiness gate passed  
+**Assessment assurance:** starter/framework evidence, not certified VAPT-grade assurance
+
+| Area | Status |
+| --- | --- |
+| Local demo / development | Supported |
+| Controlled internal enterprise deployment | Supported with production configuration validation |
+| Public internet-facing deployment | Not recommended without extra controls |
+| Multi-tenant SaaS hosting | Not supported |
+| Certified VAPT-grade security assurance | Not claimed |
+
+`0.2.0` may be described as:
+
+> **Controlled internal enterprise production-readiness gate passed.**
+
+It must **not** be described as public SaaS ready, multi-tenant ready, unsupervised internet-facing ready, or certified VAPT-grade assurance.
+
+For details, see:
+
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — deployment and production configuration
+- [`docs/PRODUCTION_READINESS_SCORECARD.md`](docs/PRODUCTION_READINESS_SCORECARD.md) — scored readiness
+- [`docs/PRODUCTION_HARDENING_BACKLOG.md`](docs/PRODUCTION_HARDENING_BACKLOG.md) — remaining gaps and accepted risks
+- [`docs/ASSESSMENT_ASSURANCE.md`](docs/ASSESSMENT_ASSURANCE.md) — scanner/evaluator limitations
+- [`SECURITY.md`](SECURITY.md) — security policy and responsible-use requirements
+
+---
+
+## Responsible-use boundary
+
+Use VulnoraIQ only against systems you own or are explicitly authorised to assess.
+
+The default `demo` target is safe and local. Configured non-demo targets require an explicit authorisation flag. Do not use this project for unauthorised scanning, credential theft, malware delivery, bypass workflows, or testing third-party systems without written permission.
+
+---
 
 ## Dashboard example
 
-The image below is generated from the safe local functional test path and shows the intended dashboard style for demo/report workflow testing.
+The dashboard below is generated from the safe local functional test path and shows the intended reporting workflow.
 
 ![VulnoraIQ dashboard example](docs/assets/vulnoraiq-dashboard-example.svg)
 
-## Why this exists
+---
 
-AI application security needs more than prompt-level checks. VulnoraIQ provides a practical structure for assessing model endpoints, retrieval layers, tools, memory, orchestration, governance controls, and reporting.
+## What VulnoraIQ provides today
 
-The current implementation provides:
+### Assessment framework
 
-- Modern hosted Web UI with realtime progress (SSE), role-aware auth (environment tokens / trusted proxy identity headers), production SQLite job persistence with WAL mode, CSRF protection, rate limiting, request-size limits, security headers, structured audit logging, executive dashboards, scan history, artifact download, and Prometheus metrics
-- Production-mode startup validation covering auth, token strength, demo-token rejection, internal admin-token disabling, job-store backend, SQLite path safety, writable output paths, readable config, trusted proxy CIDRs, listen-address safety, sane rate limits, request body limits, CSRF TTL, audit logging, and development-config warnings
-- Functional acceptance runner that generates demo reports, validates required output fields, and refreshes the README dashboard example image
-- OWASP LLM 2025 implementation specs in `docs/owasp/` for all 10 categories
-- MITRE ATLAS Matrix for AI planning register in `docs/MITRE_ATLAS_AI_MATRIX.md`
-- Source-driven ATLAS matrix generator with explicit `Unmapped / map later` backlog preservation
-- Third-party notices for MITRE ATLAS-derived documentation and planning data
-- OWASP LLM 2025 safe starter oracle coverage for all 10 categories
-- Deterministic local evaluator primitives and local good/bad OWASP fixture targets
-- Structured evidence records and oracle results for module interactions
-- MITRE ATLAS mapping catalog with AML technique IDs, local source fixture, and scheduled refresh validation workflow
-- Safe demo target with no external API keys
-- Local demo HTTP target and control-gap fixture examples
-- Baseline, RAG, agent, and full profile definitions
-- Module protocol, starter modules, and registry-based module lookup
-- Safe YAML payload libraries mapped to module names
-- Scanner, scoring, result model, policy evaluation, scoped policy exceptions, and approval evidence validation
-- RAG corpus manifest validation and RAG retrieval scenario validation with source-trust scoring
-- Agent runtime governance and simulated execution validation for tools, memory, approvals, and rollback planning
-- Configured target adapter contracts for HTTP JSON, chat-completions-compatible, Ollama-style generate, and webhook JSON endpoint shapes
-- Markdown, JSON, SARIF-style, Markdown dashboard, HTML dashboard, trend, diff, and branded HTML export outputs
-- Benchmark regression suite and OWASP starter fixture corpus
-- Safe release-package builder for demo outputs and non-sensitive examples
-- Package metadata release gate that checks OWASP docs, MITRE ATLAS matrix docs, third-party notices, functional test assets, evaluators, fixtures, version alignment, and CLI entries
-- Explicit non-demo authorisation gate
-- Python CI across supported versions with tests, Ruff, mypy, `pip check`, `pip-audit`, metadata gates, target contract validation, benchmark fixture validation, functional acceptance testing, scan smoke tests, trends, exports, and release artifacts
+- Safe local demo target with no external API keys.
+- Baseline, RAG, agent, and full assessment profiles.
+- Configured target adapters for HTTP JSON, chat-completions-compatible APIs, Ollama-style generate APIs, and webhook JSON shapes.
+- Explicit authorisation gate for non-demo targets.
+- Scanner, scoring, result model, policy evaluation, scoped policy exceptions, and approval evidence validation.
+- Markdown, JSON, SARIF-style, Markdown dashboard, HTML dashboard, diff, trend, benchmark, and branded HTML export outputs.
 
-The next assessment-engine phase should go through `docs/owasp/` and `docs/MITRE_ATLAS_AI_MATRIX.md` category by category and decide the deeper check logic, evaluator thresholds, fixture realism, and report language needed before any real-world VAPT readiness claim.
+### OWASP / MITRE coverage
 
-## Production-readiness status
+- OWASP LLM Top 10 2025 implementation specs for all 10 categories in [`docs/owasp/`](docs/owasp/).
+- Safe starter oracle coverage for all 10 OWASP LLM 2025 categories.
+- Deterministic local evaluator primitives and local good/bad fixture targets.
+- MITRE ATLAS AI planning matrix in [`docs/MITRE_ATLAS_AI_MATRIX.md`](docs/MITRE_ATLAS_AI_MATRIX.md).
+- Source-driven ATLAS matrix generation with explicit `Unmapped / map later` backlog preservation.
+- MITRE ATLAS-derived documentation tracked in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
-VulnoraIQ `0.2.0` is scoped as a **controlled internal enterprise deployment candidate**, not a public SaaS platform.
+### Production hardening for controlled internal deployment
 
-| Area | Status |
-|---|---|
-| Controlled internal enterprise deployment gate | Passed |
-| Production runtime validation | Implemented via `webui/production_checks.py` and `scripts/validate_runtime_production_config.py` |
-| Web UI auth | Fail-closed token auth by default; trusted reverse-proxy identity mode available for internal enterprise deployments |
-| Request hardening | CSRF, request-size limits, standard error handling, artifact path-traversal protection, security headers |
-| Abuse controls | Per-IP in-memory rate limiting and scan concurrency/queue limits; use proxy/WAF limits for public exposure |
-| Persistence | SQLite default with WAL mode, foreign keys, busy timeout, and schema versioning; JSON backend is legacy/dev only |
-| Observability | Health, readiness, structured JSON audit logs, request correlation IDs, and auth-protected Prometheus `/metrics` |
-| Backup/restore | SQLite backup and restore scripts with validation and documented retention/restore guidance |
-| Container path | Non-root Dockerfile, `/data` volume, healthcheck, Docker Compose example, production env template |
-| Public internet / SaaS | Not ready without OIDC/SSO, tenant isolation, HA persistence, distributed rate limiting, WAF/CDN/DDoS controls, and external security testing |
-| Scanner/evaluator assurance | Starter/framework evidence; not certified VAPT-grade assurance |
+- Hosted Web UI with Server-Sent Events progress updates.
+- Auth enabled by default and fail-closed.
+- Environment-token auth and trusted reverse-proxy identity mode.
+- Role-based access: viewer, analyst, admin.
+- Production-mode startup validation.
+- CSRF protection for state-changing scan requests.
+- Request-size limits, malformed JSON handling, and structured API errors.
+- Per-IP rate limiting and scan concurrency/queue limits.
+- Security headers on normal and error responses.
+- Trusted proxy CIDR checks for forwarded IP and identity headers.
+- SQLite job persistence by default with WAL mode, foreign keys, busy timeout, and schema versioning.
+- Structured JSON audit logs with request correlation IDs.
+- Auth-protected Prometheus `/metrics` endpoint by default.
+- Artifact path-traversal protection and role-aware config endpoint output.
+- SQLite backup/restore scripts with validation, compression, and retention support.
+- Non-root Dockerfile, `/data` volume, healthcheck, Docker Compose, and `.env.production.example`.
+- CI gates for Ruff, mypy, pytest, `pip check`, `pip-audit`, package metadata validation, production-readiness validation, and functional acceptance.
 
-Recommended release posture: tag `v0.2.0-rc1` after a clean CI + Docker smoke + backup/restore validation cycle, then tag `v0.2.0` after one release-candidate pass.
+---
 
-## Security and operations highlights
-
-- `VULNORAIQ_ENV=production` enables fail-closed runtime validation.
-- `VULNORAIQ_ADMIN_TOKEN` is required in production and must be at least 20 characters.
-- Known demo/default tokens and the internal development admin token are blocked in production.
-- `VULNORAIQ_AUTH_MODE=token` is the default; `VULNORAIQ_AUTH_MODE=trusted_proxy` supports identity headers only when trusted proxy headers and CIDRs are configured.
-- `VULNORAIQ_TRUST_PROXY_HEADERS=true` must be paired with `VULNORAIQ_TRUSTED_PROXY_CIDRS`.
-- Binding to `0.0.0.0` or `::` without trusted proxy configuration fails production validation.
-- `/metrics` is auth-protected by default.
-- Audit logs are structured JSON lines and must not include tokens, CSRF tokens, request bodies, secrets, or full report contents.
-- SQLite backup and restore procedures are documented in `docs/DEPLOYMENT.md`, with scripts in `scripts/backup_sqlite_store.py` and `scripts/restore_sqlite_store.py`.
-
-## OWASP LLM 2025 coverage
-
-| OWASP ID | Risk | Module status |
-|---|---|---|
-| LLM01:2025 | Prompt Injection | Working-alpha spec + safe oracle + local fixture |
-| LLM02:2025 | Sensitive Information Disclosure | Working-alpha spec + safe oracle + local fixture |
-| LLM03:2025 | Supply Chain | Working-alpha spec + safe oracle + local fixture |
-| LLM04:2025 | Data and Model Poisoning | Working-alpha spec + safe oracle + local fixture |
-| LLM05:2025 | Improper Output Handling | Working-alpha spec + safe oracle + local fixture |
-| LLM06:2025 | Excessive Agency | Working-alpha spec + safe oracle + local fixture |
-| LLM07:2025 | System Prompt Leakage | Working-alpha spec + safe oracle + local fixture |
-| LLM08:2025 | Vector and Embedding Weaknesses | Working-alpha spec + safe oracle + local fixture |
-| LLM09:2025 | Misinformation | Working-alpha spec + safe oracle + local fixture |
-| LLM10:2025 | Unbounded Consumption | Working-alpha spec + safe oracle + local fixture |
-
-## MITRE ATLAS coverage planning
-
-Use [`docs/MITRE_ATLAS_AI_MATRIX.md`](docs/MITRE_ATLAS_AI_MATRIX.md) as the planning register for adding ATLAS tactics, techniques, and sub-techniques into VulnoraIQ. The source-driven generator adds OWASP and VulnoraIQ candidate mapping columns. If a tactic or technique cannot be confidently mapped, it is still listed as `Unmapped / map later` so it can be reviewed later.
-
-Regenerate the matrix from the official MITRE ATLAS data source:
-
-```bash
-vulnoraiq-generate-atlas-matrix \
-  --source https://raw.githubusercontent.com/mitre-atlas/atlas-data/main/dist/v6/ATLAS-2026.05.yaml \
-  --output docs/MITRE_ATLAS_AI_MATRIX.md
-```
-
-## Architecture
-
-```text
-Operator Browser: Hosted Web UI | CLI | CI
-        ↓
-Auth / Role / Trust Layer: environment tokens | trusted proxy identity | viewer | analyst | admin
-        ↓
-Web Runtime Controls: CSRF | rate limiting | request limits | security headers | audit logs | metrics
-        ↓
-Target AI Systems: demo echo target | local demo app | configured HTTP/Chat/Ollama/Webhook targets
-        ↓
-Integration Layer: DemoEchoClient | HttpJsonTargetClient | ChatCompletionsTargetClient | OllamaGenerateTargetClient | WebhookJsonTargetClient | TargetContractValidator
-        ↓
-Core Engine: Scanner | Test Runner | Results Engine | Risk Scoring | Policy Engine | OWASP Oracle Registry | Local Evaluator Suite | MITRE ATLAS Mapping
-        ↓
-Module Layer: AssessmentModule protocol | ModuleRegistry | starter modules | structured evidence model
-        ↓
-Payload Layer: safe YAML payload libraries
-        ↓
-Governance Layer: policy rules | exceptions | approval evidence | RAG manifest | RAG retrieval scenarios | agent runtime manifest | agent execution scenarios | ATLAS mapping
-        ↓
-Assessment Profiles: baseline | rag | agent | full
-        ↓
-Persistence and Outputs: SQLite job store | Web dashboard | Markdown | JSON | SARIF-style | dashboards | report diff | trends | benchmarks | HTML export | release package
-```
-
-## Repository structure
-
-```text
-vulnoraiq/
-├── .github/workflows/       # Python CI, quality gates, dependency audit, and ATLAS refresh validation
-├── benchmarks/              # Regression benchmark suite, fixtures, and runner
-├── config/                  # Targets, profiles, policies, manifests, mappings, scenarios, auth, branding
-├── core/                    # Scanner, runner, scoring, policy, exceptions, approvals, mapping, evidence, evaluators, results model
-├── docs/                    # Deployment, runbook, incident response, assurance, readiness, OWASP and MITRE docs
-├── docs/MITRE_ATLAS_AI_MATRIX.md # MITRE ATLAS AI planning matrix
-├── docs/assets/             # README dashboard example image
-├── docs/owasp/              # OWASP LLM 2025 implementation specs
-├── examples/                # Safe local demo targets and OWASP fixtures
-├── integrations/            # Demo, HTTP JSON, chat, Ollama-style, webhook adapters, and contract validation
-├── modules/                 # Module protocol, registry, and starter modules
-├── rag_testing/             # RAG corpus and retrieval validation
-├── agent_testing/           # Agent runtime and execution validation
-├── payloads/                # Safe payload schema and libraries
-├── reports/                 # Markdown, JSON, SARIF-style, diff, policy-trend, and HTML export generation
-├── dashboards/              # Markdown, HTML, and diff-trend dashboard generation
-├── webui/                   # Hosted Web UI server, auth, production checks, persistent jobs, and static frontend
-├── tests/                   # Unit and production-hardening regression tests
-├── THIRD_PARTY_NOTICES.md   # Third-party attribution and license notices
-├── docker-compose.yml       # Production-like local deployment example
-├── .env.production.example  # Production environment template with placeholders only
-└── scripts/                 # CLI entry points, package validation, backup/restore, release package builder, ATLAS refresh, functional test runner
-```
-
-## Quick start
+## Quick start: local demo
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -e .[dev]
+
 vulnoraiq --target demo --profile baseline
 ```
 
-The demo target uses an in-memory echo client, so the platform can be explored without external API keys.
+The demo target uses an in-memory echo client and does not call external services.
 
-## Web UI command
+---
 
-For local development:
+## Web UI: local development
 
 ```bash
 vulnoraiq-web --host 127.0.0.1 --port 8787
-```
-
-For production-mode validation with token auth:
-
-```bash
-VULNORAIQ_ENV=production \
-VULNORAIQ_ADMIN_TOKEN="your-strong-token-here-min-20-chars" \
-vulnoraiq-web --host 127.0.0.1 --port 8787
-```
-
-For a production-like Docker Compose run:
-
-```bash
-cp .env.production.example .env.production
-# Edit .env.production and replace every placeholder token before starting.
-docker compose up --build
 ```
 
 Open:
@@ -203,42 +120,97 @@ Open:
 http://127.0.0.1:8787
 ```
 
-## Production validation commands
+Health checks:
 
 ```bash
+curl http://127.0.0.1:8787/healthz
+curl http://127.0.0.1:8787/readyz
+```
+
+Auth is enabled by default. For local development, use environment tokens or a local-only file auth configuration. Do not commit real tokens.
+
+---
+
+## Web UI: production-mode startup
+
+Production mode fails closed if required controls are missing or unsafe.
+
+```bash
+export VULNORAIQ_ENV=production
+export VULNORAIQ_AUTH_ENABLED=true
+export VULNORAIQ_ADMIN_TOKEN="$(openssl rand -hex 32)"
+export VULNORAIQ_JOB_STORE_BACKEND=sqlite
+export VULNORAIQ_JOB_STORE_PATH=/data/jobs.db
+export VULNORAIQ_WEB_OUTPUT_ROOT=/data/reports
+
 python scripts/validate_runtime_production_config.py
-python scripts/validate_production_testing_readiness.py
-python scripts/validate_production_testing_readiness.py \
-  --run-functional \
-  --output-dir reports/output/production-readiness \
-  --screenshot docs/assets/vulnoraiq-dashboard-example.svg
+vulnoraiq-web --host 127.0.0.1 --port 8787
 ```
 
-## Functional acceptance test
+Production validation checks include auth, admin token strength, demo-token rejection, internal dev-token disabling, SQLite backend, writable output paths, readable config paths, trusted proxy CIDRs, listen-address safety, rate-limit sanity, request-body limit sanity, CSRF TTL sanity, and audit logging configuration.
 
-Run the safe local functional test and refresh the dashboard example asset:
+---
+
+## Docker Compose quick start
 
 ```bash
-vulnoraiq-functional-test \
-  --output-dir reports/output/functional-test \
-  --screenshot docs/assets/vulnoraiq-dashboard-example.svg
+cp .env.production.example .env.production
+# Edit .env.production and replace all placeholder tokens.
+docker compose up --build
 ```
 
-This runs the demo/baseline workflow, writes Markdown/JSON/SARIF/dashboard outputs, validates required fields and safety metadata, writes a functional test summary, and refreshes the README dashboard SVG.
+The container path uses:
 
-## Run tests and quality gates
+- non-root runtime user
+- `/data` volume for SQLite and reports
+- `/healthz` healthcheck
+- production env template with placeholders only
+
+Never commit a real `.env.production` file.
+
+---
+
+## Authentication modes
+
+### Token mode, default
 
 ```bash
-ruff check .
-mypy .
-pytest -q
-python -m pip check
-pip-audit
-python scripts/validate_package_metadata.py
-python scripts/validate_production_testing_readiness.py
+export VULNORAIQ_AUTH_MODE=token
+export VULNORAIQ_ADMIN_TOKEN="$(openssl rand -hex 32)"
+export VULNORAIQ_ANALYST_TOKEN="$(openssl rand -hex 32)"
+export VULNORAIQ_VIEWER_TOKEN="$(openssl rand -hex 32)"
 ```
 
-## Example demo command
+Clients pass tokens using:
+
+```text
+X-VulnoraIQ-Token: <token>
+```
+
+### Trusted reverse-proxy identity mode
+
+Use only when a trusted upstream proxy authenticates users and strips spoofed identity headers.
+
+```bash
+export VULNORAIQ_AUTH_MODE=trusted_proxy
+export VULNORAIQ_TRUST_PROXY_HEADERS=true
+export VULNORAIQ_TRUSTED_PROXY_CIDRS="127.0.0.1/32,::1/128"
+```
+
+Supported identity headers:
+
+| Header | Purpose |
+| --- | --- |
+| `X-Authenticated-User` | username |
+| `X-Authenticated-Email` | informational email |
+| `X-Authenticated-Groups` | informational groups |
+| `X-VulnoraIQ-Role` | `viewer`, `analyst`, or `admin`; unknown roles default to viewer |
+
+---
+
+## Running authorised scans
+
+### Safe demo scan
 
 ```bash
 vulnoraiq \
@@ -251,9 +223,9 @@ vulnoraiq \
   --html-dashboard-output reports/output/demo-dashboard.html
 ```
 
-## Configured target command
+### Configured target scan
 
-Only use this for systems you own or are explicitly authorised to assess:
+Only use this against systems you own or are explicitly authorised to assess:
 
 ```bash
 vulnoraiq \
@@ -262,77 +234,187 @@ vulnoraiq \
   --authorised
 ```
 
-Before running against a configured target, replace the placeholder endpoint in `config/targets.yaml`, validate the target contract, and set any required token environment variable.
+Before running against a configured target:
 
-## Report, trend, benchmark, and export commands
+1. Confirm written authorisation.
+2. Replace placeholder endpoints in `config/targets.yaml`.
+3. Validate target contracts.
+4. Set any required target token environment variables.
+5. Treat findings as framework evidence requiring human review.
 
-```bash
-vulnoraiq-diff --baseline reports/output/baseline.json --current reports/output/current.json
-vulnoraiq-policy-trend --input-dir reports/output
-vulnoraiq-diff-trend --input-dir reports/output
-vulnoraiq-benchmark --manifest benchmarks/benchmark_suite.yaml --fail-on-regression
-vulnoraiq-html-export --input-dir reports/output
-vulnoraiq-validate-package
-```
+---
 
-## ATLAS refresh command
+## Functional acceptance and release gates
 
-```bash
-vulnoraiq-refresh-atlas --source config/mitre_atlas_source_fixture.yaml --output reports/output/mitre_atlas_mapping.refresh-check.yaml
-```
-
-## Release package command
+Run the functional test and refresh the dashboard example:
 
 ```bash
-vulnoraiq-package --manifest config/release_package.yaml
+vulnoraiq-functional-test \
+  --output-dir reports/output/functional-test \
+  --screenshot docs/assets/vulnoraiq-dashboard-example.svg
 ```
 
-The package path defaults to `dist/vulnoraiq-example-package.zip`.
+Run local quality and readiness gates:
+
+```bash
+ruff check .
+mypy .
+pytest -q
+python -m pip check
+pip-audit
+python scripts/validate_package_metadata.py
+python scripts/validate_production_testing_readiness.py
+python scripts/validate_runtime_production_config.py
+python scripts/validate_production_testing_readiness.py \
+  --run-functional \
+  --output-dir reports/output/production-readiness \
+  --screenshot docs/assets/vulnoraiq-dashboard-example.svg
+```
+
+If Docker is available:
+
+```bash
+docker build -t vulnoraiq:0.2.0-rc .
+python scripts/container_smoke_test.py
+```
+
+---
+
+## Backup and restore
+
+Create a validated compressed SQLite backup:
+
+```bash
+python scripts/backup_sqlite_store.py \
+  /data/jobs.db \
+  /data/backups/jobs-$(date +%Y%m%d-%H%M%S).db \
+  --compress \
+  --validate \
+  --retention 90
+```
+
+Restore a compressed backup:
+
+```bash
+python scripts/restore_sqlite_store.py \
+  /data/backups/jobs-YYYYMMDD-HHMMSS.db.gz \
+  /data/jobs.db \
+  --compressed \
+  --validate
+```
+
+---
+
+## Repository structure
+
+```text
+vulnoraiq/
+├── .github/workflows/       # CI, quality gates, dependency audit, ATLAS refresh validation
+├── agent_testing/           # Agent runtime and execution validation
+├── benchmarks/              # Regression benchmark suite and fixtures
+├── config/                  # Targets, profiles, policies, manifests, mappings, auth, branding
+├── core/                    # Scanner, scoring, policy, evidence, evaluators, results model
+├── dashboards/              # Markdown, HTML, and diff-trend dashboard generation
+├── docs/                    # Deployment, runbook, assurance, readiness, OWASP, MITRE docs
+├── examples/                # Safe local demo targets and OWASP fixtures
+├── integrations/            # Demo, HTTP JSON, chat, Ollama, webhook adapters
+├── modules/                 # Assessment module protocol, registry, starter modules
+├── payloads/                # Safe payload schemas and libraries
+├── rag_testing/             # RAG corpus and retrieval validation
+├── reports/                 # Markdown, JSON, SARIF, diff, trend, HTML export generation
+├── scripts/                 # Validation, backup/restore, release, ATLAS, functional test tools
+├── tests/                   # Unit and production-hardening regression tests
+├── webui/                   # Hosted Web UI, auth, production checks, SQLite job store, static frontend
+├── docker-compose.yml       # Production-like local deployment example
+├── Dockerfile               # Non-root container image
+├── SECURITY.md              # Security policy
+└── THIRD_PARTY_NOTICES.md   # Third-party attribution and MITRE ATLAS notices
+```
+
+---
 
 ## Documentation map
 
-- [`SECURITY.md`](SECURITY.md): security policy, supported posture, vulnerability reporting, and safe contribution rules
-- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md): deployment checklist, TLS/reverse proxy, metrics, audit log, backup/restore, and environment reference
-- [`docs/RUNBOOK.md`](docs/RUNBOOK.md): operator procedures for start/stop/restart, health checks, logs, backups, restore, upgrade, and rollback
-- [`docs/INCIDENT_RESPONSE.md`](docs/INCIDENT_RESPONSE.md): response playbooks for token leak, suspicious scans, artifact exposure, backup failure, and dependency vulnerabilities
-- [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md): release gates and versioning checklist
-- [`docs/MIGRATION.md`](docs/MIGRATION.md): migration path from `0.0.1.x` to `0.2.0`
-- [`docs/PRODUCTION_READINESS_SCORECARD.md`](docs/PRODUCTION_READINESS_SCORECARD.md): controlled-internal readiness scoring and public/SaaS gap tracking
-- [`docs/PRODUCTION_HARDENING_BACKLOG.md`](docs/PRODUCTION_HARDENING_BACKLOG.md): closed, open, deferred, and accepted-risk production hardening items
-- [`docs/ASSESSMENT_ASSURANCE.md`](docs/ASSESSMENT_ASSURANCE.md): scanner/evaluator coverage, limitations, and evidence interpretation
+| Need | Document |
+| --- | --- |
+| Documentation index | [`docs/README.md`](docs/README.md) |
+| Deployment and environment variables | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) |
+| Operations runbook | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) |
+| Incident response | [`docs/INCIDENT_RESPONSE.md`](docs/INCIDENT_RESPONSE.md) |
+| Release process | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) |
+| Migration from `0.0.1.x` to `0.2.0` | [`docs/MIGRATION.md`](docs/MIGRATION.md) |
+| Readiness scorecard | [`docs/PRODUCTION_READINESS_SCORECARD.md`](docs/PRODUCTION_READINESS_SCORECARD.md) |
+| Hardening backlog | [`docs/PRODUCTION_HARDENING_BACKLOG.md`](docs/PRODUCTION_HARDENING_BACKLOG.md) |
+| Assessment assurance limits | [`docs/ASSESSMENT_ASSURANCE.md`](docs/ASSESSMENT_ASSURANCE.md) |
+| Implementation status | [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md) |
+| OWASP LLM 2025 specs | [`docs/owasp/`](docs/owasp/) |
+| MITRE ATLAS AI matrix | [`docs/MITRE_ATLAS_AI_MATRIX.md`](docs/MITRE_ATLAS_AI_MATRIX.md) |
 
-## Configuration highlights
+---
 
-- `docs/MITRE_ATLAS_AI_MATRIX.md`: MITRE ATLAS AI planning matrix and technique implementation register
-- `scripts/generate_mitre_atlas_matrix.py`: source-driven matrix generator with unmapped backlog preservation
-- `scripts/run_functional_test.py`: functional acceptance runner and dashboard example generator
-- `scripts/validate_runtime_production_config.py`: runtime production configuration validator
-- `scripts/backup_sqlite_store.py` and `scripts/restore_sqlite_store.py`: SQLite backup/restore tooling
-- `docs/assets/vulnoraiq-dashboard-example.svg`: README dashboard example image
-- `THIRD_PARTY_NOTICES.md`: third-party attribution and license notices, including MITRE ATLAS
-- `docs/owasp/`: OWASP LLM 2025 implementation specs
-- `config/owasp_oracles.yaml`: safe OWASP starter oracle definitions
-- `config/mitre_atlas_mapping.yaml`: local MITRE ATLAS technique catalog and module mapping
-- `core/evaluators.py`: deterministic local evaluator primitives
-- `examples/local_demo_targets/owasp_fixture_targets.py`: local good/bad OWASP fixture target behaviours
-- `config/target_contracts.yaml`: target adapter contract definitions
-- `config/web_users.yaml`: local Web UI auth configuration; use environment tokens or trusted proxy identity in production
-- `config/web_users.example.yaml`: template for local auth configuration
-- `config/report_branding.yaml`: report/export branding
-- `benchmarks/fixtures/owasp_starter_fixture.yaml`: OWASP starter fixture corpus
+## OWASP LLM 2025 starter coverage
+
+| OWASP ID | Risk | Current module status |
+| --- | --- | --- |
+| LLM01:2025 | Prompt Injection | Working-alpha spec + safe oracle + local fixture |
+| LLM02:2025 | Sensitive Information Disclosure | Working-alpha spec + safe oracle + local fixture |
+| LLM03:2025 | Supply Chain | Working-alpha spec + safe oracle + local fixture |
+| LLM04:2025 | Data and Model Poisoning | Working-alpha spec + safe oracle + local fixture |
+| LLM05:2025 | Improper Output Handling | Working-alpha spec + safe oracle + local fixture |
+| LLM06:2025 | Excessive Agency | Working-alpha spec + safe oracle + local fixture |
+| LLM07:2025 | System Prompt Leakage | Working-alpha spec + safe oracle + local fixture |
+| LLM08:2025 | Vector and Embedding Weaknesses | Working-alpha spec + safe oracle + local fixture |
+| LLM09:2025 | Misinformation | Working-alpha spec + safe oracle + local fixture |
+| LLM10:2025 | Unbounded Consumption | Working-alpha spec + safe oracle + local fixture |
+
+---
+
+## MITRE ATLAS planning matrix
+
+Use [`docs/MITRE_ATLAS_AI_MATRIX.md`](docs/MITRE_ATLAS_AI_MATRIX.md) as the planning register for ATLAS tactics, techniques, and sub-techniques.
+
+Regenerate from the MITRE ATLAS data source:
+
+```bash
+vulnoraiq-generate-atlas-matrix \
+  --source https://raw.githubusercontent.com/mitre-atlas/atlas-data/main/dist/v6/ATLAS-2026.05.yaml \
+  --output docs/MITRE_ATLAS_AI_MATRIX.md
+```
+
+If a technique cannot be confidently mapped, it remains listed as `Unmapped / map later`.
+
+---
 
 ## Design principles
 
-1. Audit-friendly by default.
-2. Safe local demo first.
-3. Explicit authorisation for configured targets.
-4. Fail-closed production runtime controls.
-5. Clear separation between controlled internal deployment readiness and public/SaaS readiness.
-6. System-level starter coverage across LLM, RAG, tool, memory, and orchestration layers.
-7. CI/CD-ready direction for prompt, corpus, agent, release-gate, and regression checks.
+1. Safe local demo first.
+2. Authorised testing only.
+3. Fail closed in production mode.
+4. Audit-friendly by default.
+5. Clear separation between deployment readiness and assessment assurance.
+6. Starter coverage should be labelled honestly until validated against real targets.
+7. Public/SaaS claims must not be made until tenant isolation, HA, WAF/CDN/DDoS, OIDC/SSO, and external security testing exist.
+
+---
+
+## Roadmap
+
+Next engineering priorities:
+
+- deeper OWASP category logic and evaluator thresholds
+- richer real-world fixtures and benchmark targets
+- native OIDC/JWT validation
+- distributed rate limiting and shared CSRF/session state
+- PostgreSQL or another HA persistence backend for multi-instance deployments
+- WAF/CDN/DDoS deployment guidance
+- tenant isolation model for SaaS
+- independent penetration test of the Web UI and assessment engine
+- report language maturity review for external assurance use
+
+---
 
 ## License and third-party notices
 
-VulnoraIQ-specific source code and documentation are licensed under this repository's license. See `LICENSE`.
+VulnoraIQ-specific source code and documentation are licensed under this repository's license. See [`LICENSE`](LICENSE).
 
-Some documentation and planning data is derived from MITRE ATLAS. MITRE ATLAS data is copyright 2021-2026 MITRE and licensed under the Apache License, Version 2.0. See `THIRD_PARTY_NOTICES.md`.
+Some documentation and planning data is derived from MITRE ATLAS. MITRE ATLAS data is copyright 2021-2026 MITRE and licensed under the Apache License, Version 2.0. See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
