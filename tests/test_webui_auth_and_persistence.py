@@ -140,8 +140,10 @@ def test_csrf_rejects_invalid_token(monkeypatch) -> None:
 
 
 def test_csrf_token_expires(monkeypatch) -> None:
-    from webui.hosted_server import _csrf_token_for as tf, _csrf_session_key, _validate_csrf as vc, _csrf_tokens
     from webui.auth import AuthPrincipal
+    from webui.hosted_server import _csrf_session_key, _csrf_tokens
+    from webui.hosted_server import _csrf_token_for as tf
+    from webui.hosted_server import _validate_csrf as vc
     p = AuthPrincipal("admin", "admin", {"view_scans"}, authenticated=True)
     key = _csrf_session_key(p, "10.0.0.1")
     token = tf(key)
