@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import mimetypes
+import os
 import threading
 import time
 from dataclasses import asdict
@@ -25,16 +27,19 @@ from webui.auth import AuthPrincipal, WebAuthManager
 from webui.persistent_jobs import PersistentJobStore, PersistedScanJob
 
 
+LOGGER = logging.getLogger("vulnoraiq.webui")
 STATIC_DIR = Path(__file__).parent / "static"
-OUTPUT_ROOT = Path("reports/output/webui")
+CONFIG_ROOT = Path(os.getenv("VULNORAIQ_CONFIG_DIR", "config"))
+OUTPUT_ROOT = Path(os.getenv("VULNORAIQ_WEB_OUTPUT_ROOT", "reports/output/webui"))
 TERMINAL_STATES = {"completed", "failed"}
-AUTH_MANAGER = WebAuthManager()
-JOB_STORE = PersistentJobStore()
+AUTH_MANAGER = WebAuthManager(os.getenv("VULNORAIQ_WEB_USERS_PATH", str(CONFIG_ROOT / "web_users.yaml")))
+JOB_STORE = PersistentJobStore(os.getenv("VULNORAIQ_JOB_STORE_PATH", "reports/output/webui/jobs.json"))
+STARTED_AT = datetime.now(timezone.utc)
 
 
 def load_config() -> dict[str, Any]:
     def read_yaml(path: str) -> dict[str, Any]:
-        file_path = Path("config") / path
+        file_path = CONFIG_ROOT / path
         if not file_path.exists():
             return {}
         return yaml.safe_load(file_path.read_text(encoding="utf-8")) or {}
@@ -66,7 +71,9 @@ def run_scan_job(job_id: str) -> None:
         mutate(lambda job: (setattr(job, "status", "running"), setattr(job, "started_at", datetime.now(timezone.utc).isoformat()), job.add_event("initialising", "Loading scanner configuration and selected profile.", 8)))
         job = JOB_STORE.get(job_id)
         if not job:
+            LOGGER.warning("scan_job_missing job_id=%s", job_id)
             return
+        LOGGER.info("scan_job_started job_id=%s target=%s profile=%s", job.id, job.target, job.profile)
         mutate(lambda item: item.add_event("scanning", f"Running {job.profile} profile against {job.target}.", 25))
         result = Scanner().scan(target_name=job.target, profile_name=job.profile, authorised=job.authorised)
 
@@ -105,7 +112,10 @@ def run_scan_job(job_id: str) -> None:
             item.add_event("completed", "Scan completed and reports are ready.", 100)
 
         mutate(complete)
+        LOGGER.info("scan_job_completed job_id=%s target=%s profile=%s", job.id, job.target, job.profile)
     except Exception as exc:  # pragma: no cover
+        LOGGER.exception("scan_job_failed job_id=%s", job_id)
+
         def fail(item: PersistedScanJob) -> None:
             item.status = "failed"
             item.error = str(exc)
@@ -116,15 +126,32 @@ def run_scan_job(job_id: str) -> None:
 
 
 class HostedWebUiHandler(BaseHTTPRequestHandler):
-    server_version = "VulnoraIQWebUI/0.0.1.2"
+    server_version = "VulnoraIQWebUI/0.0.1.3"
 
     def do_GET(self) -> None:  # noqa: N802
+        parsed = urlparse(self.path)
+        path = parsed.path
+        if path == "/healthz":
+            self._send_json({"status": "ok", "service": "vulnoraiq-web", "started_at": STARTED_AT.isoformat()})
+            return
+        if path == "/readyz":
+            config = load_config()
+            ready = bool(config.get("targets")) and bool(config.get("profiles"))
+            self._send_json(
+                {
+                    "status": "ready" if ready else "not_ready",
+                    "targets_loaded": len(config.get("targets", {})),
+                    "profiles_loaded": len(config.get("profiles", {})),
+                    "auth_enabled": config.get("web_auth_enabled", False),
+                },
+                status=HTTPStatus.OK if ready else HTTPStatus.SERVICE_UNAVAILABLE,
+            )
+            return
+
         principal = self._principal()
         if not principal:
             self._send_json({"error": "authentication required"}, status=HTTPStatus.UNAUTHORIZED)
             return
-        parsed = urlparse(self.path)
-        path = parsed.path
         if path == "/":
             self._serve_static("index.html")
             return
@@ -161,6 +188,7 @@ class HostedWebUiHandler(BaseHTTPRequestHandler):
                 self._forbidden()
                 return
             job = JOB_STORE.create(target, profile, authorised, created_by=principal.username)
+            LOGGER.info("scan_job_accepted job_id=%s target=%s profile=%s user=%s", job.id, target, profile, principal.username)
             threading.Thread(target=run_scan_job, args=(job.id,), daemon=True).start()
             self._send_json(job.to_dict(), status=HTTPStatus.ACCEPTED)
         except ValueError as exc:
@@ -266,6 +294,7 @@ class HostedWebUiHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(data)))
+        self.send_header("X-Content-Type-Options", "nosniff")
         self.end_headers()
         self.wfile.write(data)
 
@@ -273,7 +302,7 @@ class HostedWebUiHandler(BaseHTTPRequestHandler):
         self._send_json({"error": "forbidden"}, status=HTTPStatus.FORBIDDEN)
 
     def log_message(self, format: str, *args: Any) -> None:  # noqa: A002
-        return
+        LOGGER.info("http_request client=%s message=%s", self.address_string(), format % args)
 
 
 def create_server(host: str = "127.0.0.1", port: int = 8787) -> ThreadingHTTPServer:
@@ -281,12 +310,13 @@ def create_server(host: str = "127.0.0.1", port: int = 8787) -> ThreadingHTTPSer
 
 
 def main() -> None:
+    logging.basicConfig(level=os.getenv("VULNORAIQ_LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(name)s %(message)s")
     parser = argparse.ArgumentParser(description="Run the VulnoraIQ hosted web UI.")
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8787)
+    parser.add_argument("--host", default=os.getenv("VULNORAIQ_HOST", "127.0.0.1"))
+    parser.add_argument("--port", type=int, default=int(os.getenv("VULNORAIQ_PORT", "8787")))
     args = parser.parse_args()
     server = create_server(args.host, args.port)
-    print(f"VulnoraIQ Web UI running at http://{args.host}:{args.port}")
+    LOGGER.info("web_ui_started url=http://%s:%s auth_enabled=%s", args.host, args.port, AUTH_MANAGER.enabled())
     server.serve_forever()
 
 
