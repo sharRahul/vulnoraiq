@@ -25,12 +25,30 @@ class MarkdownReportGenerator:
             f"- Profile: `{normalised['profile']}`",
             f"- Findings: `{normalised['finding_count']}`",
             f"- Highest severity: `{normalised['highest_severity']}`",
+            f"- Policy status: `{normalised['policy_status']}`",
             "",
             "## Severity Counts",
             "",
         ]
         for severity, count in sorted(normalised["severity_counts"].items()):
             lines.append(f"- {severity}: {count}")
+
+        lines.extend(["", "## Policy Evaluation", ""])
+        if normalised["policy_results"]:
+            for policy in normalised["policy_results"]:
+                lines.extend(
+                    [
+                        f"### {policy['policy_id']}",
+                        "",
+                        f"- Status: `{policy['status']}`",
+                        f"- Decision: `{policy['decision']}`",
+                        f"- Message: {policy['message']}",
+                        "",
+                    ]
+                )
+        else:
+            lines.append("No policy results were produced.")
+
         lines.extend(["", "## Findings", ""])
         for index, finding in enumerate(normalised["findings"], start=1):
             lines.extend([
