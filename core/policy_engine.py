@@ -10,7 +10,6 @@ from core.types import Finding, PolicyResult, ScanResult
 from rag_testing.corpus_manifest import CorpusManifestValidator
 from rag_testing.retrieval_harness import LocalRetrievalHarness
 
-
 SEVERITY_ORDER = {"info": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
 
 

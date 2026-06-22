@@ -7,7 +7,6 @@ from typing import Any
 
 import yaml
 
-
 HASH_RE = re.compile(r"^[a-fA-F0-9]{64}$")
 REQUIRED_DOCUMENT_FIELDS = {
     "id",

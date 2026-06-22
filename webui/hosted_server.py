@@ -24,8 +24,7 @@ from reports.json_report_generator import JsonReportGenerator
 from reports.report_generator import MarkdownReportGenerator
 from reports.sarif_report_generator import SarifReportGenerator
 from webui.auth import AuthPrincipal, WebAuthManager
-from webui.persistent_jobs import PersistentJobStore, PersistedScanJob
-
+from webui.persistent_jobs import PersistedScanJob, PersistentJobStore
 
 LOGGER = logging.getLogger("vulnoraiq.webui")
 STATIC_DIR = Path(__file__).parent / "static"
@@ -68,7 +67,11 @@ def run_scan_job(job_id: str) -> None:
         JOB_STORE.update(job_id, fn)
 
     try:
-        mutate(lambda job: (setattr(job, "status", "running"), setattr(job, "started_at", datetime.now(timezone.utc).isoformat()), job.add_event("initialising", "Loading scanner configuration and selected profile.", 8)))
+        def start_job(job):
+            job.status = "running"
+            job.started_at = datetime.now(timezone.utc).isoformat()
+            job.add_event("initialising", "Loading scanner configuration and selected profile.", 8)
+        mutate(start_job)
         job = JOB_STORE.get(job_id)
         if not job:
             LOGGER.warning("scan_job_missing job_id=%s", job_id)
@@ -115,12 +118,13 @@ def run_scan_job(job_id: str) -> None:
         LOGGER.info("scan_job_completed job_id=%s target=%s profile=%s", job.id, job.target, job.profile)
     except Exception as exc:  # pragma: no cover
         LOGGER.exception("scan_job_failed job_id=%s", job_id)
+        err_msg = str(exc)
 
         def fail(item: PersistedScanJob) -> None:
             item.status = "failed"
-            item.error = str(exc)
+            item.error = err_msg
             item.completed_at = datetime.now(timezone.utc).isoformat()
-            item.add_event("failed", str(exc), 100, level="error")
+            item.add_event("failed", err_msg, 100, level="error")
 
         mutate(fail)
 
@@ -258,11 +262,11 @@ class HostedWebUiHandler(BaseHTTPRequestHandler):
             if not job:
                 return
             for event in job.events[sent:]:
-                self.wfile.write(f"data: {json.dumps(asdict(event), default=str)}\n\n".encode("utf-8"))
+                self.wfile.write(f"data: {json.dumps(asdict(event), default=str)}\n\n".encode())
                 self.wfile.flush()
                 sent += 1
             if job.status in TERMINAL_STATES:
-                self.wfile.write(f"event: done\ndata: {json.dumps(job.to_dict(), default=str)}\n\n".encode("utf-8"))
+                self.wfile.write(f"event: done\ndata: {json.dumps(job.to_dict(), default=str)}\n\n".encode())
                 self.wfile.flush()
                 return
             time.sleep(0.4)

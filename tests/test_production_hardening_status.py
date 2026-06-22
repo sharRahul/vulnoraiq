@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 
-
 BACKLOG = Path("docs/PRODUCTION_HARDENING_BACKLOG.md")
 README = Path("README.md")
 IMPLEMENTATION_STATUS = Path("docs/IMPLEMENTATION_STATUS.md")

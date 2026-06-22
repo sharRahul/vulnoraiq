@@ -7,7 +7,6 @@ from pathlib import Path
 
 import yaml
 
-
 EXPECTED_OWASP_DOCS = [
     "LLM01_PROMPT_INJECTION.md",
     "LLM02_SENSITIVE_INFORMATION_DISCLOSURE.md",

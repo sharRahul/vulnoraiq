@@ -7,7 +7,6 @@ from typing import Any
 
 import yaml
 
-
 DEFAULT_MANIFEST = "config/release_package.yaml"
 DEFAULT_OUTPUT = "dist/vulnoraiq-example-package.zip"
 

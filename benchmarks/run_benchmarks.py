@@ -11,7 +11,6 @@ import yaml
 from core.scanner import Scanner
 from reports.json_report_generator import JsonReportGenerator
 
-
 SEVERITY_ORDER = {"info": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
 
 

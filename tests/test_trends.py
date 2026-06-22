@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import json
 
-from dashboards.diff_trend_dashboard import build_summary, load_diffs, write_html, write_markdown as write_diff_markdown
+from dashboards.diff_trend_dashboard import build_summary, load_diffs, write_html
+from dashboards.diff_trend_dashboard import write_markdown as write_diff_markdown
 from reports.policy_trends import build_policy_trend, load_reports, write_json, write_markdown
 
 

@@ -9,7 +9,6 @@ import yaml
 
 from core.mitre_atlas import MitreAtlasMapping
 
-
 DEFAULT_CONFIG = "config/atlas_refresh.yaml"
 
 

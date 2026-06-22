@@ -4,7 +4,6 @@ from pathlib import Path
 
 from scripts.generate_mitre_atlas_matrix import DEFAULT_SOURCE_URL, UNMAPPED_LABEL
 
-
 MATRIX_DOC = Path("docs/MITRE_ATLAS_AI_MATRIX.md")
 GENERATOR = Path("scripts/generate_mitre_atlas_matrix.py")
 

@@ -28,7 +28,10 @@ def test_persistent_job_store_survives_reopen(tmp_path) -> None:
     path = tmp_path / "jobs.json"
     store = PersistentJobStore(path)
     job = store.create("demo", "baseline", False, created_by="tester")
-    store.update(job.id, lambda item: (setattr(item, "status", "completed"), item.add_event("completed", "done", 100)))
+    def complete_job(item):
+            item.status = "completed"
+            item.add_event("completed", "done", 100)
+    store.update(job.id, complete_job)
 
     reopened = PersistentJobStore(path)
     loaded = reopened.get(job.id)

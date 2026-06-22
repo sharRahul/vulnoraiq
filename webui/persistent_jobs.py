@@ -46,7 +46,7 @@ class PersistedScanJob:
         return data
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "PersistedScanJob":
+    def from_dict(cls, data: dict[str, Any]) -> PersistedScanJob:
         events = [PersistedScanEvent(**event) for event in data.get("events", [])]
         data = {**data, "events": events}
         return cls(**data)

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from core.types import Finding
 
-
 SEVERITY_BASE_SCORE = {
     "info": 0.5,
     "low": 2.0,

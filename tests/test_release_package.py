@@ -25,4 +25,4 @@ include_paths:
 
     assert package == output
     with zipfile.ZipFile(package) as archive:
-        assert str(sample) in archive.namelist()
+        assert sample.as_posix() in archive.namelist()

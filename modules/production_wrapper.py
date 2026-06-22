@@ -1,17 +1,20 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Mapping
 
 from core.production_detection import ProductionOwaspDetector
 from core.types import ScanContext
-from modules.base import AssessmentModule
+from modules.base import AssessmentModule, ModuleMetadata
 
 
-@dataclass(slots=True)
 class ProductionAssessmentModule:
     """Adds production OWASP detection evidence to an assessment module."""
 
-    module: AssessmentModule
+    __slots__ = ("module", "metadata")
+
+    def __init__(self, module: AssessmentModule) -> None:
+        self.module = module
+        self.metadata = module.metadata
 
     def run(self, context: ScanContext, payloads):
         finding = self.module.run(context, payloads)
@@ -48,5 +51,5 @@ class ProductionAssessmentModule:
         return finding
 
 
-def wrap_production_modules(modules: dict[str, AssessmentModule]) -> dict[str, AssessmentModule]:
+def wrap_production_modules(modules: Mapping[str, AssessmentModule]) -> dict[str, AssessmentModule]:
     return {name: ProductionAssessmentModule(module) for name, module in modules.items()}

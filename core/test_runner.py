@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 from core.payload_loader import PayloadLibrary
 from core.risk_scoring import score_findings

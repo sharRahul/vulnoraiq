@@ -20,7 +20,7 @@ class MarkdownReportGenerator:
         lines = [
             f"# VulnoraIQ Report - {normalised['target']}",
             "",
-            f"_LLM VAPT Report compatibility title for existing automation._",
+            "_LLM VAPT Report compatibility title for existing automation._",
             "",
             "## Executive Summary",
             "",
