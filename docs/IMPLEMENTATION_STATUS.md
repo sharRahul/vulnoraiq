@@ -2,9 +2,9 @@
 
 This document separates current working capability from roadmap items so users can understand what is ready today.
 
-> **Current maturity:** VulnoraIQ version `0.0.1.3` is an early development build. It is suitable for local demos, framework development, UI workflow validation, and report-pipeline testing. It is **not ready for real-world VAPT testing or production security assessment use**.
+> **Current maturity:** VulnoraIQ version `0.0.1.4` is an early development build. It is suitable for local demos, framework development, UI workflow validation, and report-pipeline testing. It is **not ready for real-world VAPT testing or production security assessment use**.
 
-> **Important limitation:** OWASP LLM 2025 coverage now has implementation specs, safe starter oracle coverage, deterministic local evaluator primitives, and local good/bad fixtures for all 10 categories. The checks are still not production-validated. Treat output as development evidence, not validated security assurance.
+> **Important limitation:** OWASP LLM 2025 coverage now has implementation specs, safe starter oracle coverage, deterministic local evaluator primitives, and local good/bad fixtures for all 10 categories. MITRE ATLAS AI technique coverage now has a planning matrix, but the matrix is not the same as active production-validated detection coverage. Treat output as development evidence, not validated security assurance.
 
 ## Seven-phase implementation status
 
@@ -22,7 +22,7 @@ This document separates current working capability from roadmap items so users c
 
 | Area | Status | Notes |
 | --- | --- | --- |
-| Python package scaffold | Working starter | VulnoraIQ version `0.0.1.3` installs as a Python package with CLI entry points for assessment, Web UI, dashboard generation, report diffing, benchmark runs, trend outputs, ATLAS refresh, HTML export, package metadata validation, and release package building. |
+| Python package scaffold | Working starter | VulnoraIQ version `0.0.1.4` installs as a Python package with CLI entry points for assessment, Web UI, dashboard generation, report diffing, benchmark runs, trend outputs, ATLAS refresh, HTML export, package metadata validation, and release package building. |
 | Modern Web UI | Working starter | `webui/hosted_server.py`, `webui/auth.py`, `webui/persistent_jobs.py`, and `webui/static/` provide a browser console for launching demo scans, realtime progress via Server-Sent Events, completed dashboard views, scan history, role-aware auth hooks, persistent JSON job storage, and artifact downloads. |
 | Demo target | Working | The default `demo` target uses an in-memory echo client and requires no external API keys. |
 | Local demo targets | Working-alpha starter | `examples/local_demo_targets/` contains safe HTTP JSON, control-gap, and OWASP good/bad fixture targets for local demonstration and tests. |
@@ -38,6 +38,7 @@ This document separates current working capability from roadmap items so users c
 | Approval evidence validation | Working starter | `config/approval_evidence.yaml` and `core/approval_evidence.py` validate approval references and local SHA-256 integrity signatures before exceptions suppress policy outcomes. |
 | OWASP LLM 2025 implementation specs | Working-alpha starter | `docs/owasp/` defines scope, safe strategy, expected good/bad behaviour, evidence, evaluators, severity rationale, and working criteria for all 10 categories. |
 | OWASP LLM 2025 oracle coverage | Working starter | `config/owasp_oracles.yaml` and `core/evidence_model.py` provide safe starter oracle coverage for all 10 OWASP LLM 2025 categories. |
+| MITRE ATLAS AI matrix | Working starter | `docs/MITRE_ATLAS_AI_MATRIX.md` records the current AI technique matrix, module mappings, implementation status, and next implementation work for adding techniques later. |
 | Evidence model and test oracles | Working starter | `core/evidence_model.py` creates structured `InteractionEvidence` and `OracleResult` records for module output and report evidence. |
 | Report generation | Working starter | Markdown, JSON, and SARIF-style reports include findings, structured evidence, oracle results, and policy evaluation, but conclusions are only as mature as the starter checks. |
 | Report diffing | Working starter | `reports/report_diff.py` compares two structured JSON reports, emits JSON/Markdown diffs, and can fail on regression. |
@@ -54,7 +55,7 @@ This document separates current working capability from roadmap items so users c
 | RAG retrieval testing | Working starter | `config/rag_retrieval_scenarios.yaml` and `rag_testing/retrieval_harness.py` validate expected retrieval, access boundaries, approved sources, and source-trust scoring. |
 | Agent runtime governance | Working starter | `config/agent_runtime.yaml` and `agent_testing/runtime_manifest.py` validate tool allowlists, high-impact approvals, memory integrity settings, and orchestration plan requirements. |
 | Agent execution testing | Working starter | `config/agent_execution_scenarios.yaml` and `agent_testing/execution_harness.py` validate simulated tool calls, approval points, memory writes, integrity references, and rollback-plan coverage. |
-| Package metadata validation | Working starter | `scripts/validate_package_metadata.py` verifies package name, framework display name, version consistency, CLI entry points, README maturity warnings, OWASP docs, evaluator suite, and OWASP fixture target before release. |
+| Package metadata validation | Working starter | `scripts/validate_package_metadata.py` verifies package name, framework display name, version consistency, CLI entry points, README maturity warnings, OWASP docs, MITRE ATLAS matrix doc, evaluator suite, and OWASP fixture target before release. |
 | CI | Working starter | GitHub Actions installs the package, runs tests across supported Python versions, validates Web UI wiring, package metadata, target contracts, benchmark fixtures, runs smoke assessments, generates report diffs, trend outputs, benchmarks, HTML export packages, release packages, and uploads artifacts. |
 
 ## Current safe usage
@@ -92,14 +93,14 @@ For any configured target outside demo mode:
 3. Validate target contracts before testing.
 4. Set any required token environment variable.
 5. Run with the CLI authorisation flag or tick the Web UI authorisation confirmation.
-6. Treat results as experimental until OWASP coverage and checks are validated.
+6. Treat results as experimental until OWASP and ATLAS coverage checks are validated.
 7. Store reports securely and review evidence before sharing.
 
 ## Implementation roadmap status
 
-All seven phases requested for this pass have been completed as **working-alpha starter** or **working starter** capabilities.
+All seven phases requested for the previous pass have been completed as **working-alpha starter** or **working starter** capabilities.
 
-The next phase should go through the OWASP docs category by category and decide what each check needs to become production-validated, including payload depth, evidence quality, false-positive handling, and operator report language.
+The next phase should go through the OWASP docs and MITRE ATLAS matrix category by category and decide what each check needs to become production-validated, including payload depth, evidence quality, false-positive handling, and operator report language.
 
 ## Documentation rule
 
