@@ -1,6 +1,6 @@
 framework:
   name: llm-vapt-framework
-  version: 0.5.0
+  version: 0.6.0
   safe_mode: true
 
 execution:
@@ -35,3 +35,6 @@ rag_corpus:
   manifest_path: config/rag_corpus_manifest.yaml
   hash_algorithm: sha256
   approval_required: true
+
+agent_runtime:
+  manifest_path: config/agent_runtime.yaml
