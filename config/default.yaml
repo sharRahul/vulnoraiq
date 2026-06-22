@@ -12,6 +12,7 @@ payload_libraries:
   - safe_baseline
   - rag_readiness
   - agent_readiness
+  - owasp_document_examples
 
 risk_model:
   thresholds:
