@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from agent_testing.runtime_manifest import AgentRuntimeValidator
 from core.types import Finding, PolicyResult, ScanResult
 from rag_testing.corpus_manifest import CorpusManifestValidator
 
@@ -30,7 +31,7 @@ class PolicyEngine:
             evaluations.append(self._evaluate_rag_integrity_policy(result, config, policies["rag_corpus_integrity_required"]))
 
         if policies.get("critical_ai_action_requires_human_approval", {}).get("enabled", False):
-            evaluations.append(self._evaluate_approval_policy(config, policies["critical_ai_action_requires_human_approval"]))
+            evaluations.append(self._evaluate_approval_policy(result, config, policies["critical_ai_action_requires_human_approval"]))
 
         return evaluations
 
@@ -72,23 +73,19 @@ class PolicyEngine:
                 evidence={"profile": result.profile_name},
             )
 
-        target_config = config.get("targets", {}).get("targets", {}).get(result.target_name, {})
-        allowed_tools = target_config.get("allowed_tools", [])
-        if not allowed_tools:
-            return PolicyResult(
-                policy_id="tool_execution_requires_allowlist",
-                status="warn",
-                decision=policy.get("decision", "fail_on_medium"),
-                message="Agent profile selected but no allowed_tools list is configured for the target.",
-                evidence={"target": result.target_name},
-            )
-
+        validation = self._validate_agent_runtime(config)
         return PolicyResult(
             policy_id="tool_execution_requires_allowlist",
-            status="pass",
+            status=validation.status,
             decision=policy.get("decision", "fail_on_medium"),
-            message="Configured target has an explicit allowed_tools list.",
-            evidence={"target": result.target_name, "allowed_tools_count": len(allowed_tools)},
+            message=f"Agent runtime tool governance validation completed with status: {validation.status}.",
+            evidence={
+                "manifest_path": validation.manifest_path,
+                "tool_count": validation.tool_count,
+                "memory_store_count": validation.memory_store_count,
+                "errors": validation.errors,
+                "warnings": validation.warnings,
+            },
         )
 
     def _evaluate_rag_integrity_policy(self, result: ScanResult, config: dict[str, Any], policy: dict[str, Any]) -> PolicyResult:
@@ -126,7 +123,23 @@ class PolicyEngine:
             },
         )
 
-    def _evaluate_approval_policy(self, config: dict[str, Any], policy: dict[str, Any]) -> PolicyResult:
+    def _evaluate_approval_policy(self, result: ScanResult, config: dict[str, Any], policy: dict[str, Any]) -> PolicyResult:
+        if result.profile_name == "agent":
+            validation = self._validate_agent_runtime(config)
+            return PolicyResult(
+                policy_id="critical_ai_action_requires_human_approval",
+                status=validation.status,
+                decision=policy.get("decision", "fail_on_high"),
+                message=f"Agent runtime approval and memory governance validation completed with status: {validation.status}.",
+                evidence={
+                    "manifest_path": validation.manifest_path,
+                    "tool_count": validation.tool_count,
+                    "memory_store_count": validation.memory_store_count,
+                    "errors": validation.errors,
+                    "warnings": validation.warnings,
+                },
+            )
+
         approval = config.get("default", {}).get("approval_gates", {})
         if not approval.get("high_impact_actions_require_approval", False):
             return PolicyResult(
@@ -144,3 +157,8 @@ class PolicyEngine:
             message="Human approval gate for high-impact AI actions is configured.",
             evidence={"configured": approval},
         )
+
+    @staticmethod
+    def _validate_agent_runtime(config: dict[str, Any]):
+        manifest_path = config.get("default", {}).get("agent_runtime", {}).get("manifest_path", "config/agent_runtime.yaml")
+        return AgentRuntimeValidator().validate(Path(manifest_path))
