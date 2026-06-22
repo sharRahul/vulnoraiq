@@ -45,7 +45,8 @@ jobs:
         run: python scripts/validate_package_metadata.py
 
       - name: Validate target contracts
-        run: python - <<'PY'
+        run: |
+          python - <<'PY'
           from integrations.contract_validation import TargetContractValidator
           result = TargetContractValidator().validate()
           assert result.status in {'pass', 'warn'}
@@ -53,7 +54,8 @@ jobs:
           PY
 
       - name: Validate benchmark fixtures
-        run: python - <<'PY'
+        run: |
+          python - <<'PY'
           from benchmarks.fixture_validation import BenchmarkFixtureValidator
           result = BenchmarkFixtureValidator().validate()
           assert result.status == 'pass'
