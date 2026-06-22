@@ -1,0 +1,52 @@
+version: 1
+contracts:
+  http_json:
+    required_fields:
+      - type
+      - endpoint
+    allowed_types:
+      - custom_agent
+      - custom_http_agent
+      - http
+      - http_json
+    response_keys:
+      - output
+      - response
+      - text
+      - content
+    validation_status: starter_contract
+  chat_completions_compatible:
+    required_fields:
+      - type
+      - endpoint
+      - model
+    allowed_types:
+      - chat_completions
+      - chat_completions_compatible
+    response_path: choices.0.message.content
+    validation_status: starter_contract
+  ollama_generate:
+    required_fields:
+      - type
+      - endpoint
+      - model
+    allowed_types:
+      - ollama_generate
+    response_key: response
+    validation_status: starter_contract
+  webhook_json:
+    required_fields:
+      - type
+      - endpoint
+    allowed_types:
+      - webhook_json
+    response_keys:
+      - output
+      - response
+      - text
+      - content
+    validation_status: starter_contract
+rules:
+  - Placeholder endpoints are never valid for configured assessment.
+  - Contracts validate shape only; real target behaviour still requires authorised integration testing.
+  - Token environment variables are validated for declaration, not secret value presence.
