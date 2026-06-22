@@ -8,6 +8,20 @@ from pathlib import Path
 import yaml
 
 
+EXPECTED_OWASP_DOCS = [
+    "LLM01_PROMPT_INJECTION.md",
+    "LLM02_SENSITIVE_INFORMATION_DISCLOSURE.md",
+    "LLM03_SUPPLY_CHAIN.md",
+    "LLM04_DATA_AND_MODEL_POISONING.md",
+    "LLM05_IMPROPER_OUTPUT_HANDLING.md",
+    "LLM06_EXCESSIVE_AGENCY.md",
+    "LLM07_SYSTEM_PROMPT_LEAKAGE.md",
+    "LLM08_VECTOR_AND_EMBEDDING_WEAKNESSES.md",
+    "LLM09_MISINFORMATION.md",
+    "LLM10_UNBOUNDED_CONSUMPTION.md",
+]
+
+
 @dataclass(slots=True)
 class PackageMetadataValidationResult:
     status: str
@@ -36,11 +50,29 @@ class PackageMetadataValidator:
             errors.append(f"pyproject version {package_version} does not match framework version {framework.get('version')}")
         if framework.get("display_name") != "VulnoraIQ":
             errors.append("framework.display_name must be VulnoraIQ")
-        for command in ("vulnoraiq", "vulnoraiq-web", "vulnoraiq-dashboard", "vulnoraiq-diff", "vulnoraiq-package", "vulnoraiq-benchmark"):
+        for command in (
+            "vulnoraiq",
+            "vulnoraiq-web",
+            "vulnoraiq-dashboard",
+            "vulnoraiq-diff",
+            "vulnoraiq-package",
+            "vulnoraiq-benchmark",
+            "vulnoraiq-html-export",
+            "vulnoraiq-validate-package",
+        ):
             if command not in pyproject:
                 errors.append(f"Missing CLI entry point: {command}")
-        if "not ready for real-world VAPT" not in Path("README.md").read_text(encoding="utf-8"):
+        readme = Path("README.md").read_text(encoding="utf-8")
+        if "not ready for real-world VAPT" not in readme:
             warnings.append("README maturity warning was not found")
+        owasp_dir = Path("docs/owasp")
+        for expected_doc in EXPECTED_OWASP_DOCS:
+            if not (owasp_dir / expected_doc).exists():
+                errors.append(f"Missing OWASP implementation doc: {expected_doc}")
+        if not Path("examples/local_demo_targets/owasp_fixture_targets.py").exists():
+            errors.append("Missing OWASP fixture target file")
+        if not Path("core/evaluators.py").exists():
+            errors.append("Missing deterministic evaluator suite")
         return PackageMetadataValidationResult("fail" if errors else "warn" if warnings else "pass", errors, warnings)
 
     @staticmethod
