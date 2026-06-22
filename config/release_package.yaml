@@ -3,6 +3,7 @@ version: 1
 output_path: dist/vulnoraiq-example-package.zip
 include_paths:
   - README.md
+  - THIRD_PARTY_NOTICES.md
   - docs/IMPLEMENTATION_STATUS.md
   - docs/module-authoring.md
   - docs/web-ui.md
@@ -39,5 +40,6 @@ include_paths:
   - reports/output/
 rules:
   - Include only local demo outputs and non-sensitive configuration files.
+  - Include third-party notices whenever generated ATLAS-derived documentation is included.
   - Exclude private operational material and real client evidence.
   - Review generated reports before publishing a release package.
