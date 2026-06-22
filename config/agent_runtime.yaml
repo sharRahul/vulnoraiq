@@ -1,0 +1,45 @@
+name: demo_agent_runtime
+version: 1
+approval_required_for_high_impact_actions: true
+memory_integrity_required: true
+tool_allowlist_required: true
+tools:
+  - name: search_docs
+    category: retrieval
+    allowed: true
+    requires_approval: false
+    max_calls_per_task: 5
+    owner: security-team
+  - name: create_ticket
+    category: workflow
+    allowed: true
+    requires_approval: true
+    max_calls_per_task: 2
+    owner: operations-team
+  - name: send_external_message
+    category: external_action
+    allowed: false
+    requires_approval: true
+    max_calls_per_task: 0
+    owner: security-team
+memory:
+  stores:
+    - name: session_memory
+      owner: platform-team
+      integrity_check: checksum
+      retention_days: 7
+      write_approval_required: false
+    - name: long_term_memory
+      owner: platform-team
+      integrity_check: checksum
+      retention_days: 90
+      write_approval_required: true
+orchestration:
+  high_impact_categories:
+    - external_action
+    - workflow
+  required_plan_fields:
+    - objective
+    - steps
+    - approval_points
+    - rollback_plan
