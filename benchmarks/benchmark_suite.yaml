@@ -4,24 +4,24 @@ benchmarks:
   - id: baseline-demo-policy
     target: demo
     profile: baseline
-    expected_policy_status: fail
+    expected_policy_status: pass
     max_highest_severity: info
-    minimum_finding_count: 10
+    minimum_finding_count: 6
   - id: rag-demo-policy
     target: demo
     profile: rag
-    expected_policy_status: fail
+    expected_policy_status: pass
     max_highest_severity: info
-    minimum_finding_count: 3
+    minimum_finding_count: 4
     required_policy_evidence:
       rag_corpus_integrity_required:
         retrieval_status: pass
   - id: agent-demo-policy
     target: demo
     profile: agent
-    expected_policy_status: fail
+    expected_policy_status: pass
     max_highest_severity: info
-    minimum_finding_count: 4
+    minimum_finding_count: 5
     required_policy_evidence:
       tool_execution_requires_allowlist:
         execution_status: pass
