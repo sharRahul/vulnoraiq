@@ -32,12 +32,15 @@ reporting:
   policy_trend_markdown_output: reports/output/policy-trend.md
   diff_trend_markdown_output: reports/output/diff-trend-dashboard.md
   diff_trend_html_output: reports/output/diff-trend-dashboard.html
+  html_export_output: reports/output/vulnoraiq-html-export.zip
   include_evidence: true
 
 web_ui:
   host: 127.0.0.1
   port: 8787
   output_root: reports/output/webui
+  users_path: config/web_users.yaml
+  job_store_path: reports/output/webui/jobs.json
 
 approval_gates:
   high_impact_actions_require_approval: true
@@ -57,10 +60,18 @@ agent_runtime:
 mitre_atlas:
   mapping_path: config/mitre_atlas_mapping.yaml
   refresh_config_path: config/atlas_refresh.yaml
+  source_fixture_path: config/mitre_atlas_source_fixture.yaml
 
 benchmarks:
   manifest_path: benchmarks/benchmark_suite.yaml
+  fixture_path: benchmarks/fixtures/owasp_starter_fixture.yaml
   output_dir: reports/output/benchmarks
+
+target_contracts:
+  manifest_path: config/target_contracts.yaml
 
 release_package:
   manifest_path: config/release_package.yaml
+
+package_metadata:
+  validation_required: true
