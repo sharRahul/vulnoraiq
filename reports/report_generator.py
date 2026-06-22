@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from core.results_engine import ResultsEngine
@@ -44,6 +45,12 @@ class MarkdownReportGenerator:
                 finding["description"],
                 "",
                 f"Recommendation: {finding['recommendation']}",
+                "",
+                "Evidence:",
+                "",
+                "```json",
+                json.dumps(finding.get("evidence", {}), indent=2, sort_keys=True),
+                "```",
                 "",
             ])
         output.write_text("\n".join(lines), encoding="utf-8")
