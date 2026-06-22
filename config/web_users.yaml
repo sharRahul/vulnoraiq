@@ -1,0 +1,29 @@
+auth:
+  enabled: false
+  default_role: analyst
+  header_name: X-VulnoraIQ-Token
+users:
+  - username: admin
+    role: admin
+    token_hash: 8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
+    status: active
+  - username: analyst
+    role: analyst
+    token_hash: f44e64e75f3948e9f73f8dfa94721c4ce8cbb4f265c4790c702b2d41cfbf2753
+    status: active
+roles:
+  viewer:
+    permissions:
+      - view_scans
+      - download_artifacts
+  analyst:
+    inherits:
+      - viewer
+    permissions:
+      - start_demo_scan
+  admin:
+    inherits:
+      - analyst
+    permissions:
+      - start_configured_scan
+      - manage_runtime
