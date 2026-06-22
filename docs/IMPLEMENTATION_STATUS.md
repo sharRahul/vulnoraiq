@@ -13,7 +13,8 @@ This document separates current working capability from roadmap items so users c
 | Module plugin interface | Working starter | `modules/base.py`, `modules/starter.py`, and `modules/registry.py` provide a formal module protocol, starter module implementation, and registry lookup. |
 | Payload libraries | Working starter | `core/payload_loader.py` loads safe YAML payload libraries from `payloads/` and maps them to module names. |
 | Non-demo authorisation gate | Working | Configured targets outside demo mode require the explicit CLI authorisation flag. |
-| Policy-as-code | Working starter | Policy YAML is evaluated by `core/policy_engine.py` for sensitive marker checks, agent runtime governance, RAG corpus integrity metadata, and approval gates. |
+| Policy-as-code | Working starter | Policy YAML is evaluated by `core/policy_engine.py` for sensitive marker checks, severity thresholds, agent runtime governance, RAG corpus integrity metadata, approval gates, and scoped exceptions. |
+| Policy exceptions | Working starter | `config/policy_exceptions.yaml` and `core/exception_registry.py` support owner, reason, expiry, target, profile, approval reference, and compensating control metadata. |
 | Report generation | Working | Markdown, JSON, and SARIF-style reports include findings, evidence, and policy evaluation. |
 | Dashboard generation | Working | Markdown and HTML dashboards are generated from the structured JSON report. |
 | HTTP JSON target adapter | Starter | A minimal HTTP JSON adapter exists for explicitly authorised local or owned targets. |
@@ -54,13 +55,13 @@ For any configured target outside demo mode:
 1. Add validated MITRE ATLAS mapping data.
 2. Add deeper RAG retrieval harnesses and source-trust scoring.
 3. Add simulated agent execution, memory-integrity, and orchestration harnesses.
-4. Expand policy-as-code to support severity thresholds, exception files, and signed approvals.
-5. Add release versioning and packaged example outputs.
-6. Add richer target adapters for common enterprise patterns.
-7. Add report diffing between two assessment runs.
-8. Add an exceptions register with owner, expiry, and approval metadata.
-9. Add example vulnerable local demo applications.
-10. Add benchmark datasets for repeatable regression testing.
+4. Add release versioning and packaged example outputs.
+5. Add richer target adapters for common enterprise patterns.
+6. Add report diffing between two assessment runs.
+7. Add example vulnerable local demo applications.
+8. Add benchmark datasets for repeatable regression testing.
+9. Add signed approval evidence validation for exceptions.
+10. Add policy-result trend tracking across repeated runs.
 
 ## Documentation rule
 
