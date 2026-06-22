@@ -17,7 +17,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0.0"]
+dev = [
+  "pytest>=8.0.0",
+  "ruff>=0.5.0",
+  "mypy>=1.10.0",
+  "types-PyYAML>=6.0.12.20240311",
+  "types-requests>=2.31.0.20240406"
+]
 
 [project.scripts]
 vulnoraiq = "scripts.run_scan:main"
@@ -45,3 +51,21 @@ webui = ["static/*.html", "static/*.css", "static/*.js"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+exclude = ["reports/output", "build", "dist"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_ignores = true
+warn_redundant_casts = true
+ignore_missing_imports = true
+no_implicit_optional = true
+check_untyped_defs = true
+exclude = "reports/output|build|dist"
