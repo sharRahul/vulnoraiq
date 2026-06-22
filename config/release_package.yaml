@@ -6,6 +6,7 @@ include_paths:
   - docs/IMPLEMENTATION_STATUS.md
   - docs/module-authoring.md
   - docs/web-ui.md
+  - docs/owasp/
   - config/default.yaml
   - config/targets.yaml
   - config/target_contracts.yaml
@@ -27,6 +28,7 @@ include_paths:
   - benchmarks/benchmark_suite.yaml
   - benchmarks/fixtures/owasp_starter_fixture.yaml
   - examples/local_demo_targets/README.md
+  - examples/local_demo_targets/owasp_fixture_targets.py
   - payloads/schema.yaml
   - payloads/safe_baseline.yaml
   - payloads/rag_readiness.yaml
