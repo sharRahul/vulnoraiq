@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "vulnoraiq"
-version = "1.2.0"
-description = "VulnoraIQ: AI-native VAPT and security assessment platform for LLM applications, RAG systems, agents, and orchestration layers."
+name = "vulnora-iq"
+version = "0.0.1.2"
+description = "Vulnora-IQ: early-stage AI-native VAPT and security assessment platform for LLM applications, RAG systems, agents, and orchestration layers."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
