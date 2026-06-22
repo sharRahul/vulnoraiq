@@ -63,6 +63,28 @@ jobs:
             --json-output reports/output/baseline-vs-rag-diff.json \
             --markdown-output reports/output/baseline-vs-rag-diff.md
 
+      - name: Build policy trend
+        run: |
+          python -m reports.policy_trends \
+            --input-dir reports/output \
+            --json-output reports/output/policy-trend.json \
+            --markdown-output reports/output/policy-trend.md
+
+      - name: Build diff trend dashboard
+        run: |
+          python -m dashboards.diff_trend_dashboard \
+            --input-dir reports/output \
+            --markdown-output reports/output/diff-trend-dashboard.md \
+            --html-output reports/output/diff-trend-dashboard.html
+
+      - name: Run regression benchmarks
+        run: |
+          python -m benchmarks.run_benchmarks \
+            --manifest benchmarks/benchmark_suite.yaml \
+            --output-dir reports/output/benchmarks \
+            --summary-output reports/output/benchmarks/benchmark-summary.json \
+            --fail-on-regression
+
       - name: Build release package smoke test
         run: python scripts/build_release_package.py --manifest config/release_package.yaml
 
