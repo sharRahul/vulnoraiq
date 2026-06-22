@@ -191,7 +191,7 @@ def run_scan_job(job_id: str) -> None:
 
 
 class WebUiHandler(BaseHTTPRequestHandler):
-    server_version = "LLMVAPTWebUI/1.0"
+    server_version = "VulnoraIQWebUI/1.2"
 
     def do_GET(self) -> None:  # noqa: N802 - stdlib API
         parsed = urlparse(self.path)
@@ -329,12 +329,12 @@ def create_server(host: str = "127.0.0.1", port: int = 8787) -> ThreadingHTTPSer
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run the LLM VAPT modern web UI.")
+    parser = argparse.ArgumentParser(description="Run the VulnoraIQ modern web UI.")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8787)
     args = parser.parse_args()
     server = create_server(args.host, args.port)
-    print(f"LLM VAPT Web UI running at http://{args.host}:{args.port}")
+    print(f"VulnoraIQ Web UI running at http://{args.host}:{args.port}")
     server.serve_forever()
 
 
