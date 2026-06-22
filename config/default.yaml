@@ -1,6 +1,6 @@
 framework:
   name: vulnoraiq
-  display_name: Vulnora-IQ
+  display_name: VulnoraIQ
   version: 0.0.1.2
   safe_mode: true
 
