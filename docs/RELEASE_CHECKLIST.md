@@ -1,272 +1,239 @@
 # VulnoraIQ Release Checklist
 
-> **Version:** 0.2.0
-> **Owner:** Release Manager
-> **Last Updated:** 2026-06-22
+> **Current target:** `0.2.0` / `0.2.0-rc1`  
+> **Scope:** controlled internal enterprise production-readiness release  
+> **Last updated:** 2026-06-22
 
----
+This checklist must be completed before tagging a production-readiness release candidate or final release.
 
-## Pre-Release Checklist
+## Release boundary
 
-Before starting any release process, verify the following:
+`0.2.0` may be described as:
 
-- [ ] All planned features/ fixes for this release are merged to `main`
-- [ ] No known P0/P1 bugs are open against this release
-- [ ] CI pipeline is green on `main` for the last 24 hours
-- [ ] All required approvals are obtained (see Required Approvals section)
-- [ ] Release Manager is assigned and confirmed
-- [ ] Release notes draft is prepared
-- [ ] Stakeholders have been notified of the release window
-- [ ] Maintenance window is confirmed (if downtime is expected)
+> Controlled internal enterprise production-readiness gate passed.
 
----
+Do **not** describe `0.2.0` as public SaaS, multi-tenant, unsupervised internet-facing, or certified VAPT-grade ready.
 
-## Version Numbering Scheme
+## Pre-release requirements
 
-VulnoraIQ follows **Semantic Versioning 2.0.0**:
+- [ ] All planned release changes are merged or intentionally deferred.
+- [ ] `README.md`, `SECURITY.md`, `CHANGELOG.md`, and `docs/` are aligned with current maturity.
+- [ ] `docs/PRODUCTION_READINESS_SCORECARD.md` and `docs/PRODUCTION_HARDENING_BACKLOG.md` do not contradict each other.
+- [ ] `docs/ASSESSMENT_ASSURANCE.md` clearly states scanner/evaluator limitations.
+- [ ] No P0/P1 release blockers remain.
+- [ ] Known accepted risks are documented.
+- [ ] CI is green on the release branch or `main`.
 
-```
+## Versioning
+
+VulnoraIQ uses semantic versioning:
+
+```text
 MAJOR.MINOR.PATCH[-PRERELEASE]
 ```
 
-| Component | When to bump | Example |
-|-----------|-------------|---------|
-| **MAJOR** | Breaking API/DB schema/configuration changes | 2.0.0 |
-| **MINOR** | New features, no breaking changes | 1.3.0 |
-| **PATCH** | Bug fixes, security patches, minor improvements | 1.2.1 |
-| **PRERELEASE** | RC, alpha, beta suffixes | 1.3.0-rc.1 |
-
-### Pre-release suffixes
-
-- `-rc.N` — Release Candidate N (e.g., `1.3.0-rc.1`)
-- `-alpha.N` — Alpha build (internal testing)
-- `-beta.N` — Beta build (limited external testing)
-
----
-
-## Release Candidate Process
-
-For non-trivial releases, create at least one Release Candidate (RC) before the final release.
-
-1. Branch from `main` into `release/v<MAJOR>.<MINOR>.<PATCH>-rc.N`
-2. Complete all items in Stage 1 (Version & Changelog)
-3. Run Stages 2–4 (Validation pipeline)
-4. Tag `v<version>-rc.N` and push
-5. Deploy RC to staging environment
-6. Run integration and smoke tests in staging
-7. Gather sign-off from QA and Product
-8. If issues found, fix on the release branch, increment RC number, repeat
-9. Once all issues are resolved, merge into `main` and proceed with final release
-
----
-
-## Hotfix Process
-
-For critical issues in production that cannot wait for the next regular release:
-
-1. Branch from the latest release tag: `hotfix/v<MAJOR>.<MINOR>.<PATCH+1>-hotfix`
-2. Apply the minimal fix
-3. Complete all checklist stages (1–4)
-4. Obtain expedited approvals (Engineering Lead + Security if applicable)
-5. Tag `v<version>` and push
-6. Merge back into `main` and the active release branch
-7. Post-release verification in production
-8. Document the incident and root cause
-
-> **Note:** Hotfixes bypass the RC process but still require full validation pipeline execution.
-
----
-
-## Required Approvals
-
-| Role | Required For |
-|------|-------------|
-| Engineering Lead | Stage 1 (version/changelog review), Stage 5 (release sign-off) |
-| QA Lead | Stage 4 (test results review) |
-| Security Lead | Stage 7 (security review), any release with security fixes |
-| Product Manager | Feature releases, changelog final review |
-| Release Manager | All stages — overall coordination and sign-off |
-| CTO/VP Eng | MAJOR version releases only |
-
----
-
-## Release Checklist
-
-### Stage 1: Version Bump & Changelog
-
-- [ ] **1.1** Update version in `pyproject.toml`
-- [ ] **1.2** Add new version section to `CHANGELOG.md` with date
-- [ ] **1.3** Review changelog entries:
-  - [ ] New features clearly documented
-  - [ ] Security fixes called out (reference CVE if applicable)
-  - [ ] Breaking changes marked with `[BREAKING]` prefix
-  - [ ] Deprecated APIs listed with migration path
-  - [ ] Upgrade steps documented (if any)
-- [ ] **1.4** Commit version bump and changelog with message: `chore: bump version to v<X.Y.Z>`
-- [ ] **1.5** Engineering Lead approval
-
-### Stage 2: Lint & Static Analysis
-
-- [ ] **2.1** Run Ruff lint check
-
-      ```bash
-      ruff check .
-      ```
-
-- [ ] **2.2** Run mypy type check
-
-      ```bash
-      mypy .
-      ```
-
-- [ ] **2.3** Resolve any lint/type errors (zero warnings policy)
-
-### Stage 3: Tests
-
-- [ ] **3.1** Run pytest
-
-      ```bash
-      pytest
-      ```
-
-- [ ] **3.2** All tests pass (zero failures)
-- [ ] **3.3** Code coverage meets threshold (≥80%)
-
-### Stage 4: Validation Scripts
-
-- [ ] **4.1** Run metadata validation
-
-      ```bash
-      python scripts/validate_package_metadata.py
-      ```
-
-- [ ] **4.2** Run production readiness validation
-
-      ```bash
-      python scripts/validate_production_testing_readiness.py
-      ```
-
-- [ ] **4.3** Run runtime config validation
-
-      ```bash
-      python scripts/validate_runtime_production_config.py
-      ```
-
-- [ ] **4.4** All validation scripts pass (exit code 0)
-
-### Stage 5: Docker Build & Smoke Test
-
-- [ ] **5.1** Build Docker image
-
-      ```bash
-      docker build -t vulnoraiq:<version> .
-      docker build -t vulnoraiq:latest .
-      ```
-
-- [ ] **5.2** Run container smoke test
-
-      ```bash
-      docker run --rm vulnoraiq:<version> --version
-      docker run --rm vulnoraiq:<version> --help
-      ```
-
-- [ ] **5.3** Verify container starts and health endpoint responds (if applicable)
-- [ ] **5.4** QA Lead approval
-
-### Stage 6: Backup / Restore Test
-
-- [ ] **6.1** Verify backup script executes successfully
-- [ ] **6.2** Perform restore from backup to a test environment
-- [ ] **6.3** Verify data integrity after restore
-- [ ] **6.4** Document any schema migrations or breaking data changes
-
-### Stage 7: Documentation Review
-
-- [ ] **7.1** API documentation is up to date
-- [ ] **7.2** Configuration reference reflects new/ changed options
-- [ ] **7.3** Upgrade / migration guide is updated (if applicable)
-- [ ] **7.4** README and quickstart are current
-- [ ] **7.5** CHANGELOG is accurate and well-formatted
-
-### Stage 8: Security Review
-
-- [ ] **8.1** All dependencies are scanned for known vulnerabilities
-
-      ```bash
-      pip-audit
-      ```
-
-- [ ] **8.2** No new high/ critical severity vulnerabilities introduced
-- [ ] **8.3** Security fixes are verified (if applicable)
-- [ ] **8.4** Secrets/ credentials are not hardcoded or committed
-- [ ] **8.5** Security Lead sign-off (or documented waiver)
-
-### Stage 9: Git Tag & Release
-
-- [ ] **9.1** Create and push annotated tag
-
-      ```bash
-      git tag -a v<X.Y.Z> -m "Release v<X.Y.Z>"
-      git push origin v<X.Y.Z>
-      ```
-
-- [ ] **9.2** Create GitHub Release from the tag
-- [ ] **9.3** Attach release notes (generated from CHANGELOG)
-- [ ] **9.4** Upload build artifacts (Docker image, distribution packages)
-- [ ] **9.5** Notify stakeholders of the release
-
-### Stage 10: Post-Release Verification
-
-- [ ] **10.1** Verify GitHub Actions/ CI completed for the tag
-- [ ] **10.2** Deploy to production (following deployment playbook)
-- [ ] **10.3** Verify production health endpoints
-- [ ] **10.4** Run smoke tests against production
-- [ ] **10.5** Monitor logs and metrics for 1 hour post-deployment
-- [ ] **10.6** Confirm no regression in key metrics (error rate, latency, throughput)
-- [ ] **10.7** Release Manager final sign-off
-
----
-
-## Checklist Tracking Table
-
-| Stage | Item | Status | Owner | Notes |
-|-------|------|--------|-------|-------|
-| Pre-Release | All pre-checks complete | ☐ | Release Manager | |
-| 1 | Version bump & changelog | ☐ | | |
-| 2 | Lint & static analysis | ☐ | | |
-| 3 | Tests | ☐ | | |
-| 4 | Validation scripts | ☐ | | |
-| 5 | Docker build & smoke test | ☐ | | |
-| 6 | Backup / restore test | ☐ | | |
-| 7 | Documentation review | ☐ | | |
-| 8 | Security review | ☐ | | |
-| 9 | Git tag & release | ☐ | | |
-| 10 | Post-release verification | ☐ | | |
-| **Final** | **Release Manager sign-off** | ☐ | | |
-
----
-
-## Quick Reference: Commands by Stage
-
-| Stage | Command |
-|-------|---------|
-| 1 | `git commit -m "chore: bump version to v<X.Y.Z>"` |
-| 2 | `ruff check . && mypy .` |
-| 3 | `pytest` |
-| 4 | `python scripts/validate_package_metadata.py && python scripts/validate_production_testing_readiness.py && python scripts/validate_runtime_production_config.py` |
-| 5 | `docker build -t vulnoraiq:<version> . && docker run --rm vulnoraiq:<version> --version` |
-| 8 | `pip-audit` |
-| 9 | `git tag -a v<X.Y.Z> -m "Release v<X.Y.Z>" && git push origin v<X.Y.Z>` |
-
----
-
-## Rollback Plan
-
-If post-release verification fails or a critical issue is discovered:
-
-1. **Immediate:** Revert to previous Docker image tag in production
-2. **Short-term:** Create hotfix branch from the release tag
-3. **Follow:** The hotfix process above
-4. **Communication:** Notify all stakeholders of the rollback and ETA for fix
-
-> **Rollback trigger criteria:** Error rate > 1%, p99 latency > 5s, any P0 security finding, data integrity issue.
+Recommended flow for this release:
+
+1. Tag `v0.2.0-rc1` after a clean local and CI validation pass.
+2. Run one release-candidate validation cycle.
+3. Tag `v0.2.0` only after RC smoke, Docker smoke, backup/restore, and docs review pass.
+
+## Stage 1: version and changelog
+
+- [ ] Confirm `pyproject.toml` version is correct.
+- [ ] Confirm README maturity banner references the same version.
+- [ ] Confirm `CHANGELOG.md` has a dated section for the version.
+- [ ] Confirm breaking changes are listed:
+  - legacy `webui/server.py` removed
+  - SQLite is default persistence
+  - JSON backend is dev/legacy only
+  - file auth disabled in production
+  - `VULNORAIQ_ADMIN_TOKEN` required in production
+- [ ] Confirm release notes include known limitations.
+
+## Stage 2: local quality gates
+
+Run:
+
+```bash
+python -m pip install -e .[dev]
+ruff check .
+mypy .
+pytest -q
+python -m pip check
+pip-audit
+```
+
+Acceptance:
+
+- [ ] Ruff passes.
+- [ ] mypy passes.
+- [ ] pytest passes.
+- [ ] pip check passes or unrelated environment warnings are documented.
+- [ ] pip-audit has no unaccepted high/critical runtime vulnerabilities.
+
+## Stage 3: package and readiness validation
+
+Run:
+
+```bash
+python scripts/validate_package_metadata.py
+python scripts/validate_production_testing_readiness.py
+python scripts/validate_runtime_production_config.py
+python scripts/validate_production_testing_readiness.py \
+  --run-functional \
+  --output-dir reports/output/production-readiness \
+  --screenshot docs/assets/vulnoraiq-dashboard-example.svg
+```
+
+Acceptance:
+
+- [ ] Package metadata validation passes.
+- [ ] Production readiness validation passes all checks.
+- [ ] Runtime production config validation passes under a valid production env.
+- [ ] Functional acceptance passes.
+- [ ] Dashboard example asset remains refreshed.
+
+## Stage 4: Web UI smoke test
+
+Manual or scripted checks:
+
+- [ ] `/healthz` returns HTTP `200`.
+- [ ] `/readyz` returns HTTP `200` when config is loaded.
+- [ ] `/metrics` requires auth by default.
+- [ ] unauthenticated `/api/scans` returns `401`.
+- [ ] valid admin token can retrieve `/api/csrf-token`.
+- [ ] `POST /api/scans` without CSRF returns `403`.
+- [ ] valid CSRF token allows demo scan creation.
+- [ ] artifact download works for completed demo scan.
+- [ ] artifact path traversal attempt is rejected.
+- [ ] audit logs contain request IDs and do not contain tokens or request bodies.
+
+## Stage 5: Docker and container smoke
+
+Run:
+
+```bash
+docker build -t vulnoraiq:0.2.0-rc .
+python scripts/container_smoke_test.py
+```
+
+Acceptance:
+
+- [ ] Image builds successfully.
+- [ ] Container runs as non-root.
+- [ ] `/data` volume is used for DB/reports.
+- [ ] healthcheck passes.
+- [ ] production mode fails without admin token.
+- [ ] production mode starts with valid admin token.
+
+## Stage 6: backup and restore
+
+Run on a temporary/test SQLite DB:
+
+```bash
+python scripts/backup_sqlite_store.py \
+  /data/jobs.db \
+  /data/backups/jobs-$(date +%Y%m%d-%H%M%S).db \
+  --compress \
+  --validate \
+  --retention 90
+
+python scripts/restore_sqlite_store.py \
+  /data/backups/jobs-YYYYMMDD-HHMMSS.db.gz \
+  /tmp/vulnoraiq-restore-test.db \
+  --compressed \
+  --validate
+```
+
+Acceptance:
+
+- [ ] Backup completes.
+- [ ] Backup validation passes.
+- [ ] Restore completes to test DB.
+- [ ] Restored DB validates.
+- [ ] Restore drill result is recorded.
+
+## Stage 7: documentation review
+
+- [ ] README quick start is current.
+- [ ] README Web UI instructions include production-mode and Docker Compose path.
+- [ ] `SECURITY.md` reflects `0.2.0` controls and supported versions.
+- [ ] `DEPLOYMENT.md` includes latest env vars and proxy/TLS guidance.
+- [ ] `RUNBOOK.md` uses real `0.2.0` commands, not placeholder PostgreSQL/Redis/JWT commands.
+- [ ] `INCIDENT_RESPONSE.md` references current audit events, SQLite, metrics, and token/proxy auth.
+- [ ] `MIGRATION.md` covers `0.0.1.x` to `0.2.0`.
+- [ ] `ASSESSMENT_ASSURANCE.md` warns that findings are framework evidence, not certified VAPT assurance.
+- [ ] `PRODUCTION_HARDENING_BACKLOG.md` documents public/SaaS gaps.
+
+## Stage 8: security review
+
+- [ ] No real secrets in repository.
+- [ ] `.env.production.example` contains placeholders only.
+- [ ] Production auth is fail-closed.
+- [ ] `listen_address_safe` check is reachable in `validate_all()`.
+- [ ] Trusted proxy identity spoofing tests pass.
+- [ ] CSRF, rate-limit, request-size, artifact traversal, metrics auth, and audit tests pass.
+- [ ] Dependency audit is reviewed.
+- [ ] Security lead or maintainer signs off.
+
+## Stage 9: release candidate tag
+
+```bash
+git tag -a v0.2.0-rc1 -m "Release candidate v0.2.0-rc1"
+git push origin v0.2.0-rc1
+```
+
+After tag:
+
+- [ ] GitHub Actions pass for the tag.
+- [ ] Release notes are generated from `CHANGELOG.md`.
+- [ ] RC deployment smoke is run.
+- [ ] No blocker found during RC observation window.
+
+## Stage 10: final release tag
+
+Only after RC validation:
+
+```bash
+git tag -a v0.2.0 -m "Release v0.2.0"
+git push origin v0.2.0
+```
+
+Post-release:
+
+- [ ] GitHub Release created.
+- [ ] Changelog copied into release notes.
+- [ ] Deployment docs linked.
+- [ ] Security policy linked.
+- [ ] Known limitations clearly visible.
+- [ ] Smoke test run against released artifact/image.
+- [ ] Logs and metrics monitored for at least one hour in the target environment.
+
+## Rollback plan
+
+Trigger rollback for:
+
+- auth bypass or fail-open behaviour
+- token leakage
+- artifact exposure
+- data integrity issue
+- repeatable production startup failure
+- broken backup/restore
+- critical/high dependency vulnerability without mitigation
+
+Rollback steps:
+
+1. Stop the service.
+2. Revert to previous image/tag/code revision.
+3. Restore pre-release SQLite backup if needed.
+4. Validate `/healthz`, `/readyz`, `/metrics`, scan history, and artifact access.
+5. Document root cause and create a hotfix issue.
+
+## Final release decision
+
+| Decision | Criteria |
+| --- | --- |
+| Tag `v0.2.0-rc1` | All local checks pass; docs aligned; Docker/backup smoke planned or passed |
+| Tag `v0.2.0` | RC cycle passed cleanly with Docker smoke, backup/restore, and CI/tag validation |
+| Keep unreleased | Any production-readiness validator failure, doc contradiction, security regression, or broken runtime smoke test |
