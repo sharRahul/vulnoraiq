@@ -18,6 +18,10 @@ All notable changes to this project will be documented in this file.
 - Dependency checks (pip-audit, pip check) in CI
 - Regression tests for trusted proxy identity mode (spoofed headers, CIDR enforcement, role mapping, permissions)
 - Validator checks: listen_address_safe reachability, no SaaS overclaim in README, SQLite/WAL persistence claim, public/SaaS limitations documented, assessment assurance doc discoverable
+- OWASP-to-MITRE ATLAS planning crosswalk (`docs/owasp/OWASP_TO_MITRE_ATLAS_CROSSWALK.md`)
+- GenAI security implementation planning docs (`docs/genai/`)
+- Agentic Applications security implementation planning docs (`docs/agentic/`)
+- OWASP source document review index (`docs/owasp-documents/README.md`)
 
 ### Changed
 
@@ -38,7 +42,8 @@ All notable changes to this project will be documented in this file.
 - PRODUCTION_HARDENING_BACKLOG.md: added "Notes on scoring" clarifying 10/10 gate vs 8.4/10 scorecard average; remaining gaps section updated
 - RUNBOOK.md: added disclaimer that it is a template requiring adaptation
 - RELEASE_CHECKLIST.md: version/date updated
-- README.md: added ASSESSMENT_ASSURANCE.md link to maturity banner
+- README.md and SECURITY.md fully rewritten for the `0.2.0` controlled-internal production posture
+- `docs/README.md` updated to link OWASP, GenAI, Agentic, and MITRE planning docs
 - **`_ALL_CHECKS` in `production_checks.py`**: `listen_address_safe` entry added so the check is actually reachable
 
 ### Fixed
