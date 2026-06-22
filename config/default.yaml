@@ -1,6 +1,6 @@
 framework:
   name: llm-vapt-framework
-  version: 0.9.0
+  version: 0.10.0
   safe_mode: true
 
 execution:
@@ -35,11 +35,13 @@ approval_gates:
 
 rag_corpus:
   manifest_path: config/rag_corpus_manifest.yaml
+  retrieval_scenarios_path: config/rag_retrieval_scenarios.yaml
   hash_algorithm: sha256
   approval_required: true
 
 agent_runtime:
   manifest_path: config/agent_runtime.yaml
+  execution_scenarios_path: config/agent_execution_scenarios.yaml
 
 mitre_atlas:
   mapping_path: config/mitre_atlas_mapping.yaml
