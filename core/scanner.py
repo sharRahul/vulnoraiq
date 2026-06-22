@@ -8,7 +8,7 @@ import yaml
 
 from core.test_runner import TestRunner
 from core.types import ScanContext, ScanResult, TargetClient
-from integrations.base import DemoEchoClient
+from integrations.base import DemoEchoClient, HttpJsonTargetClient
 
 
 class Scanner:
@@ -23,13 +23,15 @@ class Scanner:
         target_name: str = "demo",
         profile_name: str = "baseline",
         target: TargetClient | None = None,
+        authorised: bool = False,
     ) -> ScanResult:
         config = self._load_config()
         profile = config["attack_profiles"].get("profiles", {}).get(profile_name)
         if not profile:
             raise ValueError(f"Unknown attack profile: {profile_name}")
 
-        target_client = target or self._default_target(target_name)
+        self._require_authorisation(target_name=target_name, target=target, authorised=authorised, config=config)
+        target_client = target or self._default_target(target_name, config=config)
         context = ScanContext(
             target_name=target_name,
             profile_name=profile_name,
@@ -45,12 +47,45 @@ class Scanner:
             completed_at=datetime.now(timezone.utc),
         )
 
-    def _default_target(self, target_name: str) -> TargetClient:
+    def _require_authorisation(
+        self,
+        target_name: str,
+        target: TargetClient | None,
+        authorised: bool,
+        config: dict[str, Any],
+    ) -> None:
+        policy = config.get("policies", {}).get("policies", {}).get("authorised_testing_required", {})
+        policy_enabled = bool(policy.get("enabled", True))
+        is_demo = target_name == "demo" and target is None
+        if policy_enabled and not is_demo and not authorised:
+            raise PermissionError(
+                "Non-demo scans require explicit authorisation. Re-run with the CLI authorisation flag "
+                "only for systems you own or are permitted to assess."
+            )
+
+    def _default_target(self, target_name: str, config: dict[str, Any]) -> TargetClient:
+        target_config = config.get("targets", {}).get("targets", {}).get(target_name)
         if target_name == "demo":
             return DemoEchoClient()
-        raise ValueError(
-            f"No target client supplied for '{target_name}'. Provide an integration adapter before scanning non-demo targets."
-        )
+        if not target_config:
+            raise ValueError(f"Unknown target: {target_name}")
+
+        target_type = target_config.get("type")
+        if target_type in {"custom_agent", "custom_http_agent", "http"}:
+            endpoint = target_config.get("endpoint")
+            if not endpoint or str(endpoint).endswith("example.invalid/agent"):
+                raise ValueError(
+                    f"Target '{target_name}' is a placeholder. Configure a real authorised endpoint before scanning."
+                )
+            timeout = int(config.get("default", {}).get("execution", {}).get("request_timeout_seconds", 30))
+            return HttpJsonTargetClient(
+                name=target_name,
+                endpoint=str(endpoint),
+                token_env_var=target_config.get("token_env_var"),
+                timeout_seconds=timeout,
+            )
+
+        raise ValueError(f"Unsupported target type for '{target_name}': {target_type}")
 
     def _load_config(self) -> dict[str, Any]:
         def load_yaml(name: str) -> dict[str, Any]:
