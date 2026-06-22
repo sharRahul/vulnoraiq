@@ -28,14 +28,40 @@ jobs:
       - name: Run tests
         run: pytest
 
-      - name: Run demo assessment smoke test
+      - name: Run baseline assessment smoke test
         run: |
           python scripts/run_scan.py --target demo --profile baseline \
-            --output reports/output/demo-report.md \
-            --json-output reports/output/demo-report.json \
-            --sarif-output reports/output/demo-report.sarif \
-            --dashboard-output reports/output/demo-dashboard.md \
-            --html-dashboard-output reports/output/demo-dashboard.html
+            --output reports/output/baseline-report.md \
+            --json-output reports/output/baseline-report.json \
+            --sarif-output reports/output/baseline-report.sarif \
+            --dashboard-output reports/output/baseline-dashboard.md \
+            --html-dashboard-output reports/output/baseline-dashboard.html
+
+      - name: Run RAG assessment smoke test
+        run: |
+          python scripts/run_scan.py --target demo --profile rag \
+            --output reports/output/rag-report.md \
+            --json-output reports/output/rag-report.json \
+            --sarif-output reports/output/rag-report.sarif \
+            --dashboard-output reports/output/rag-dashboard.md \
+            --html-dashboard-output reports/output/rag-dashboard.html
+
+      - name: Run agent assessment smoke test
+        run: |
+          python scripts/run_scan.py --target demo --profile agent \
+            --output reports/output/agent-report.md \
+            --json-output reports/output/agent-report.json \
+            --sarif-output reports/output/agent-report.sarif \
+            --dashboard-output reports/output/agent-dashboard.md \
+            --html-dashboard-output reports/output/agent-dashboard.html
+
+      - name: Run report diff smoke test
+        run: |
+          python -m reports.report_diff \
+            --baseline reports/output/baseline-report.json \
+            --current reports/output/rag-report.json \
+            --json-output reports/output/baseline-vs-rag-diff.json \
+            --markdown-output reports/output/baseline-vs-rag-diff.md
 
       - name: Upload demo reports
         uses: actions/upload-artifact@v4
