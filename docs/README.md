@@ -45,7 +45,7 @@ It must **not** be described as:
 | Area | Status |
 | --- | --- |
 | Standalone local launcher | Complete: cross-platform launcher files, startup/dependency checks, local browser open, startup panel, and loopback-only stop control |
-| Release artifact workflow | Complete: Windows, Linux, and macOS zip packages are built only on published GitHub Releases or manual release-build dispatch |
+| Release artifact workflow | Complete: Windows `.zip`, Linux `.tar.gz`, and macOS unsigned `.dmg` packages are built only on published GitHub Releases or manual release-build dispatch |
 | Python package workflow | Complete: wheel/source distributions are built on published GitHub Releases or manual dispatch, with TestPyPI/PyPI publish controlled by manual workflow input |
 | Auth | Complete: fail-closed token auth for hosted/production mode; trusted reverse-proxy identity mode available |
 | Production startup validation | Complete: runtime checks via `webui/production_checks.py` and `scripts/validate_runtime_production_config.py` |
