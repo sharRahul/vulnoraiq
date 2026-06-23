@@ -160,3 +160,244 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* System appearance and catalog layout overrides ------------------------- */
+:root {
+  color-scheme: light dark;
+  --focus-ring: rgba(138, 158, 167, 0.28);
+}
+
+.toolbar > *,
+.catalog-toolbar > *,
+.findings-toolbar > *,
+.history-toolbar > * {
+  min-width: 0;
+}
+
+.catalog-toolbar {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+}
+
+.catalog-toolbar .filter-count {
+  justify-self: start;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+select,
+.signin-form input,
+.toolbar input,
+.toolbar select,
+.topbar-button,
+.secondary,
+.profile-card,
+.profile-card button,
+.timeline li,
+.cards article,
+.policy-item,
+.finding-item,
+.job-item,
+.job-item button,
+.artifact-links a,
+.empty-state,
+.startup-card,
+.startup-item,
+.readiness-grid article,
+.history-summary article,
+.top-risk-item,
+.enhanced-finding details,
+.artifact-group,
+.scan-percent-pill,
+.scan-stage-grid article {
+  background: var(--panel-strong);
+  color: var(--text);
+}
+
+select,
+.signin-form input,
+.toolbar input,
+.toolbar select,
+.topbar-button,
+.secondary,
+.profile-card button,
+.job-item button {
+  border-color: var(--border);
+}
+
+select:focus,
+button:focus,
+.signin-form input:focus,
+.toolbar input:focus,
+.toolbar select:focus {
+  outline-color: var(--focus-ring);
+}
+
+.topbar,
+.panel,
+.hero-card,
+.test-catalog-wrap,
+.selected-profile-detail,
+.run-readiness,
+.top-risks-panel,
+.active-scan-card,
+.scan-visual,
+.progress-bar-shell,
+.bar-track,
+.active-scan-message,
+.finding-meta div,
+.enhanced-finding pre {
+  color: var(--text);
+}
+
+.test-catalog,
+.timeline,
+.enhanced-finding pre {
+  scrollbar-color: var(--accent) transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0F141A;
+    --canvas: #0F141A;
+    --panel: #151B22;
+    --panel-soft: #1F2933;
+    --panel-strong: #1B232D;
+    --border: rgba(216, 226, 234, 0.16);
+    --border-strong: rgba(216, 226, 234, 0.30);
+    --text: #E7ECF0;
+    --muted: #A8B4BE;
+    --accent: #9FB4C0;
+    --accent-2: #D6A970;
+    --success: #9DB376;
+    --warn: #E0A55F;
+    --danger: #DE6E6E;
+    --critical: #FF9AA2;
+    --navy: #F4F7FA;
+    --shadow: 0 20px 56px rgba(0, 0, 0, 0.34);
+    --focus-ring: rgba(159, 180, 192, 0.34);
+    color-scheme: dark;
+  }
+
+  body {
+    background:
+      radial-gradient(circle at 10% 0%, rgba(42, 55, 68, 0.70), transparent 28rem),
+      radial-gradient(circle at 92% 2%, rgba(214, 169, 112, 0.14), transparent 24rem),
+      linear-gradient(135deg, #0F141A 0%, #121820 52%, #101821 100%);
+  }
+
+  .topbar {
+    background: rgba(15, 20, 26, 0.88);
+  }
+
+  .brand-mark,
+  .section-title span,
+  .top-risk-item > span {
+    background: #DCE6EE;
+    color: #0F141A;
+  }
+
+  .brand-name,
+  .brand-name strong,
+  .session-identity strong,
+  h1,
+  h2,
+  h3,
+  h4,
+  .selected-profile-detail strong,
+  .profile-card strong,
+  .progress-ring strong,
+  .scan-percent-pill strong,
+  .cards strong,
+  .policy-item strong,
+  .finding-item strong,
+  .artifact-links a,
+  .job-item button,
+  .readiness-grid strong,
+  .history-summary strong,
+  .scan-stage-grid strong,
+  .finding-meta dd,
+  .enhanced-finding summary {
+    color: var(--navy);
+  }
+
+  .hero {
+    background:
+      linear-gradient(135deg, rgba(21, 27, 34, 0.96), rgba(31, 41, 51, 0.66)),
+      var(--panel);
+  }
+
+  .hero-card,
+  .startup-status-card,
+  .active-scan-card {
+    background:
+      linear-gradient(135deg, rgba(31, 41, 51, 0.72), rgba(21, 27, 34, 0.92)),
+      var(--panel);
+  }
+
+  .test-catalog-wrap,
+  .selected-profile-detail,
+  .run-readiness,
+  .run-readiness.blocked,
+  .top-risks-panel,
+  .scan-visual,
+  .active-scan-message,
+  .finding-meta div,
+  .enhanced-finding pre {
+    background: var(--panel-soft);
+  }
+
+  .empty-state {
+    background: rgba(27, 35, 45, 0.72);
+  }
+
+  .filter-count,
+  .module-list span,
+  .badge.info,
+  .session-badge.open {
+    color: #DCE6EE;
+    background: rgba(159, 180, 192, 0.18);
+  }
+
+  .badge.critical,
+  .startup-pill.fail,
+  .startup-pill.blocked {
+    color: #FFB8BD;
+    background: rgba(255, 154, 162, 0.16);
+  }
+
+  .badge.fail,
+  .badge.high,
+  .startup-badge.blocked,
+  .startup-badge.unavailable,
+  .startup-badge.stopping {
+    color: #FFB8BD;
+    background: rgba(222, 110, 110, 0.16);
+  }
+
+  .badge.warn,
+  .badge.medium,
+  .startup-badge.warning,
+  .startup-badge.pending,
+  .startup-pill.warn,
+  .startup-pill.pending {
+    color: #FFD19B;
+    background: rgba(224, 165, 95, 0.18);
+  }
+
+  .badge.pass,
+  .badge.low,
+  .startup-badge.ready,
+  .startup-pill.pass {
+    color: #D3E7B0;
+    background: rgba(157, 179, 118, 0.18);
+  }
+}
+
+@media (max-width: 720px) {
+  .catalog-toolbar,
+  .findings-toolbar,
+  .history-toolbar {
+    grid-template-columns: 1fr;
+  }
+}

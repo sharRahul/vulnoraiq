@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- OWASP AI Testing Guide foundation suite and single-test Web UI profiles covering GenAI red teaming methodology, CSA agentic AI red teaming, OWASP AI Exchange controls, AI Security and Privacy design, AI VSS scoring review, and NIST AI 100-2 adversarial ML taxonomy alignment.
+- Safe `payloads/ai_testing_guide.yaml` methodology payload library for authorised local/internal AI assessment runs.
+- Local OWASP lab AI agent target templates for HTTP JSON, chat-completions-compatible, Ollama generate, and webhook JSON contracts.
+- Documentation for testing actual local AI agents through `docs/AI_TESTING_GUIDE_INTEGRATION.md`.
 - Release-only Windows, Linux, and macOS artifact build workflow triggered by published GitHub Releases or manual dispatch only.
 - Platform release package builder for native release formats: `vulnoraiq-<version>-windows.zip`, `vulnoraiq-<version>-linux.tar.gz`, and `vulnoraiq-<version>-macos.dmg`.
 - Release artifact documentation in `docs/RELEASE_ARTIFACTS.md`.
@@ -22,6 +26,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- Web UI styling now honours the user's system light/dark appearance preference through `prefers-color-scheme`.
 - Project license changed from MIT to Apache License 2.0.
 - Package metadata now declares `Apache-2.0`, includes license files, PyPI classifiers, project URLs, keywords, and a release extra for package builds.
 - Package metadata validation now checks PyPI publishing metadata and release extras.
@@ -29,6 +34,10 @@ All notable changes to this project will be documented in this file.
 - Current-scope readiness items are now consistently marked **Complete** for the self-hosted/internal assessment scope.
 - README, docs index, deployment guide, security policy, implementation status, readiness scorecard, backlog, release checklist, assurance, runbook, incident response, GenAI readiness plan, and Agentic Applications readiness plan were aligned to the same product positioning and completion vocabulary.
 - Local standalone launcher mode is documented as a loopback-only convenience path, separate from the hardened hosted/production `vulnoraiq-web` path.
+
+### Fixed
+
+- Web UI catalog toolbar overflow where the `Showing ... options` badge could clip into the neighbouring panel in narrow columns.
 
 ### Notes
 
