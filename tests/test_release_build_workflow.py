@@ -25,6 +25,15 @@ def test_release_build_workflow_builds_all_target_platforms() -> None:
     assert "macos-latest" in workflow
 
 
+def test_release_build_workflow_uses_native_artifact_extensions() -> None:
+    workflow = Path(".github/workflows/release-build.yml").read_text(encoding="utf-8")
+
+    assert "extension: zip" in workflow
+    assert "extension: tar.gz" in workflow
+    assert "extension: dmg" in workflow
+    assert ".${{ matrix.extension }}" in workflow
+
+
 def test_python_package_publish_workflow_is_not_normal_ci() -> None:
     workflow = Path(".github/workflows/python-package-publish.yml").read_text(encoding="utf-8")
 
