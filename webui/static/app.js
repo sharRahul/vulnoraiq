@@ -157,6 +157,7 @@ function clearWorkspace() {
   qs('#job-history').innerHTML = '<div class="empty-state">Sign in to view and run assessments.</div>';
   qs('#event-list').innerHTML = '';
   setProgress(0, 'Idle');
+  renderActiveScan({ status: 'idle', stage: 'Idle', message: 'Sign in to view and run assessments.', progress: 0 });
   updateFormAvailability();
 }
 
@@ -180,11 +181,67 @@ async function getCsrfToken() {
 // ----- Progress + rendering ---------------------------------------------------
 
 function setProgress(value, status) {
-  const safe = Math.max(0, Math.min(100, Number(value || 0)));
+  const safe = Math.round(Math.max(0, Math.min(100, Number(value || 0))));
   const circumference = 326.7;
   qs('#progress-circle').style.strokeDashoffset = String(circumference - (safe / 100) * circumference);
   qs('#progress-value').textContent = `${safe}%`;
+  qs('#active-scan-percent').textContent = `${safe}%`;
   qs('#scan-status').textContent = status || 'Idle';
+  qs('#progress-bar').style.width = `${safe}%`;
+}
+
+function scanCardClass(status) {
+  const normalised = String(status || 'idle').toLowerCase();
+  if (normalised === 'completed') return 'completed';
+  if (normalised === 'failed' || normalised === 'error') return 'failed';
+  if (normalised === 'idle') return 'idle';
+  return 'running';
+}
+
+function formatTimestamp(value) {
+  if (!value) return 'Just now';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Just now';
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+function renderActiveScan(update = {}) {
+  const current = state.currentJob || {};
+  const target = update.target || current.target || qs('#target-select')?.value || '-';
+  const profileName = update.profile || current.profile || qs('#profile-select')?.value || '';
+  const profile = state.config.profiles?.[profileName] || {};
+  const profileNameDisplay = profileName ? profileDisplayName(profileName, profile) : '-';
+  const progress = update.progress ?? current.progress ?? 0;
+  const status = update.status || current.status || 'idle';
+  const stage = update.stage || status || 'Idle';
+  const message = update.message || 'Waiting for scan activity.';
+
+  const card = qs('#active-scan-card');
+  card.className = `active-scan-card ${scanCardClass(status)}`;
+  qs('#active-scan-title').textContent = scanCardClass(status) === 'idle' ? 'No scan running' : `${profileNameDisplay} on ${target}`;
+  qs('#active-scan-detail').textContent = scanCardClass(status) === 'idle'
+    ? 'Choose a target and test option to start a live assessment.'
+    : `${profileCategory(profile, profileName)} · ${profileModules(profile).length || 'configured'} module${profileModules(profile).length === 1 ? '' : 's'}`;
+  qs('#active-scan-target').textContent = target || '-';
+  qs('#active-scan-profile').textContent = profileNameDisplay || '-';
+  qs('#active-scan-stage').textContent = stage || 'Idle';
+  qs('#active-scan-updated').textContent = formatTimestamp(update.timestamp);
+  qs('#active-scan-message').textContent = message;
+  setProgress(progress, stage);
+}
+
+function updateActiveScanFromJob(job, message = '') {
+  const events = Array.isArray(job.events) ? job.events : [];
+  const latest = events.length ? events[events.length - 1] : null;
+  renderActiveScan({
+    target: job.target,
+    profile: job.profile,
+    status: job.status || 'running',
+    stage: latest?.stage || job.status || 'Running',
+    message: message || latest?.message || `Scan ${job.status || 'running'}.`,
+    progress: job.progress ?? latest?.progress ?? (job.status === 'completed' ? 100 : 0),
+    timestamp: latest?.timestamp || job.updated_at || job.created_at,
+  });
 }
 
 function addEvent(event) {
@@ -192,7 +249,13 @@ function addEvent(event) {
   li.className = event.level === 'error' ? 'error' : '';
   li.innerHTML = `<strong>${escapeHtml(event.stage)}</strong><div>${escapeHtml(event.message)}</div><small>${new Date(event.timestamp).toLocaleString()} · ${event.progress}%</small>`;
   qs('#event-list').prepend(li);
-  setProgress(event.progress, event.stage);
+  renderActiveScan({
+    status: event.level === 'error' ? 'failed' : 'running',
+    stage: event.stage,
+    message: event.message,
+    progress: event.progress,
+    timestamp: event.timestamp,
+  });
 }
 
 function badge(value) {
@@ -250,6 +313,16 @@ function renderSelectedProfile() {
     <p>${escapeHtml(profile.description || 'No description available.')}</p>
     <small>${escapeHtml(profileCategory(profile, selected))} · ${modules.length || 'configured'} module${modules.length === 1 ? '' : 's'} selected</small>
   `;
+  if (!state.currentJob || ['completed', 'failed'].includes(state.currentJob.status)) {
+    renderActiveScan({
+      status: 'idle',
+      stage: 'Ready',
+      message: `Ready to run ${profileDisplayName(selected, profile)}.`,
+      progress: 0,
+      target: qs('#target-select').value,
+      profile: selected,
+    });
+  }
   document.querySelectorAll('.profile-card').forEach((card) => {
     const active = card.dataset.profile === selected;
     card.classList.toggle('active', active);
@@ -348,12 +421,19 @@ async function startScan(event) {
   event.preventDefault();
   qs('#form-message').textContent = '';
   qs('#event-list').innerHTML = '';
-  setProgress(0, 'Queued');
   const payload = {
     target: qs('#target-select').value,
     profile: qs('#profile-select').value,
     authorised: qs('#authorised').checked,
   };
+  renderActiveScan({
+    target: payload.target,
+    profile: payload.profile,
+    status: 'queued',
+    stage: 'Queued',
+    message: 'Submitting assessment request to the local server.',
+    progress: 0,
+  });
   const button = qs('.primary');
   button.disabled = true;
   button.textContent = 'Starting...';
@@ -367,11 +447,19 @@ async function startScan(event) {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Unable to start scan');
     state.currentJob = data;
+    updateActiveScanFromJob(data, 'Scan accepted. Waiting for first progress event.');
     streamJob(data.id);
     await refreshJobs();
   } catch (error) {
     qs('#form-message').textContent = error.message;
-    setProgress(0, 'Failed to start');
+    renderActiveScan({
+      target: payload.target,
+      profile: payload.profile,
+      status: 'failed',
+      stage: 'Failed to start',
+      message: error.message,
+      progress: 0,
+    });
   } finally {
     button.disabled = false;
     button.textContent = 'Start selected assessment';
@@ -407,6 +495,12 @@ async function streamJob(jobId) {
   } catch (error) {
     if (controller.signal.aborted) return;
     qs('#form-message').textContent = 'Realtime connection interrupted. Refreshing job status.';
+    renderActiveScan({
+      status: 'running',
+      stage: 'Refreshing',
+      message: 'Realtime connection interrupted. Refreshing job status from server.',
+      progress: state.currentJob?.progress ?? 0,
+    });
     loadJob(jobId);
   }
 }
@@ -427,6 +521,7 @@ function handleStreamFrame(frame) {
   }
   if (eventType === 'done') {
     state.currentJob = parsed;
+    updateActiveScanFromJob(parsed, parsed.status === 'completed' ? 'Scan completed. Dashboard and report outputs are ready.' : parsed.error || 'Scan failed.');
     if (parsed.status === 'completed') renderDashboard(parsed);
     if (parsed.status === 'failed') qs('#form-message').textContent = parsed.error || 'Scan failed';
     refreshJobs();
@@ -441,8 +536,13 @@ async function loadJob(jobId) {
   const job = await response.json();
   state.currentJob = job;
   qs('#event-list').innerHTML = '';
+  updateActiveScanFromJob(job);
   job.events.forEach(addEvent);
-  if (job.status === 'completed') renderDashboard(job);
+  if (job.status === 'completed') {
+    renderDashboard(job);
+    updateActiveScanFromJob(job, 'Scan completed. Dashboard and report outputs are ready.');
+  }
+  if (job.status === 'failed') updateActiveScanFromJob(job, job.error || 'Scan failed.');
   if (!['completed', 'failed'].includes(job.status)) streamJob(job.id);
 }
 
@@ -519,11 +619,13 @@ async function bootstrapData() {
 async function init() {
   qs('#scan-form').addEventListener('submit', startScan);
   qs('#profile-select').addEventListener('change', renderSelectedProfile);
+  qs('#target-select').addEventListener('change', renderSelectedProfile);
   qs('#select-full-profile').addEventListener('click', () => {
     qs('#profile-select').value = 'full';
     renderSelectedProfile();
   });
   setProgress(0, 'Idle');
+  renderActiveScan({ status: 'idle', stage: 'Idle', message: 'Waiting for a scan to start.', progress: 0 });
   await loadSession();
   await bootstrapData();
 }
