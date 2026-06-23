@@ -38,10 +38,15 @@ export VULNORAIQ_ADMIN_TOKEN="$(openssl rand -hex 32)"
 export VULNORAIQ_JOB_STORE_BACKEND=sqlite
 export VULNORAIQ_JOB_STORE_PATH=/data/jobs.db
 export VULNORAIQ_WEB_OUTPUT_ROOT=/data/reports
+export VULNORAIQ_WEB_USERS_PATH=/data/web_users.yaml
 
 python scripts/validate_runtime_production_config.py
 vulnoraiq-web --host 127.0.0.1 --port 8787
 ```
+
+`VULNORAIQ_WEB_USERS_PATH` points at the persisted web auth user store (YAML). Place it on the
+mounted `/data` volume so credentials survive container restarts; it defaults to a path under the
+config root when unset.
 
 Production-mode validation checks:
 
@@ -255,3 +260,15 @@ GenAI readiness assets are repository assets, not runtime secrets:
 - tests: `tests/test_genai_readiness_validation.py`
 
 Run the GenAI validator before release and after modifying GenAI docs, scenario coverage, evidence fields, or source discrepancy tracking. The validator passing means the working-starter gate is consistent; it does not prove production-validated real-world GenAI detection assurance.
+
+## Production Checklist
+
+Confirm each item before a controlled internal enterprise deployment:
+
+- [ ] `python scripts/validate_runtime_production_config.py` passes with `VULNORAIQ_ENV=production`.
+- [ ] `VULNORAIQ_AUTH_ENABLED=true` and a strong `VULNORAIQ_ADMIN_TOKEN` (no demo/default tokens) are set.
+- [ ] Persistent state — `VULNORAIQ_JOB_STORE_PATH`, `VULNORAIQ_WEB_OUTPUT_ROOT`, and `VULNORAIQ_WEB_USERS_PATH` — lives on the mounted `/data` volume.
+- [ ] The service runs behind a reverse proxy (nginx/Caddy) terminating TLS, with trusted proxy CIDRs configured.
+- [ ] Scheduled backup of the SQLite store is in place and a restore has been validated.
+- [ ] Audit logging is enabled and audit logs are shipped and retained per internal policy.
+- [ ] `python scripts/validate_genai_readiness.py` passes after any GenAI docs or scenario changes.
