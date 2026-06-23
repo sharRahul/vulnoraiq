@@ -46,6 +46,16 @@ def build_startup_status(host: str, port: int, shutdown_allowed: bool) -> dict[s
             "Required to load YAML configuration files.",
         ),
         _status_item(
+            "requests dependency",
+            "pass" if _module_available("requests") else "fail",
+            "Required for configured HTTP/LLM target adapters.",
+        ),
+        _status_item(
+            "rich dependency",
+            "pass" if _module_available("rich") else "fail",
+            "Required for CLI scan output rendering.",
+        ),
+        _status_item(
             "VulnoraIQ package modules",
             "pass" if (ROOT / "core" / "scanner.py").exists() else "fail",
             "Core scanner package is available from this checkout.",

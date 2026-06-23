@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# VulnoraIQ Web UI double-click launcher for Linux.
 set -euo pipefail
 cd "$(dirname "$0")"
 echo "Starting VulnoraIQ Web UI..."
