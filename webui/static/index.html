@@ -71,6 +71,23 @@
           <span>02</span>
           <h2>Realtime progress</h2>
         </div>
+
+        <div id="active-scan-card" class="active-scan-card idle" aria-live="polite">
+          <div class="scan-visual" aria-hidden="true">
+            <span class="scan-orb"></span>
+            <span class="scan-sweep"></span>
+          </div>
+          <div class="active-scan-copy">
+            <p class="eyebrow">Active scan</p>
+            <h3 id="active-scan-title">No scan running</h3>
+            <p id="active-scan-detail">Choose a target and test option to start a live assessment.</p>
+          </div>
+          <div class="scan-percent-pill">
+            <strong id="active-scan-percent">0%</strong>
+            <span>complete</span>
+          </div>
+        </div>
+
         <div class="progress-ring">
           <svg viewBox="0 0 120 120" aria-label="Scan progress">
             <circle class="track" cx="60" cy="60" r="52"></circle>
@@ -78,6 +95,19 @@
           </svg>
           <div><strong id="progress-value">0%</strong><span id="scan-status" aria-live="polite">Idle</span></div>
         </div>
+
+        <div class="progress-bar-shell" aria-label="Scan percentage complete">
+          <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+        </div>
+
+        <div class="scan-stage-grid" aria-label="Current scan details">
+          <article><span>Target</span><strong id="active-scan-target">-</strong></article>
+          <article><span>Test option</span><strong id="active-scan-profile">-</strong></article>
+          <article><span>Current stage</span><strong id="active-scan-stage">Idle</strong></article>
+          <article><span>Last update</span><strong id="active-scan-updated">Waiting</strong></article>
+        </div>
+
+        <p id="active-scan-message" class="active-scan-message">Waiting for a scan to start.</p>
         <ol id="event-list" class="timeline" aria-live="polite" aria-label="Scan progress events"></ol>
       </section>
     </section>
