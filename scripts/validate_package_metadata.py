@@ -34,12 +34,14 @@ EXPECTED_CLI_ENTRY_POINTS = [
     "vulnoraiq-generate-atlas-matrix",
     "vulnoraiq-html-export",
     "vulnoraiq-validate-package",
+    "vulnoraiq-validate-owasp-atlas-mappings",
 ]
 EXPECTED_MITRE_ATLAS_DOC = Path("docs/MITRE_ATLAS_AI_MATRIX.md")
 EXPECTED_THIRD_PARTY_NOTICES = Path("THIRD_PARTY_NOTICES.md")
 EXPECTED_DASHBOARD_EXAMPLE = Path("docs/assets/vulnoraiq-dashboard-example.svg")
 EXPECTED_FUNCTIONAL_RUNNER = Path("scripts/run_functional_test.py")
 EXPECTED_PRODUCTION_READINESS_RUNNER = Path("scripts/validate_production_testing_readiness.py")
+EXPECTED_OWASP_ATLAS_MAPPING_RUNNER = Path("scripts/validate_owasp_atlas_mappings.py")
 
 
 @dataclass(slots=True)
@@ -101,6 +103,8 @@ class PackageMetadataValidator:
             errors.append(f"Missing functional acceptance runner: {EXPECTED_FUNCTIONAL_RUNNER}")
         if not EXPECTED_PRODUCTION_READINESS_RUNNER.exists():
             errors.append(f"Missing production-testing readiness runner: {EXPECTED_PRODUCTION_READINESS_RUNNER}")
+        if not EXPECTED_OWASP_ATLAS_MAPPING_RUNNER.exists():
+            errors.append(f"Missing OWASP ATLAS mapping validator: {EXPECTED_OWASP_ATLAS_MAPPING_RUNNER}")
         if not EXPECTED_DASHBOARD_EXAMPLE.exists():
             errors.append(f"Missing dashboard example image: {EXPECTED_DASHBOARD_EXAMPLE}")
         else:
