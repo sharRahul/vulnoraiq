@@ -27,6 +27,7 @@ VulnoraIQ findings are framework evidence for authorised review. They are not ce
 See also:
 
 - [`README.md`](README.md) — maturity, standalone launcher, and quick start
+- [`ACCEPTABLE_USE.md`](ACCEPTABLE_USE.md) — acceptable-use and misuse disclaimer
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — deployment controls
 - [`docs/RUNBOOK.md`](docs/RUNBOOK.md) — operations procedures
 - [`docs/INCIDENT_RESPONSE.md`](docs/INCIDENT_RESPONSE.md) — incident playbooks
@@ -64,6 +65,8 @@ Allowed use:
 - GenAI data-security scenario validation for approved systems
 
 Configured non-demo targets require explicit authorisation. Reports and artifacts may contain sensitive evidence and must be handled accordingly.
+
+Users are solely responsible for complying with [`ACCEPTABLE_USE.md`](ACCEPTABLE_USE.md), obtaining required authorisation, and using VulnoraIQ only within the defensive assessment scope. To the fullest extent permitted by law, the maintainer and contributors disclaim responsibility for prohibited, unlawful, unauthorised, or otherwise improper use by any user or third party.
 
 ---
 
