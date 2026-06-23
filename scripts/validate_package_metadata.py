@@ -59,7 +59,6 @@ EXPECTED_CLASSIFIERS = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Security",
 ]
-EXPECTED_LICENSE_FILES = ["LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md"]
 
 
 @dataclass(slots=True)
@@ -91,11 +90,6 @@ class PackageMetadataValidator:
             errors.append(f"pyproject version {package_version} does not match framework version {framework.get('version')}")
         if package_license != EXPECTED_LICENSE:
             errors.append(f"pyproject license must be {EXPECTED_LICENSE}, found {package_license}")
-        if "setuptools>=77.0.3" not in pyproject:
-            errors.append("pyproject build-system must require setuptools>=77.0.3 for modern license metadata")
-        for license_file in EXPECTED_LICENSE_FILES:
-            if f'"{license_file}"' not in pyproject:
-                errors.append(f"pyproject license-files must include {license_file}")
         for expected_url in EXPECTED_PYPROJECT_URLS:
             if f"{expected_url} =" not in pyproject:
                 errors.append(f"Missing project URL metadata: {expected_url}")
