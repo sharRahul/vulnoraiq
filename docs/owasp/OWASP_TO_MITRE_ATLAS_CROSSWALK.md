@@ -2,32 +2,28 @@
 
 This document maps VulnoraIQ's OWASP AI security coverage areas to MITRE ATLAS tactics for implementation planning.
 
-> **Status:** planning crosswalk.  
-> **Scope:** OWASP LLM 2025 categories, GenAI data-security risks, and Agentic Application risks.  
-> **Important:** mappings are candidate planning mappings until validated against the official source documents, generated ATLAS data, and implemented evaluator behaviour.
+> **Status:** source-confirmed planning crosswalk.  
+> **Scope:** OWASP LLM 2025, OWASP GenAI Data Security Risks and Mitigations 2026, and OWASP Top 10 for Agentic Applications 2026.  
+> **Implementation boundary:** mappings are now source-confirmed at category level, but they remain implementation-planning mappings until VulnoraIQ has active fixtures, evaluators, report evidence, and CI gates for each row.
 
 ## Source inputs
 
-VulnoraIQ source documents:
+| Source | Version/date | Usage in this crosswalk |
+| --- | --- | --- |
+| `docs/owasp/` | VulnoraIQ OWASP LLM 2025 docs | Existing LLM category implementation specs. |
+| `docs/MITRE_ATLAS_AI_MATRIX.md` | MITRE ATLAS `2026.05` snapshot | ATLAS tactic baseline used by VulnoraIQ. |
+| `docs/owasp-documents/OWASP-GenAI-COMPASS-RunBook-1.0.pdf` | Version 1.0, July 2025 | COMPASS/OODA operating model and threat-informed resilience workflow. |
+| `docs/owasp-documents/OWASP-GenAI-Data-Security-Risks-and-Mitigations-2026-v1.0.pdf` | Version 1.0, March 2026 | Confirmed `DSGAI01` through `DSGAI21` category names. |
+| `docs/owasp-documents/OWASP-Top-10-for-Agentic-Applications-2026-12.6.pdf` | Version 2026, December 2025 | Confirmed `ASI01` through `ASI10` category names. |
+| `docs/owasp-documents/OWASP-Top10-for-Agentic-Applications_AIUC-1-Crosswalk-May26.pdf` | Version 1.0, May 2026 | AIUC crosswalk method, Primary/Secondary relevance, and strategic gaps. |
+| `docs/owasp-documents/State-of-Agentic-AI-Security-and-Governance-v2.01.pdf` | Version 2.01, June 2026 | Governance maturity, adoption-tier prioritisation, NHI, AI SBOM, and runtime governance context. |
 
-- `docs/owasp/` — OWASP LLM 2025 implementation specs
-- `docs/MITRE_ATLAS_AI_MATRIX.md` — current MITRE ATLAS tactic planning register
-- `docs/owasp-documents/OWASP-GenAI-COMPASS-RunBook-1.0.pdf`
-- `docs/owasp-documents/OWASP-GenAI-Data-Security-Risks-and-Mitigations-2026-v1.0.pdf`
-- `docs/owasp-documents/OWASP-Top-10-for-Agentic-Applications-2026-12.6.pdf`
-- `docs/owasp-documents/OWASP-Top10-for-Agentic-Applications_AIUC-1-Crosswalk-May26.pdf`
-- `docs/owasp-documents/State-of-Agentic-AI-Security-and-Governance-v2.01.pdf`
-
-MITRE ATLAS source alignment is tracked in `docs/MITRE_ATLAS_AI_MATRIX.md` and generated from the official `atlas-data` source used by the project.
-
-## Mapping rule
-
-Use these labels consistently:
+## Mapping labels
 
 | Label | Meaning |
 | --- | --- |
 | `Primary` | Directly relevant tactic for the risk category. |
-| `Secondary` | Common downstream tactic or consequence. |
+| `Secondary` | Common downstream tactic or supporting control relationship. |
 | `Contextual` | Relevant only for specific architectures or scenarios. |
 | `Unmapped / map later` | Do not force a weak mapping; keep the item visible for later review. |
 
@@ -75,41 +71,65 @@ No OWASP, GenAI, Agentic, or ATLAS item should disappear because the mapping is 
 
 ---
 
-## GenAI data-security risks to MITRE ATLAS mapping
+## OWASP GenAI Data Security Risks 2026 to MITRE ATLAS mapping
 
-The exact category wording must be confirmed against `OWASP-GenAI-Data-Security-Risks-and-Mitigations-2026-v1.0.pdf` during PDF text extraction. The following planning rows define the implementation areas VulnoraIQ should support.
+The GenAI source document defines GenAI data security across source data, derived data, model artifacts, runtime data, operational exhaust, and agent state/delegation artifacts. The table of contents confirms `DSGAI01` through `DSGAI21`; the narrative text also refers to a `DSGAI01–DSGAI25` taxonomy, so VulnoraIQ tracks that as a source discrepancy until a complete extracted source list is available.
 
-| GenAI data-security risk area | Primary MITRE ATLAS tactics | Secondary/contextual tactics | VulnoraIQ implementation focus |
-| --- | --- | --- | --- |
-| Sensitive data in prompts and uploaded context | AML.TA0009 Collection; AML.TA0010 Exfiltration | AML.TA0013 Credential Access; AML.TA0011 Impact | Prompt/input DLP, restricted marker detection, data-classification tags, and no-secrets evidence rules. |
-| Sensitive data in model responses | AML.TA0010 Exfiltration; AML.TA0011 Impact | AML.TA0009 Collection | Response redaction, output leakage checks, artifact scanning, and evidence minimisation. |
-| Training/fine-tuning data exposure | AML.TA0009 Collection; AML.TA0010 Exfiltration | AML.TA0006 Persistence; AML.TA0011 Impact | Dataset provenance, memorisation probes, consent/retention metadata, and training-source classification. |
-| RAG/vector store data leakage | AML.TA0008 Discovery; AML.TA0009 Collection; AML.TA0010 Exfiltration | AML.TA0006 Persistence; AML.TA0007 Defense Evasion | Retrieval boundary tests, metadata filters, source trust scores, group/user access controls, and citation trace checks. |
-| Agent/tool access to sensitive systems | AML.TA0005 Execution; AML.TA0012 Privilege Escalation; AML.TA0015 Lateral Movement | AML.TA0010 Exfiltration; AML.TA0013 Credential Access | Tool permission inventory, approval gates, scoped credentials, action trace evidence, and rollback requirements. |
-| Logs, telemetry, and report artifacts leaking data | AML.TA0009 Collection; AML.TA0010 Exfiltration | AML.TA0011 Impact | Audit/report artifact DLP, token/secret redaction, trace minimisation, and report sharing warnings. |
-| Third-party model/provider data handling | AML.TA0003 Resource Development; AML.TA0009 Collection; AML.TA0010 Exfiltration | AML.TA0011 Impact | Provider inventory, data residency, retention, training-use flags, contract metadata, and risk notes. |
-| Shadow AI / unsanctioned GenAI use | AML.TA0002 Reconnaissance; AML.TA0004 Initial Access; AML.TA0009 Collection | AML.TA0010 Exfiltration; AML.TA0011 Impact | Config inventory, unknown provider detection, policy gap checks, and governance evidence. |
-| Data provenance and integrity gaps | AML.TA0003 Resource Development; AML.TA0006 Persistence; AML.TA0011 Impact | AML.TA0007 Defense Evasion | Source owner, hash/signature, approval, review date, data lineage, and untrusted-source warnings. |
-| Data retention and deletion failure | AML.TA0009 Collection; AML.TA0011 Impact | AML.TA0010 Exfiltration | Retention metadata, deletion policy checks, artifact expiry, and backup retention validation. |
+| OWASP ID | GenAI data-security risk | Primary MITRE ATLAS tactics | Secondary/contextual tactics | VulnoraIQ implementation focus |
+| --- | --- | --- | --- | --- |
+| DSGAI01 | Sensitive Data Leakage | AML.TA0009 Collection; AML.TA0010 Exfiltration | AML.TA0013 Credential Access; AML.TA0011 Impact | Prompt/response/report/log DLP, restricted markers, redaction, and evidence minimisation. |
+| DSGAI02 | Agent Identity & Credential Exposure | AML.TA0013 Credential Access; AML.TA0012 Privilege Escalation | AML.TA0005 Execution; AML.TA0015 Lateral Movement | Agent identity, scoped credentials, JIT tokens, credential-bearing trace detection. |
+| DSGAI03 | Shadow AI & Unsanctioned Data Flows | AML.TA0002 Reconnaissance; AML.TA0004 Initial Access; AML.TA0009 Collection | AML.TA0010 Exfiltration; AML.TA0011 Impact | AI asset discovery, unknown provider detection, policy gaps, and unsanctioned data-flow evidence. |
+| DSGAI04 | Data, Model & Artifact Poisoning | AML.TA0006 Persistence; AML.TA0007 Defense Evasion; AML.TA0011 Impact | AML.TA0003 Resource Development | Corpus/model/artifact integrity, source trust, hash drift, and unreviewed ingestion checks. |
+| DSGAI05 | Data Integrity & Validation Failures | AML.TA0011 Impact; AML.TA0007 Defense Evasion | AML.TA0006 Persistence | Schema validation, provenance checks, freshness, source approval, and tamper-evidence. |
+| DSGAI06 | Tool, Plugin & Agent Data Exchange Risks | AML.TA0005 Execution; AML.TA0012 Privilege Escalation; AML.TA0015 Lateral Movement | AML.TA0010 Exfiltration; AML.TA0013 Credential Access | Connector scope, tool-call data flow, MCP/plugin manifests, and action trace evidence. |
+| DSGAI07 | Data Governance, Lifecycle & Classification for AI Systems | AML.TA0009 Collection; AML.TA0011 Impact | AML.TA0010 Exfiltration; AML.TA0006 Persistence | Classification propagation, retention, deletion, ownership, lineage, and approval evidence. |
+| DSGAI08 | Non-Compliance & Regulatory Violations | AML.TA0011 Impact | AML.TA0009 Collection; AML.TA0010 Exfiltration | Regulatory mapping, data residency, retention/legal basis, DSR support, and audit-readiness checks. |
+| DSGAI09 | Multimodal Capture & Cross-Channel Data Leakage | AML.TA0009 Collection; AML.TA0010 Exfiltration | AML.TA0011 Impact; AML.TA0013 Credential Access | Image/audio/text data classification, multimodal DLP, biometric/privacy review, and cross-channel leakage checks. |
+| DSGAI10 | Synthetic Data, Anonymization & Transformation Pitfalls | AML.TA0010 Exfiltration; AML.TA0011 Impact | AML.TA0009 Collection | Re-identification, membership inference, transformation-risk notes, and synthetic-data lineage tests. |
+| DSGAI11 | Cross-Context & Multi-User Conversation Bleed | AML.TA0008 Discovery; AML.TA0009 Collection; AML.TA0010 Exfiltration | AML.TA0006 Persistence; AML.TA0011 Impact | Session isolation, tenant/user boundary fixtures, memory/cache bleed checks. |
+| DSGAI12 | Unsafe Natural-Language Data Gateways (LLM-to-SQL/Graph) | AML.TA0005 Execution; AML.TA0012 Privilege Escalation | AML.TA0010 Exfiltration; AML.TA0013 Credential Access; AML.TA0011 Impact | Query intent gating, schema allowlists, least-privilege DB access, and unsafe generated-query simulation. |
+| DSGAI13 | Vector Store Platform Data Security | AML.TA0008 Discovery; AML.TA0009 Collection; AML.TA0010 Exfiltration | AML.TA0006 Persistence; AML.TA0007 Defense Evasion | Vector DB authz, tenant index isolation, metadata filtering, snapshot import validation, and embedding leakage checks. |
+| DSGAI14 | Excessive Telemetry & Monitoring Leakage | AML.TA0009 Collection; AML.TA0010 Exfiltration | AML.TA0011 Impact | Prompt/tool/output trace minimisation, audit/report redaction, telemetry retention checks. |
+| DSGAI15 | Over-Broad Context Windows & Prompt Over-Sharing | AML.TA0009 Collection; AML.TA0010 Exfiltration | AML.TA0007 Defense Evasion; AML.TA0011 Impact | Context minimisation, trust-domain segmentation, prompt assembly review, and over-sharing detection. |
+| DSGAI16 | Endpoint & Browser Assistant Overreach | AML.TA0004 Initial Access; AML.TA0005 Execution; AML.TA0012 Privilege Escalation | AML.TA0010 Exfiltration; AML.TA0015 Lateral Movement | Browser/endpoint permission inventory, local context controls, tool-call gating, and user-session boundary checks. |
+| DSGAI17 | Data Availability & Resilience Failures in AI Pipelines | AML.TA0011 Impact | AML.TA0007 Defense Evasion; AML.TA0005 Execution | Vector/index availability, stale failover, backup/restore semantic validation, and circuit-breaker evidence. |
+| DSGAI18 | Inference & Data Reconstruction | AML.TA0010 Exfiltration; AML.TA0009 Collection | AML.TA0011 Impact | Membership inference, embedding inversion, reconstruction probes, and privacy-preserving evidence. |
+| DSGAI19 | Human-in-the-Loop & Labeler Overexposure | AML.TA0009 Collection; AML.TA0010 Exfiltration | AML.TA0011 Impact | Labeler data minimisation, reviewer access boundaries, masking, and high-sensitivity review routing. |
+| DSGAI20 | Model Exfiltration & IP Replication | AML.TA0010 Exfiltration; AML.TA0011 Impact | AML.TA0009 Collection; AML.TA0003 Resource Development | Model artifact access controls, extraction probes, watermark/provenance checks, and IP exposure reporting. |
+| DSGAI21 | Disinformation & Integrity Attacks via Data Poisoning | AML.TA0006 Persistence; AML.TA0007 Defense Evasion; AML.TA0011 Impact | AML.TA0003 Resource Development | Poisoned data/corpus scenarios, source-trust scoring, misinformation integrity checks, and manual-review routing. |
 
 ---
 
-## Agentic application risks to MITRE ATLAS mapping
+## OWASP Top 10 for Agentic Applications 2026 to MITRE ATLAS mapping
 
-The exact OWASP ASI category names must be confirmed against `OWASP-Top-10-for-Agentic-Applications-2026-12.6.pdf` and `OWASP-Top10-for-Agentic-Applications_AIUC-1-Crosswalk-May26.pdf`. Until then, VulnoraIQ uses the following planning categories to drive implementation.
-
-| Planning ID | Agentic risk area | Primary MITRE ATLAS tactics | Secondary/contextual tactics | VulnoraIQ implementation focus |
+| OWASP ID | Agentic risk | Primary MITRE ATLAS tactics | Secondary/contextual tactics | VulnoraIQ implementation focus |
 | --- | --- | --- | --- | --- |
-| AGENTIC-01 | Agent instruction / prompt injection | AML.TA0004 Initial Access; AML.TA0005 Execution; AML.TA0007 Defense Evasion | AML.TA0012 Privilege Escalation; AML.TA0011 Impact | Multi-step prompt, indirect context, tool-description, and retrieved-instruction injection tests. |
-| AGENTIC-02 | Excessive tool permission or agency | AML.TA0005 Execution; AML.TA0012 Privilege Escalation; AML.TA0015 Lateral Movement | AML.TA0010 Exfiltration; AML.TA0011 Impact | Tool inventory, permission scopes, action allowlists, approval points, and rollback evidence. |
-| AGENTIC-03 | Insecure delegation and inter-agent trust | AML.TA0015 Lateral Movement; AML.TA0012 Privilege Escalation; AML.TA0014 Command and Control | AML.TA0008 Discovery; AML.TA0011 Impact | Agent identity, delegation boundary, cross-agent call graph, handoff policy, and confused-deputy tests. |
-| AGENTIC-04 | Tool/connector supply-chain compromise | AML.TA0003 Resource Development; AML.TA0004 Initial Access; AML.TA0005 Execution | AML.TA0006 Persistence; AML.TA0007 Defense Evasion | Tool provenance, connector ownership, manifest validation, tool-description poisoning, and version drift checks. |
-| AGENTIC-05 | Memory, state, or plan poisoning | AML.TA0006 Persistence; AML.TA0007 Defense Evasion; AML.TA0011 Impact | AML.TA0005 Execution | Memory write controls, plan tampering, state integrity, source trust, rollback, and review gates. |
-| AGENTIC-06 | Sensitive data exposure through agent actions | AML.TA0009 Collection; AML.TA0010 Exfiltration; AML.TA0013 Credential Access | AML.TA0011 Impact | Tool-call data flow, credential scope, output leakage, trace/report artifact DLP, and exfiltration-path tests. |
-| AGENTIC-07 | Runaway loops and resource exhaustion | AML.TA0011 Impact; AML.TA0005 Execution | AML.TA0014 Command and Control | Iteration budgets, retry budgets, tool-call budgets, cost caps, timeout gates, and stop-condition evidence. |
-| AGENTIC-08 | Missing human oversight and approval | AML.TA0005 Execution; AML.TA0011 Impact; AML.TA0012 Privilege Escalation | AML.TA0007 Defense Evasion | High-impact action classification, human-in-the-loop approvals, denial evidence, and escalation paths. |
-| AGENTIC-09 | Poor auditability, repudiation, and trace gaps | AML.TA0007 Defense Evasion; AML.TA0008 Discovery | AML.TA0011 Impact | Action trace completeness, request IDs, tool trace, memory trace, decision evidence, and non-repudiation checks. |
-| AGENTIC-10 | Unsafe goals, planning, and policy conflict | AML.TA0011 Impact; AML.TA0005 Execution | AML.TA0007 Defense Evasion; AML.TA0012 Privilege Escalation | Goal decomposition review, policy conflict detection, unsafe plan classification, and manual-review routing. |
+| ASI01 | Agent Goal Hijack | AML.TA0004 Initial Access; AML.TA0005 Execution; AML.TA0007 Defense Evasion | AML.TA0012 Privilege Escalation; AML.TA0011 Impact | Goal/instruction hierarchy, direct/indirect injection, intent gates, and high-impact action approval checks. |
+| ASI02 | Tool Misuse and Exploitation | AML.TA0005 Execution; AML.TA0012 Privilege Escalation | AML.TA0010 Exfiltration; AML.TA0011 Impact | Tool scope, argument validation, policy enforcement middleware, semantic tool validation, and usage budgets. |
+| ASI03 | Identity and Privilege Abuse | AML.TA0013 Credential Access; AML.TA0012 Privilege Escalation; AML.TA0015 Lateral Movement | AML.TA0005 Execution; AML.TA0010 Exfiltration | Agent identity, non-human identity, delegated credentials, least privilege, JIT access, and attribution. |
+| ASI04 | Agentic Supply Chain Vulnerabilities | AML.TA0003 Resource Development; AML.TA0004 Initial Access; AML.TA0006 Persistence | AML.TA0005 Execution; AML.TA0007 Defense Evasion; AML.TA0011 Impact | Tool/provider/framework manifests, AIBOM/SBOM/ML-BOM linkage, version drift, connector provenance, and prompt/template supply chain. |
+| ASI05 | Unexpected Code Execution (RCE) | AML.TA0005 Execution; AML.TA0011 Impact | AML.TA0004 Initial Access; AML.TA0012 Privilege Escalation | Code/tool sandboxing, generated-code execution gates, interpreter isolation, file-write guards, and RCE simulation fixtures. |
+| ASI06 | Memory & Context Poisoning | AML.TA0006 Persistence; AML.TA0007 Defense Evasion; AML.TA0011 Impact | AML.TA0009 Collection; AML.TA0010 Exfiltration | Memory integrity, context isolation, poisoned state, long-term memory review, and traceable memory writes. |
+| ASI07 | Insecure Inter-Agent Communication | AML.TA0014 Command and Control; AML.TA0015 Lateral Movement; AML.TA0012 Privilege Escalation | AML.TA0008 Discovery; AML.TA0010 Exfiltration | Agent identity, mutual authentication, signed agent cards/manifests, protocol validation, A2A/MCP trust boundaries. |
+| ASI08 | Cascading Failures | AML.TA0011 Impact; AML.TA0005 Execution | AML.TA0014 Command and Control; AML.TA0015 Lateral Movement | Circuit breakers, blast-radius limits, planner/executor isolation, cascade simulations, and propagation controls. |
+| ASI09 | Human-Agent Trust Exploitation | AML.TA0007 Defense Evasion; AML.TA0011 Impact | AML.TA0005 Execution; AML.TA0009 Collection | Human approval UX, deceptive output, overtrust prompts, high-risk output flagging, and operator review evidence. |
+| ASI10 | Rogue Agents | AML.TA0014 Command and Control; AML.TA0015 Lateral Movement; AML.TA0011 Impact | AML.TA0006 Persistence; AML.TA0012 Privilege Escalation | Agent registration, discovery, kill switch, containment, runtime monitoring, behavioural drift, and rogue-agent quarantine. |
+
+---
+
+## AIUC-1 crosswalk implications
+
+The AIUC-1 crosswalk states that mappings are relevance mappings rather than sufficiency proofs. VulnoraIQ should follow the same rule: a Primary mapping indicates direct relevance to the core risk, not complete mitigation.
+
+Important implementation implications:
+
+| Crosswalk theme | VulnoraIQ implementation implication |
+| --- | --- |
+| Agent identity and inter-agent communication | Add per-agent identity fields, signed manifests, mutual auth, and trusted discovery checks for ASI03/ASI07/ASI10. |
+| Architectural containment and runtime monitoring | Add circuit breakers, blast-radius limits, runtime malicious-activity monitoring, and entitlement controls for ASI01/ASI05/ASI08/ASI10. |
+| Supply-chain attestation and schema controls | Add tool manifests, prompt/version control, AIBOM/SBOM/ML-BOM references, code signing, and agent-model boundary schemas for ASI01/ASI02/ASI04/ASI06/ASI08. |
+| Human gates and feedback | Add pause/stop/redirect controls, high-risk output flags, approval evidence, and human review routing for ASI01/ASI08/ASI09. |
 
 ---
 
@@ -117,8 +137,8 @@ The exact OWASP ASI category names must be confirmed against `OWASP-Top-10-for-A
 
 When this mapping moves from planning to code, each implemented check should carry:
 
-- `owasp_family`: `LLM`, `GenAI Data`, `Agentic`
-- `owasp_id`: e.g. `LLM01`, `GENAI-DATA-01`, or confirmed `ASIxx`
+- `owasp_family`: `LLM`, `GenAI Data`, or `Agentic`
+- `owasp_id`: e.g. `LLM01`, `DSGAI01`, or `ASI01`
 - `owasp_name`
 - `mitre_atlas_tactics`: list of `AML.TAxxxx`
 - `mitre_atlas_techniques`: list of confirmed technique IDs, once regenerated from ATLAS data
@@ -127,15 +147,15 @@ When this mapping moves from planning to code, each implemented check should car
 - `evidence_surface`: prompt, response, retrieval trace, tool trace, memory trace, model metadata, provider metadata, report artifact, audit log
 - `manual_review_required`: boolean
 
-## Implementation backlog
+## Immediate implementation backlog
 
-1. Regenerate the full MITRE ATLAS technique table and preserve unmapped rows.
-2. Extract exact category headings from the GenAI and Agentic OWASP PDFs.
-3. Replace `AGENTIC-xx` planning IDs with confirmed OWASP `ASIxx` IDs and names.
-4. Add `config/owasp_mitre_atlas_crosswalk.yaml` as machine-readable source.
-5. Add validator checks that every active OWASP oracle has at least one candidate ATLAS tactic.
-6. Add report fields for ATLAS tactic and technique mappings.
-7. Add dashboard coverage table by OWASP category and ATLAS tactic.
+1. Add `config/owasp_mitre_atlas_crosswalk.yaml` as the machine-readable source for this file.
+2. Add validator checks that every active OWASP oracle has at least one candidate ATLAS tactic.
+3. Add report fields for ATLAS tactic and technique mappings.
+4. Add dashboard coverage by OWASP family, OWASP category, and ATLAS tactic.
+5. Add GenAI scenario manifests for all confirmed `DSGAI01–DSGAI21` categories.
+6. Add Agentic scenario manifests for all confirmed `ASI01–ASI10` categories.
+7. Add source-discrepancy tracking for the GenAI document's `DSGAI01–DSGAI25` narrative vs `DSGAI01–DSGAI21` table-of-contents extraction.
 8. Add CI guard to fail if OWASP docs, crosswalk YAML, and report schema drift.
 
 ## Claim rule
@@ -143,6 +163,7 @@ When this mapping moves from planning to code, each implemented check should car
 Do not claim full MITRE ATLAS coverage until:
 
 1. all ATLAS techniques and sub-techniques are regenerated from the official source,
-2. each technique is either mapped, deliberately unmapped, or marked for later review,
-3. active VulnoraIQ checks produce structured evidence for each validated mapping, and
-4. false-positive / false-negative limitations are documented.
+2. each technique is mapped, deliberately unmapped, or marked for later review,
+3. active VulnoraIQ checks produce structured evidence for each validated mapping,
+4. false-positive / false-negative limitations are documented, and
+5. generated reports distinguish candidate mappings from validated detections.
