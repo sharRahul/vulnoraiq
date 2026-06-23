@@ -26,6 +26,49 @@ SAFE_IMAGE_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9._/:@-]{0,255}$")
 SAFE_ID_RE = re.compile(r"^[a-zA-Z0-9_-]{1,64}$")
 
 
+def _candidate_docker_paths() -> list[Path | str]:
+    candidates: list[Path | str] = []
+    env_cli = os.getenv("VULNORAIQ_DOCKER_CLI", "").strip()
+    if env_cli:
+        candidates.append(Path(env_cli).expanduser())
+    for executable in ("docker", "docker.exe"):
+        found = shutil.which(executable)
+        if found:
+            candidates.append(Path(found))
+    for env_name in ("ProgramFiles", "ProgramFiles(x86)", "LOCALAPPDATA"):
+        root = os.getenv(env_name, "").strip()
+        if root:
+            candidates.append(Path(root) / "Docker" / "Docker" / "resources" / "bin" / "docker.exe")
+    for path in ("/usr/local/bin/docker", "/usr/bin/docker", "/opt/homebrew/bin/docker"):
+        candidates.append(Path(path))
+
+    seen: set[str] = set()
+    deduped: list[Path | str] = []
+    for candidate in candidates:
+        key = str(candidate).lower()
+        if key not in seen:
+            seen.add(key)
+            deduped.append(candidate)
+    return deduped
+
+
+def find_docker_cli() -> str | None:
+    """Return a Docker CLI path even when Docker Desktop is not on PATH."""
+    for candidate in _candidate_docker_paths():
+        if isinstance(candidate, Path):
+            if candidate.is_file():
+                return str(candidate)
+            if candidate.name in {"docker", "docker.exe"}:
+                found = shutil.which(str(candidate))
+                if found:
+                    return found
+        else:
+            found = shutil.which(candidate)
+            if found:
+                return found
+    return None
+
+
 @dataclass(slots=True)
 class AgentRuntimeManager:
     """Manage local Docker-hosted AI agent runtimes and expose them as scan targets."""
@@ -34,8 +77,41 @@ class AgentRuntimeManager:
     registry_path: Path = Path(os.getenv("VULNORAIQ_AGENT_RUNTIME_REGISTRY", str(DEFAULT_RUNTIME_REGISTRY)))
     runtime_targets_path: Path = Path(os.getenv("VULNORAIQ_RUNTIME_TARGETS_PATH", str(DEFAULT_RUNTIME_TARGETS)))
 
+    def docker_cli_path(self) -> str | None:
+        return find_docker_cli()
+
     def docker_available(self) -> bool:
-        return shutil.which("docker") is not None
+        return self.docker_cli_path() is not None
+
+    def docker_status(self) -> dict[str, Any]:
+        docker_cli = self.docker_cli_path()
+        if not docker_cli:
+            return {
+                "available": False,
+                "path": None,
+                "message": (
+                    "Docker CLI was not found. Install Docker Desktop or set VULNORAIQ_DOCKER_CLI "
+                    "to the full docker executable path, then restart the WebUI."
+                ),
+            }
+        try:
+            result = subprocess.run(
+                [docker_cli, "--version"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=8,
+                check=False,
+            )
+        except OSError as exc:
+            return {"available": False, "path": docker_cli, "message": f"Docker CLI could not be executed: {exc}"}
+        except subprocess.TimeoutExpired:
+            return {"available": False, "path": docker_cli, "message": "Docker CLI timed out while checking the version."}
+        if result.returncode != 0:
+            detail = (result.stderr or result.stdout or "Docker CLI returned an error").strip()
+            return {"available": False, "path": docker_cli, "message": detail[-500:]}
+        version = (result.stdout or docker_cli).strip()
+        return {"available": True, "path": docker_cli, "message": version}
 
     def templates(self) -> dict[str, dict[str, Any]]:
         if not self.template_path.exists():
@@ -45,8 +121,11 @@ class AgentRuntimeManager:
         return templates if isinstance(templates, dict) else {}
 
     def list_state(self) -> dict[str, Any]:
+        docker_status = self.docker_status()
         return {
-            "docker_available": self.docker_available(),
+            "docker_available": bool(docker_status["available"]),
+            "docker_path": docker_status["path"],
+            "docker_status_message": docker_status["message"],
             "templates": self.templates(),
             "runtimes": self.list_runtimes(),
             "runtime_targets_path": str(self.runtime_targets_path),
@@ -61,7 +140,10 @@ class AgentRuntimeManager:
 
     def start_runtime(self, payload: dict[str, Any]) -> dict[str, Any]:
         if not self.docker_available():
-            raise RuntimeError("Docker is not installed or is not available on PATH.")
+            raise RuntimeError(
+                "Docker is not available to the WebUI runtime. Install Docker Desktop, ensure docker is on PATH, "
+                "or set VULNORAIQ_DOCKER_CLI to the full docker executable path and restart the WebUI."
+            )
 
         template_id = self._safe_id(str(payload.get("template_id") or "http_llm_agent"), "template_id")
         templates = self.templates()
@@ -207,8 +289,11 @@ class AgentRuntimeManager:
         self.registry_path.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
 
     def _docker(self, args: list[str], *, timeout: int, check: bool = True) -> str:
+        docker_cli = self.docker_cli_path()
+        if not docker_cli:
+            raise RuntimeError("Docker CLI was not found by VulnoraIQ.")
         result = subprocess.run(
-            ["docker", *args],
+            [docker_cli, *args],
             cwd=ROOT,
             capture_output=True,
             text=True,
