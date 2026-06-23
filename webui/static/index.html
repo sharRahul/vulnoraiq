@@ -12,13 +12,13 @@
       <div>
         <p class="eyebrow">VulnoraIQ</p>
         <h1>Modern AI Security Assessment Console</h1>
-        <p class="subtitle">Launch authorised scans, watch progress in real time, and present findings through an executive dashboard.</p>
+        <p class="subtitle">Launch authorised scans, choose exactly which test suite or single test to run, watch progress in real time, and present findings through an executive dashboard.</p>
       </div>
       <div class="hero-card">
         <span class="status-dot"></span>
         <div>
-          <strong>Local/demo-safe by default</strong>
-          <p>Configured targets require explicit authorisation before execution.</p>
+          <strong>Categorised tests visible by default</strong>
+          <p>Pick assessment suites, individual OWASP LLM checks, RAG tests, or agentic/tool-use tests from the Web UI.</p>
         </div>
       </div>
     </section>
@@ -27,21 +27,32 @@
       <form id="scan-form" class="panel form-panel">
         <div class="section-title">
           <span>01</span>
-          <h2>Run scan</h2>
+          <h2>Choose tests and run scan</h2>
         </div>
         <label>
           Target
           <select id="target-select" name="target"></select>
         </label>
         <label>
-          Profile
+          Selected test option
           <select id="profile-select" name="profile"></select>
         </label>
+        <div id="selected-profile-detail" class="selected-profile-detail"></div>
+        <section class="test-catalog-wrap" aria-labelledby="test-catalog-title">
+          <div class="catalog-header">
+            <div>
+              <h3 id="test-catalog-title">Categorised test options</h3>
+              <p>Select a full suite or a single focused test. The selected card controls what the scan runs.</p>
+            </div>
+            <button type="button" id="select-full-profile" class="secondary">Select full suite</button>
+          </div>
+          <div id="test-catalog" class="test-catalog"></div>
+        </section>
         <label class="checkbox-row">
           <input id="authorised" type="checkbox" name="authorised">
           <span>I confirm this configured target is owned by me or explicitly authorised for assessment.</span>
         </label>
-        <button type="submit" class="primary">Start assessment</button>
+        <button type="submit" class="primary">Start selected assessment</button>
         <p id="form-message" class="form-message"></p>
       </form>
 
@@ -66,11 +77,12 @@
         <span>03</span>
         <h2>Completed assessment dashboard</h2>
       </div>
-      <div id="empty-state" class="empty-state">Run a scan to populate the dashboard.</div>
+      <div id="empty-state" class="empty-state">Run a selected test option to populate the dashboard.</div>
       <div id="dashboard" class="dashboard hidden">
         <div class="cards">
           <article><span>Target</span><strong id="summary-target">-</strong></article>
-          <article><span>Profile</span><strong id="summary-profile">-</strong></article>
+          <article><span>Test option</span><strong id="summary-profile">-</strong></article>
+          <article><span>Category</span><strong id="summary-category">-</strong></article>
           <article><span>Findings</span><strong id="summary-findings">0</strong></article>
           <article><span>Highest severity</span><strong id="summary-severity">info</strong></article>
           <article><span>Policy status</span><strong id="summary-policy">pass</strong></article>
