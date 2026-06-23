@@ -28,6 +28,7 @@ EXPECTED_CLI_ENTRY_POINTS = [
     "vulnoraiq-dashboard",
     "vulnoraiq-diff",
     "vulnoraiq-package",
+    "vulnoraiq-platform-package",
     "vulnoraiq-benchmark",
     "vulnoraiq-functional-test",
     "vulnoraiq-production-readiness",
@@ -50,6 +51,14 @@ EXPECTED_PRODUCTION_READINESS_RUNNER = Path("scripts/validate_production_testing
 EXPECTED_OWASP_ATLAS_MAPPING_RUNNER = Path("scripts/validate_owasp_atlas_mappings.py")
 EXPECTED_GENAI_READINESS_RUNNER = Path("scripts/validate_genai_readiness.py")
 EXPECTED_GENAI_MANIFEST = Path("benchmarks/fixtures/genai/scenarios.yaml")
+EXPECTED_PYPROJECT_URLS = ["Homepage", "Documentation", "Source", "Issues", "Security"]
+EXPECTED_CLASSIFIERS = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+]
 
 
 @dataclass(slots=True)
@@ -73,7 +82,7 @@ class PackageMetadataValidator:
         warnings: list[str] = []
         package_name = self._match(pyproject, r'^name = "([^"]+)"')
         package_version = self._match(pyproject, r'^version = "([^"]+)"')
-        package_license = self._match(pyproject, r'^license = \{ text = "([^"]+)" \}')
+        package_license = self._extract_license(pyproject)
         framework = config.get("framework", {})
         if package_name != "vulnoraiq":
             errors.append(f"Unexpected package name: {package_name}")
@@ -81,6 +90,14 @@ class PackageMetadataValidator:
             errors.append(f"pyproject version {package_version} does not match framework version {framework.get('version')}")
         if package_license != EXPECTED_LICENSE:
             errors.append(f"pyproject license must be {EXPECTED_LICENSE}, found {package_license}")
+        for expected_url in EXPECTED_PYPROJECT_URLS:
+            if f"{expected_url} =" not in pyproject:
+                errors.append(f"Missing project URL metadata: {expected_url}")
+        for classifier in EXPECTED_CLASSIFIERS:
+            if classifier not in pyproject:
+                errors.append(f"Missing package classifier: {classifier}")
+        if "release = [" not in pyproject or "build>=1.2.1" not in pyproject or "twine>=5.1.0" not in pyproject:
+            errors.append("pyproject must include release extra with build and twine")
         if not EXPECTED_LICENSE_FILE.exists():
             errors.append(f"Missing project license file: {EXPECTED_LICENSE_FILE}")
         else:
@@ -168,6 +185,13 @@ class PackageMetadataValidator:
     def _match(text: str, pattern: str) -> str | None:
         match = re.search(pattern, text, flags=re.MULTILINE)
         return match.group(1) if match else None
+
+    @classmethod
+    def _extract_license(cls, text: str) -> str | None:
+        expression = cls._match(text, r'^license = "([^"]+)"')
+        if expression:
+            return expression
+        return cls._match(text, r'^license = \{ text = "([^"]+)" \}')
 
 
 def main() -> None:
