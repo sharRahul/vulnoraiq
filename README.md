@@ -122,6 +122,76 @@ The demo target uses an in-memory echo client and does not call external service
 
 ---
 
+## Run the Web UI: double-click launcher
+
+For local self-hosted use you do not need to remember any commands. After a one-time
+`pip install -e .` (or `pip install -e .[dev]`), double-click the launcher for your
+platform from the repository root:
+
+| Platform | Double-click file |
+| --- | --- |
+| Windows | `launch-vulnoraiq-webui.bat` |
+| macOS | `launch-vulnoraiq-webui.command` |
+| Linux | `launch-vulnoraiq-webui.sh` |
+| Any platform (Python) | `launch-vulnoraiq-webui.py` |
+
+The launcher runs the same steps for every platform:
+
+1. Runs **startup dependency checks** (Python version, `PyYAML`, `requests`, `rich`,
+   core package modules, target/profile configuration, Web UI assets, output directory,
+   and the SQLite job store).
+2. Performs **quick-start actions** — ensures the local output directory and SQLite job
+   store exist, binds to loopback for safe local assessment, and opens the console in your
+   default browser.
+3. Opens [`http://127.0.0.1:8787/`](http://127.0.0.1:8787/) automatically once the server
+   is healthy.
+
+The startup panel inside the Web UI shows the live results of those checks, the current
+**configuration options** (host, port, output root, job store, auth) and how to change
+each one, plus a **Stop local server** button so you can shut the server down cleanly from
+the browser without returning to the terminal.
+
+![VulnoraIQ Web UI startup and local server controls](docs/assets/vulnoraiq-webui-launcher.png)
+
+You can override the defaults when launching from a terminal:
+
+```bash
+python launch-vulnoraiq-webui.py --host 127.0.0.1 --port 8888   # custom port
+python launch-vulnoraiq-webui.py --no-browser                   # start without opening a browser
+```
+
+The launcher runs in local development mode with authentication disabled and the in-browser
+stop control enabled. It is intended for laptop/workstation use on loopback only; for an
+exposed or shared deployment use the self-hosted startup below.
+
+---
+
+## How to use the application
+
+Once the console is open in your browser:
+
+1. **Check startup readiness.** The *Startup and local server controls* panel at the top
+   shows the dependency and quick-start checks. A green **Ready for local assessment** badge
+   means you can run scans. Use **Refresh checks** to re-run them at any time.
+2. **Choose what to run.** In *Choose tests and run scan*, pick a **Target** (start with the
+   safe local `demo` target) and a **Test option** — either a full assessment suite or a
+   single focused OWASP LLM / RAG / agentic test from the categorised catalogue. The
+   *Run readiness* panel summarises exactly what will run before you start.
+3. **Authorise configured targets.** The `demo` target needs no authorisation. For any
+   configured non-demo target you must tick the authorisation checkbox confirming you own
+   or are explicitly authorised to assess it.
+4. **Start the assessment** with **Start selected assessment** and watch the *Realtime
+   progress* panel update live (initialising → scanning → policy → dashboard → completed).
+5. **Review the dashboard.** When the scan completes, the *Completed assessment dashboard*
+   shows summary cards, top risks, the severity distribution, policy evaluation, and a
+   filterable findings list with evidence previews.
+6. **Export outputs.** Download the Markdown, JSON, SARIF, Markdown dashboard, and HTML
+   dashboard artifacts from the *Outputs for presentation* section.
+7. **Stop the server** when you are done with the red **Stop local server** button in the
+   startup panel — the local server shuts down cleanly and the launcher window exits.
+
+---
+
 ## Web UI: self-hosted startup
 
 Production mode fails closed if required controls are missing or unsafe.
@@ -139,6 +209,8 @@ vulnoraiq-web --host 127.0.0.1 --port 8787
 ```
 
 ### Stopping the Web UI server
+
+If you started the Web UI with a double-click launcher, use the **Stop local server** button in the startup panel of the console to shut it down cleanly from the browser.
 
 If the Web UI is running in the foreground, stop it with `Ctrl+C` in the terminal where `vulnoraiq-web` is running.
 
