@@ -2,7 +2,7 @@
 
 This document separates current working capability from roadmap items so users can understand what is ready today.
 
-> **Current maturity:** VulnoraIQ version `0.2.0` has passed the **controlled internal enterprise production-readiness gate** with security hardening, SQLite persistence, auth, CSRF, rate limiting, audit logging, metrics, backup/restore tooling, container support, and production startup validation. It is **not ready for public internet-facing, multi-tenant SaaS, or unsupervised production hosting** without additional controls such as OIDC/SSO, horizontal scaling, external penetration testing, WAF/CDN/DDoS protection, HA persistence, and tenant isolation. See [`PRODUCTION_READINESS_SCORECARD.md`](PRODUCTION_READINESS_SCORECARD.md) for scored readiness and [`ASSESSMENT_ASSURANCE.md`](ASSESSMENT_ASSURANCE.md) for scanner/evaluator assurance limitations.
+> **Current maturity:** VulnoraIQ version `0.2.0` has passed the **controlled internal enterprise production-readiness gate** with security hardening, SQLite persistence, auth, CSRF, rate limiting, audit logging, metrics, backup/restore tooling, container support, production startup validation, and completed Agentic Applications Production Readiness Plan phases 0-8. It is **not ready for public internet-facing, multi-tenant SaaS, or unsupervised production hosting** without additional controls such as OIDC/SSO, horizontal scaling, external penetration testing, WAF/CDN/DDoS protection, HA persistence, and tenant isolation. See [`AGENTIC_APPLICATIONS_PRODUCTION_READINESS_PLAN.md`](AGENTIC_APPLICATIONS_PRODUCTION_READINESS_PLAN.md), [`PRODUCTION_READINESS_SCORECARD.md`](PRODUCTION_READINESS_SCORECARD.md), and [`ASSESSMENT_ASSURANCE.md`](ASSESSMENT_ASSURANCE.md) for boundaries and limitations.
 
 > **Important limitation:** OWASP LLM 2025 coverage now has implementation specs, safe starter oracle coverage, deterministic local evaluator primitives, and local good/bad fixtures for all 10 categories. MITRE ATLAS AI technique coverage now has a source-driven planning matrix and unmapped backlog preservation, but the matrix is not the same as active production-validated detection coverage. MITRE ATLAS-derived documentation is tracked in `THIRD_PARTY_NOTICES.md`. Treat output as development evidence, not validated security assurance or certified VAPT output.
 
@@ -18,6 +18,13 @@ This document separates current working capability from roadmap items so users c
 | Phase 6 — Report quality and presentation | Working starter | Report generation includes structured evidence; `reports/html_export_package.py` builds a branded export bundle; `docs/assets/vulnoraiq-dashboard-example.svg` provides a README dashboard example image. |
 | Phase 7 — Release gates | Controlled-internal production ready | `scripts/validate_package_metadata.py`, `scripts/validate_production_testing_readiness.py`, `scripts/validate_runtime_production_config.py`, backup/restore scripts, Docker smoke tooling, and CI gates validate package, runtime, docs, readiness, and functional acceptance. |
 
+## Agentic Applications Production Readiness Plan
+
+| Scope | Status | Evidence |
+| --- | --- | --- |
+| Controlled internal enterprise deployment phases 0-8 | Complete | [`AGENTIC_APPLICATIONS_PRODUCTION_READINESS_PLAN.md`](AGENTIC_APPLICATIONS_PRODUCTION_READINESS_PLAN.md), `scripts/validate_owasp_atlas_mappings.py`, `.github/workflows/ci.yml`, `.github/workflows/python-ci.yml` |
+| Public internet / SaaS hardening phase 9 | Deferred | Tracked as future backlog in [`PRODUCTION_HARDENING_BACKLOG.md`](PRODUCTION_HARDENING_BACKLOG.md) and the Agentic readiness plan. |
+
 ## Current working capability
 
 | Area | Status | Notes |
@@ -26,6 +33,7 @@ This document separates current working capability from roadmap items so users c
 | Functional acceptance runner | Working starter | `scripts/run_functional_test.py` runs a safe demo/baseline assessment, validates outputs, and refreshes dashboard example SVG. |
 | Production readiness gate | Controlled-internal production ready | `scripts/validate_production_testing_readiness.py` validates all production controls and documentation guardrails. |
 | Production runtime config validation | Controlled-internal production ready | `scripts/validate_runtime_production_config.py` validates runtime environment before startup. |
+| Agentic production readiness plan | Complete for controlled internal deployment | Phases 0-8 are complete; Phase 9 public internet/SaaS hardening is deferred. |
 | Dashboard example image | Working starter | `docs/assets/vulnoraiq-dashboard-example.svg` is referenced in `README.md`. |
 | Modern Web UI | Controlled-internal production ready | `webui/hosted_server.py` — hardened HTTP server with auth, CSRF, rate limiting, security headers, proxy trust, audit logging, metrics, request IDs, concurrency limits, and structured error handling. |
 | Authentication | Controlled-internal production ready | `webui/auth.py` — env-driven token auth with hmac constant-time comparison, production-mode validation, trusted reverse-proxy identity headers, role-based access control. |
@@ -49,7 +57,8 @@ This document separates current working capability from roadmap items so users c
 | OWASP LLM 2025 oracle coverage | Working starter | Safe starter oracle coverage for all 10 OWASP LLM 2025 categories. |
 | MITRE ATLAS AI matrix | Working starter | Planning matrix with source-driven generation and unmapped backlog preservation. |
 | Package metadata validation | Working starter | Validates package name, version, CLI entries, README maturity warnings, OWASP docs, MITRE ATLAS doc, third-party notices, functional test assets, evaluators, fixtures before release. |
-| CI | Controlled-internal production ready | GitHub Actions across Python 3.10/3.11/3.12; Ruff, mypy, pytest, pip check, pip-audit, metadata validation, production readiness validation, demo scan, functional acceptance readiness path. |
+| OWASP/ATLAS mapping metadata validation | Controlled-internal production ready | `scripts/validate_owasp_atlas_mappings.py` and CI validate required mapping metadata for active oracles/checks. |
+| CI | Controlled-internal production ready | GitHub Actions across Python 3.10/3.11/3.12; Ruff, mypy, pytest, pip check, pip-audit, metadata validation, OWASP/ATLAS mapping validation, production readiness validation, demo scan, functional acceptance readiness path. |
 
 ## Current safe usage
 
@@ -88,6 +97,7 @@ python scripts/backup_sqlite_store.py \
 Validate production readiness:
 
 ```bash
+python scripts/validate_owasp_atlas_mappings.py
 python scripts/validate_production_testing_readiness.py
 python scripts/validate_production_testing_readiness.py \
   --run-functional \
@@ -107,7 +117,7 @@ For any configured target outside demo mode:
 
 ## Implementation roadmap status
 
-All production hardening blockers PRD-001 through PRD-010 are closed for controlled internal enterprise deployment. The project has gate-level 10/10 controlled-internal readiness, while the detailed scorecard remains lower where non-blocking improvements are still tracked.
+All production hardening blockers PRD-001 through PRD-011 are closed for controlled internal enterprise deployment. The Agentic Applications Production Readiness Plan is complete for phases 0-8. The project has gate-level 10/10 controlled-internal readiness, while the detailed scorecard remains lower where non-blocking improvements are still tracked.
 
 The next phases should focus on:
 
