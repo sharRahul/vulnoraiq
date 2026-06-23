@@ -151,6 +151,12 @@ def build_startup_status(host: str, port: int, shutdown_allowed: bool) -> dict[s
     output_root = Path(os.getenv("VULNORAIQ_WEB_OUTPUT_ROOT", selected["output_root"]))
     job_store_path = Path(os.getenv("VULNORAIQ_JOB_STORE_PATH", selected["job_store_path"]))
     python_ok = sys.version_info >= (3, 10)
+    try:
+        from webui.agent_runtime import AgentRuntimeManager  # noqa: PLC0415
+
+        docker_status = AgentRuntimeManager().docker_status()
+    except Exception as exc:  # pragma: no cover - defensive startup status fallback
+        docker_status = {"available": False, "message": f"Unable to inspect Docker CLI: {exc}"}
     dependency_checks = [
         _status_item(
             "Python runtime",
@@ -159,8 +165,8 @@ def build_startup_status(host: str, port: int, shutdown_allowed: bool) -> dict[s
         ),
         _status_item(
             "Docker runtime",
-            "pass" if importlib.util.find_spec("subprocess") else "fail",
-            "Required for hosting selected AI agents in local Docker containers.",
+            "pass" if docker_status.get("available") else "warn",
+            str(docker_status.get("message") or "Docker CLI status unavailable."),
         ),
         _status_item(
             "PyYAML dependency",
