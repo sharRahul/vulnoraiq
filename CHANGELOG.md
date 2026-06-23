@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Release-only Windows, Linux, and macOS artifact build workflow triggered by published GitHub Releases or manual dispatch only.
-- Platform release package builder for `vulnoraiq-<version>-windows.zip`, `vulnoraiq-<version>-linux.zip`, and `vulnoraiq-<version>-macos.zip`.
+- Platform release package builder for native release formats: `vulnoraiq-<version>-windows.zip`, `vulnoraiq-<version>-linux.tar.gz`, and `vulnoraiq-<version>-macos.dmg`.
 - Release artifact documentation in `docs/RELEASE_ARTIFACTS.md`.
 - Python package build workflow for wheel/source distributions, with manual TestPyPI/PyPI publishing using trusted publishing.
 - PyPI package publishing documentation in `docs/PYPI_PACKAGE.md`.
@@ -35,7 +35,8 @@ All notable changes to this project will be documented in this file.
 - VulnoraIQ findings remain framework evidence requiring human review.
 - This release does not claim certified VAPT-grade assurance or independently validated real-environment GenAI detection coverage.
 - Launcher mode is intended for local laptop/workstation use only; exposed or shared deployments must use production mode with auth enabled and production configuration validation.
-- Platform release artifacts are zip packages with platform launchers, not signed native installers.
+- Platform release artifacts use native formats where practical: Windows `.zip`, Linux `.tar.gz`, and macOS unsigned `.dmg`.
+- Signed native installers remain future maturity items.
 - PyPI publication is opt-in and should be tested on TestPyPI before publishing to PyPI.
 
 ## [0.2.0] - 2026-06-22
