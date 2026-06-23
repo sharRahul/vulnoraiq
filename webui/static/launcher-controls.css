@@ -1,3 +1,5 @@
+/* Launcher controls, settings editor, system theme, and final UI polish layer. */
+
 .startup-panel {
   margin-bottom: 24px;
   padding: 26px;
@@ -202,22 +204,6 @@
   background: rgba(110, 31, 37, 0.12);
 }
 
-@media (max-width: 1100px) {
-  .startup-grid,
-  .startup-detail-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 620px) {
-  .startup-panel {
-    padding: 18px;
-  }
-  .startup-actions {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* System appearance and catalog layout overrides ------------------------- */
 :root {
   color-scheme: light dark;
@@ -313,6 +299,402 @@ button:focus,
   scrollbar-color: var(--accent) transparent;
 }
 
+/* Final UI polish --------------------------------------------------------- */
+:root {
+  --page-max: 1500px;
+  --space-xs: 6px;
+  --space-sm: 10px;
+  --space-md: 16px;
+  --space-lg: 22px;
+  --surface-glass: rgba(255, 255, 255, 0.78);
+  --surface-raised: rgba(255, 255, 255, 0.92);
+  --ring-soft: 0 0 0 1px rgba(138, 158, 167, 0.12), 0 18px 44px rgba(42, 47, 53, 0.08);
+  --ring-strong: 0 0 0 1px rgba(138, 158, 167, 0.22), 0 22px 52px rgba(42, 47, 53, 0.12);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-size: 15.5px;
+  letter-spacing: -0.01em;
+}
+
+button,
+select,
+input {
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background 160ms ease, color 160ms ease, opacity 160ms ease;
+}
+
+.shell,
+.topbar-inner {
+  width: min(var(--page-max), calc(100% - 28px));
+}
+
+.shell {
+  padding: 24px 0 44px;
+}
+
+.topbar {
+  backdrop-filter: blur(18px) saturate(1.08);
+}
+
+.topbar-inner {
+  padding: 12px 0;
+}
+
+.brand-mark,
+.section-title span {
+  box-shadow: 0 12px 30px rgba(30, 34, 41, 0.16);
+}
+
+.panel {
+  overflow: hidden;
+  box-shadow: var(--ring-soft);
+}
+
+.panel:hover {
+  box-shadow: var(--ring-strong);
+}
+
+.hero {
+  position: relative;
+  min-height: 210px;
+  align-items: stretch;
+  padding: clamp(24px, 4vw, 42px);
+  border: 1px solid rgba(138, 158, 167, 0.20);
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: auto 36px 0 auto;
+  width: 240px;
+  height: 240px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(138, 158, 167, 0.18), transparent 68%);
+  pointer-events: none;
+}
+
+.hero h1 {
+  margin-bottom: 10px;
+  font-size: clamp(2.25rem, 4vw, 4.2rem);
+}
+
+.subtitle {
+  max-width: 860px;
+  line-height: 1.55;
+}
+
+.hero-card {
+  position: relative;
+  z-index: 1;
+  align-self: stretch;
+  min-height: 140px;
+  flex: 0 0 min(380px, 34%);
+  align-items: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+
+.form-panel,
+.progress-panel,
+.dashboard-panel,
+.history-panel,
+.startup-panel {
+  padding: clamp(18px, 2.2vw, 30px);
+}
+
+.grid.two {
+  grid-template-columns: minmax(460px, 0.92fr) minmax(430px, 1.08fr);
+  align-items: start;
+}
+
+.section-title {
+  margin-bottom: 18px;
+}
+
+.section-title h2 {
+  font-size: clamp(1.14rem, 1.3vw, 1.42rem);
+  letter-spacing: -0.02em;
+}
+
+.section-title span {
+  width: 42px;
+  height: 42px;
+  border-radius: 15px;
+  font-size: 0.95rem;
+}
+
+label {
+  gap: 7px;
+  margin-bottom: 14px;
+}
+
+select,
+button,
+.toolbar input,
+.toolbar select,
+.signin-form input,
+.startup-config-field input {
+  min-height: 46px;
+  border-radius: 14px;
+}
+
+select:hover,
+.toolbar input:hover,
+.toolbar select:hover,
+.signin-form input:hover,
+.startup-config-field input:hover {
+  border-color: var(--border-strong);
+}
+
+button:hover:not(:disabled) {
+  box-shadow: 0 12px 30px rgba(42, 47, 53, 0.10);
+}
+
+.primary {
+  min-height: 56px;
+  border-radius: 18px;
+}
+
+.secondary,
+.profile-card button,
+.topbar-button {
+  background: linear-gradient(180deg, var(--surface-raised), var(--panel-strong));
+}
+
+.checkbox-row {
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--panel-soft) 36%, transparent);
+}
+
+.checkbox-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.startup-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.48fr);
+}
+
+.startup-detail-grid {
+  grid-template-columns: minmax(0, 1.05fr) minmax(420px, 0.95fr);
+  align-items: start;
+}
+
+.startup-card,
+.startup-item,
+.startup-config-field,
+.selected-profile-detail,
+.test-catalog-wrap,
+.run-readiness,
+.top-risks-panel,
+.active-scan-card,
+.timeline li,
+.cards article,
+.policy-item,
+.finding-item,
+.job-item,
+.artifact-group,
+.scan-stage-grid article,
+.readiness-grid article,
+.history-summary article {
+  border-color: rgba(138, 158, 167, 0.22);
+}
+
+.startup-status-card,
+.selected-profile-detail,
+.run-readiness,
+.active-scan-card {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, transparent), color-mix(in srgb, var(--panel-strong) 92%, transparent)),
+    var(--panel-strong);
+}
+
+.startup-item,
+.startup-config-field,
+.readiness-grid article,
+.scan-stage-grid article,
+.history-summary article,
+.cards article {
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 52%, transparent);
+}
+
+.startup-list {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.startup-config-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.startup-config-actions {
+  grid-column: 1 / -1;
+}
+
+.startup-config-field input {
+  font-size: 0.94rem;
+}
+
+.startup-pill,
+.badge,
+.filter-count,
+.session-badge {
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+}
+
+.test-catalog-wrap {
+  margin-top: 18px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--panel-soft) 28%, transparent), transparent),
+    var(--panel-strong);
+}
+
+.catalog-header {
+  align-items: center;
+}
+
+.toolbar {
+  margin: 14px 0 16px;
+}
+
+.test-catalog {
+  max-height: 560px;
+  padding: 4px 6px 4px 2px;
+}
+
+.profile-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.profile-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: transparent;
+}
+
+.profile-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 16px 36px rgba(42, 47, 53, 0.10);
+}
+
+.profile-card.active {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, transparent), var(--panel-strong));
+}
+
+.profile-card.active::before {
+  background: var(--accent);
+}
+
+.module-list span {
+  border: 1px solid rgba(138, 158, 167, 0.18);
+}
+
+.run-readiness {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.readiness-grid,
+.scan-stage-grid,
+.cards,
+.history-summary {
+  gap: 12px;
+}
+
+.progress-panel {
+  position: sticky;
+  top: 84px;
+}
+
+.active-scan-card {
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 38%, transparent);
+}
+
+.progress-ring {
+  margin: 14px auto;
+}
+
+.progress-bar-shell {
+  height: 10px;
+}
+
+.timeline {
+  max-height: 360px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.dashboard-panel,
+.history-panel {
+  margin-top: 22px;
+}
+
+.dashboard .cards article {
+  min-height: 96px;
+  display: grid;
+  align-content: space-between;
+}
+
+.cards strong,
+.history-summary strong,
+.readiness-grid strong,
+.scan-stage-grid strong {
+  font-size: 1.02rem;
+}
+
+.dashboard-grid {
+  align-items: start;
+}
+
+.top-risks-panel,
+.artifact-group {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent-2) 12%, transparent), transparent),
+    var(--panel-strong);
+}
+
+.finding-item,
+.job-item {
+  border-radius: 18px;
+}
+
+.finding-item:hover,
+.job-item:hover,
+.policy-item:hover,
+.artifact-group:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 36px rgba(42, 47, 53, 0.10);
+}
+
+.finding-heading h3,
+.top-risk-item strong,
+.job-item strong {
+  letter-spacing: -0.02em;
+}
+
+.enhanced-finding details {
+  background: color-mix(in srgb, var(--panel-strong) 92%, transparent);
+}
+
+.enhanced-finding pre {
+  border-top: 1px solid var(--border);
+}
+
+.artifact-links a {
+  border-radius: 12px;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0F141A;
@@ -333,6 +715,10 @@ button:focus,
     --navy: #F4F7FA;
     --shadow: 0 20px 56px rgba(0, 0, 0, 0.34);
     --focus-ring: rgba(159, 180, 192, 0.34);
+    --surface-glass: rgba(27, 35, 45, 0.72);
+    --surface-raised: rgba(31, 41, 51, 0.92);
+    --ring-soft: 0 0 0 1px rgba(216, 226, 234, 0.08), 0 20px 60px rgba(0, 0, 0, 0.26);
+    --ring-strong: 0 0 0 1px rgba(216, 226, 234, 0.18), 0 24px 70px rgba(0, 0, 0, 0.34);
     color-scheme: dark;
   }
 
@@ -345,6 +731,15 @@ button:focus,
 
   .topbar {
     background: rgba(15, 20, 26, 0.88);
+  }
+
+  .panel:hover,
+  .profile-card:hover,
+  .finding-item:hover,
+  .job-item:hover,
+  .policy-item:hover,
+  .artifact-group:hover {
+    box-shadow: var(--ring-strong);
   }
 
   .primary,
@@ -468,10 +863,83 @@ button:focus,
   }
 }
 
+@media (max-width: 1240px) {
+  .grid.two {
+    grid-template-columns: 1fr;
+  }
+  .progress-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 1100px) {
+  .hero,
+  .startup-grid,
+  .startup-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .hero {
+    display: grid;
+  }
+  .hero-card {
+    flex-basis: auto;
+    width: 100%;
+  }
+  .startup-config-form,
+  .startup-list {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 720px) {
   .catalog-toolbar,
   .findings-toolbar,
   .history-toolbar {
     grid-template-columns: 1fr;
+  }
+  .shell,
+  .topbar-inner {
+    width: min(100% - 18px, var(--page-max));
+  }
+  .hero,
+  .startup-panel,
+  .form-panel,
+  .progress-panel,
+  .dashboard-panel,
+  .history-panel {
+    border-radius: 20px;
+  }
+  .catalog-header,
+  .startup-config-actions {
+    display: grid;
+  }
+}
+
+@media (max-width: 520px) {
+  .startup-actions,
+  .readiness-grid,
+  .scan-stage-grid,
+  .cards,
+  .history-summary,
+  .grouped-artifacts {
+    grid-template-columns: 1fr;
+  }
+  .hero h1 {
+    font-size: 2rem;
+  }
+  .section-title span {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
