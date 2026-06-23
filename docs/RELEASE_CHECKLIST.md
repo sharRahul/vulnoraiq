@@ -27,6 +27,7 @@ Do **not** describe `0.2.0` as certified VAPT-grade ready or independently produ
 - [ ] `docs/AGENTIC_APPLICATIONS_PRODUCTION_READINESS_PLAN.md` reflects the current Agentic Applications phase gate status.
 - [ ] `docs/ASSESSMENT_ASSURANCE.md` clearly states scanner/evaluator limitations.
 - [ ] Local launcher mode is documented as loopback-only and separate from production mode.
+- [ ] Release artifact build process is documented in `docs/RELEASE_ARTIFACTS.md`.
 - [ ] No P0/P1 release blockers remain.
 - [ ] Known accepted risks are documented.
 - [ ] CI is green on the release branch or `main`.
@@ -43,20 +44,21 @@ Recommended flow for this release:
 
 1. Tag `v0.2.0-rc1` after a clean local and CI validation pass.
 2. Run one release-candidate validation cycle.
-3. Tag `v0.2.0` only after RC smoke, Docker smoke, backup/restore, GenAI readiness validation, launcher smoke, and docs review pass.
+3. Publish a GitHub Release for the RC only when release artifacts should be built.
+4. Tag and publish `v0.2.0` only after RC smoke, Docker smoke, backup/restore, GenAI readiness validation, launcher smoke, release artifact validation, and docs review pass.
 
 ## Stage 1: version and changelog
 
 - [ ] Confirm `pyproject.toml` version is correct.
 - [ ] Confirm README maturity banner references the same version.
-- [ ] Confirm `CHANGELOG.md` has a dated section for the version or clearly documents unreleased launcher/docs changes.
+- [ ] Confirm `CHANGELOG.md` has a dated section for the version or clearly documents unreleased launcher/docs/release-build changes.
 - [ ] Confirm breaking changes are listed:
   - legacy `webui/server.py` removed
   - SQLite is default persistence
   - JSON backend is dev/legacy only
   - file auth disabled in production
   - `VULNORAIQ_ADMIN_TOKEN` required in production
-- [ ] Confirm release notes include known limitations, including GenAI current-scope completion limitations and the launcher-mode local-only boundary.
+- [ ] Confirm release notes include known limitations, including GenAI current-scope completion limitations, the launcher-mode local-only boundary, and the fact that platform release artifacts are zip packages rather than signed native installers.
 
 ## Stage 2: local quality gates
 
@@ -180,13 +182,46 @@ Acceptance:
 - [ ] Restored DB validates.
 - [ ] Restore drill result is recorded.
 
-## Stage 8: documentation review
+## Stage 8: release artifact build
+
+The release artifact workflow is intentionally separate from normal CI. It must only run from:
+
+- a published GitHub Release; or
+- a manual `workflow_dispatch` run by a maintainer.
+
+Local dry run for one platform:
+
+```bash
+python scripts/build_platform_release_package.py \
+  --platform linux \
+  --version 0.2.0-rc1 \
+  --output-dir dist/release
+```
+
+Expected artifacts from the GitHub release workflow:
+
+- [ ] `vulnoraiq-<version>-windows.zip`
+- [ ] `vulnoraiq-<version>-linux.zip`
+- [ ] `vulnoraiq-<version>-macos.zip`
+
+Acceptance:
+
+- [ ] `.github/workflows/release-build.yml` does not include `push` or `pull_request` triggers.
+- [ ] Workflow artifacts upload successfully.
+- [ ] Published-release runs attach artifacts to the GitHub Release.
+- [ ] Archives include `START_HERE.txt`, platform launchers, `LICENSE`, `NOTICE`, `SECURITY.md`, `ACCEPTABLE_USE.md`, `THIRD_PARTY_NOTICES.md`, Web UI assets, docs, safe config, and source packages.
+- [ ] Archives exclude generated reports, SQLite databases, secrets, private keys, virtual environments, build outputs, and local config.
+- [ ] A platform package is extracted and smoke-tested before final release approval.
+
+## Stage 9: documentation review
 
 - [ ] README quick start is current.
 - [ ] README Web UI instructions include standalone launcher, self-hosted startup, and shutdown guidance.
 - [ ] `SECURITY.md` reflects `0.2.0` controls, supported versions, local launcher boundary, and production-mode expectations.
+- [ ] `ACCEPTABLE_USE.md` is present and linked from security/release docs.
 - [ ] `DEPLOYMENT.md` includes latest launcher files, env vars, proxy/TLS guidance, and local-vs-production boundaries.
 - [ ] `RUNBOOK.md` uses real `0.2.0` commands and includes launcher troubleshooting plus GenAI readiness validation in upgrade checks.
+- [ ] `RELEASE_ARTIFACTS.md` explains release-only build triggers and artifact expectations.
 - [ ] `INCIDENT_RESPONSE.md` references current audit events, SQLite, metrics, and token/proxy auth.
 - [ ] `MIGRATION.md` covers `0.0.1.x` to `0.2.0`.
 - [ ] `ASSESSMENT_ASSURANCE.md` warns that findings are framework evidence, not certified VAPT assurance.
@@ -194,7 +229,7 @@ Acceptance:
 - [ ] `AGENTIC_APPLICATIONS_PRODUCTION_READINESS_PLAN.md` shows the current Agentic Applications phase-by-phase gate status.
 - [ ] `PRODUCTION_HARDENING_BACKLOG.md` documents complete current-scope readiness and post-completion maturity items.
 
-## Stage 9: security review
+## Stage 10: security review
 
 - [ ] No real secrets in repository.
 - [ ] `.env.production.example` contains placeholders only.
@@ -208,7 +243,7 @@ Acceptance:
 - [ ] Dependency audit is reviewed.
 - [ ] Maintainer signs off.
 
-## Stage 10: release candidate tag
+## Stage 11: release candidate tag and release artifact build
 
 ```bash
 git tag -a v0.2.0-rc1 -m "Release candidate v0.2.0-rc1"
@@ -219,11 +254,13 @@ After tag:
 
 - [ ] GitHub Actions pass for the tag.
 - [ ] Release notes are generated from `CHANGELOG.md`.
+- [ ] GitHub Release is published only when platform artifacts should be built.
+- [ ] `Build Release Artifacts` completes successfully for Windows, Linux, and macOS.
 - [ ] RC deployment smoke is run.
 - [ ] Local launcher smoke is run on at least one laptop/workstation.
 - [ ] No blocker found during RC observation window.
 
-## Stage 11: final release tag
+## Stage 12: final release tag
 
 Only after RC validation:
 
@@ -234,11 +271,13 @@ git push origin v0.2.0
 
 Post-release:
 
-- [ ] GitHub Release created.
+- [ ] GitHub Release created and published.
 - [ ] Changelog copied into release notes.
 - [ ] Deployment docs linked.
 - [ ] Security policy linked.
+- [ ] Acceptable-use policy linked.
 - [ ] Known limitations clearly visible.
+- [ ] Windows, Linux, and macOS zip artifacts are attached to the GitHub Release.
 - [ ] Smoke test run against released artifact/image.
 - [ ] Logs and metrics monitored for at least one hour in the target environment.
 
@@ -253,6 +292,7 @@ Trigger rollback for:
 - repeatable production startup failure
 - broken backup/restore
 - broken standalone launcher on the release branch
+- broken release artifact build or malformed release archive
 - critical/high dependency vulnerability without mitigation
 - GenAI readiness validator regression on release branch
 
@@ -261,9 +301,9 @@ Rollback steps:
 1. Stop the service.
 2. Revert to previous image/tag/code revision.
 3. Restore pre-release SQLite backup if needed.
-4. Validate `/healthz`, `/readyz`, `/metrics`, scan history, artifact access, standalone launcher path where applicable, and GenAI readiness gates.
+4. Validate `/healthz`, `/readyz`, `/metrics`, scan history, artifact access, standalone launcher path where applicable, release artifact build where applicable, and GenAI readiness gates.
 5. Document root cause and create a hotfix issue.
 
 ## Final release decision
 
-Final release is approved only when the selected release branch/tag has green CI, completed documentation review, local launcher smoke, hosted/production Web UI smoke, GenAI readiness validation, backup/restore validation, Docker/container smoke where applicable, and explicit maintainer sign-off.
+Final release is approved only when the selected release branch/tag has green CI, completed documentation review, local launcher smoke, hosted/production Web UI smoke, GenAI readiness validation, backup/restore validation, Docker/container smoke where applicable, Windows/Linux/macOS release artifact validation, and explicit maintainer sign-off.
