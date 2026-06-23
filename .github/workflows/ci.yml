@@ -77,6 +77,10 @@ jobs:
           npm install
           npx playwright install chromium --with-deps
 
+      - name: Build optional WebUI assets
+        if: matrix.python-version == '3.12'
+        run: npm run build:webui
+
       - name: Run WebUI browser smoke tests
         if: matrix.python-version == '3.12'
         run: npm run test:webui
