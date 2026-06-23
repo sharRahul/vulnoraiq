@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=77.0.3", "wheel"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,8 +8,7 @@ version = "0.2.0"
 description = "VulnoraIQ AI security assessment framework for LLM applications, RAG systems, agents, and orchestration layers — production-ready for controlled internal deployment."
 readme = "README.md"
 requires-python = ">=3.10"
-license = "Apache-2.0"
-license-files = ["LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md"]
+license = { text = "Apache-2.0" }
 authors = [{ name = "Rahul Sharma" }]
 keywords = ["ai-security", "llm-security", "owasp", "mitre-atlas", "rag", "agent-security", "security-testing"]
 classifiers = [
