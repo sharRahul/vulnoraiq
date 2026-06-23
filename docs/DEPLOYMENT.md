@@ -2,7 +2,7 @@
 
 This guide describes the supported VulnoraIQ `0.2.0` deployment posture.
 
-> **Scope:** VulnoraIQ `0.2.0` is a self-hosted application for authorised AI-agent and LLM-application testing. It is designed to run on a laptop, workstation, lab machine, or internal server controlled by the assessor or organisation. It is suitable for single-organisation/internal deployment when configured with the controls below. GenAI Security readiness is working starter coverage for controlled internal assessment use. VulnoraIQ is **not** intended to be operated as a public SaaS, multi-tenant hosted platform, or unsupervised internet-facing service.
+> **Scope:** VulnoraIQ `0.2.0` is a self-hosted application for authorised AI-agent and LLM-application testing. It is designed to run on a laptop, workstation, lab machine, or internal server controlled by the assessor or organisation. It is suitable for single-organisation/internal deployment when configured with the controls below. GenAI Security readiness is working starter coverage for controlled internal assessment use.
 
 ## Quick start: local development
 
