@@ -15,15 +15,15 @@ Normal CI remains in `.github/workflows/ci.yml` and `.github/workflows/python-ci
 
 ## Artifacts produced
 
-The release workflow builds one zip package per platform:
+The release workflow builds one package per platform, using a platform-appropriate archive format:
 
 | Platform | Artifact |
 | --- | --- |
 | Windows | `vulnoraiq-<version>-windows.zip` |
-| Linux | `vulnoraiq-<version>-linux.zip` |
-| macOS | `vulnoraiq-<version>-macos.zip` |
+| Linux | `vulnoraiq-<version>-linux.tar.gz` |
+| macOS | `vulnoraiq-<version>-macos.dmg` |
 
-Each archive includes:
+Each archive/image includes:
 
 - launcher files for supported local startup;
 - application source packages;
@@ -48,9 +48,11 @@ python scripts/build_platform_release_package.py \
 
 Supported platform values:
 
-- `windows`
-- `linux`
-- `macos`
+- `windows` → `.zip`
+- `linux` → `.tar.gz`
+- `macos` → `.dmg`
+
+macOS `.dmg` creation uses `hdiutil`, so that target must run on macOS. The GitHub release workflow uses `macos-latest` for this job.
 
 ## Manual workflow run
 
@@ -83,4 +85,4 @@ This keeps release artifacts aligned with package metadata, OWASP/MITRE mapping 
 
 ## Current limitations
 
-The current release artifacts are repository-checkout style zip packages with platform launchers. They are not signed native installers. Signed `.exe`, `.msi`, `.pkg`, `.dmg`, `.deb`, `.rpm`, Homebrew, Winget, or notarised macOS releases remain future maturity items.
+The current release artifacts are repository-checkout style packages with platform launchers. The macOS `.dmg` is an unsigned disk image, not a notarised installer. Signed `.exe`, `.msi`, `.pkg`, notarised `.dmg`, `.deb`, `.rpm`, Homebrew, and Winget releases remain future maturity items.
