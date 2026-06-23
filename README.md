@@ -23,6 +23,8 @@ It helps security teams run internal AI-application assessments, collect evidenc
 | Multi-tenant SaaS hosting | Not supported |
 | Certified VAPT-grade security assurance | Not claimed |
 
+> **Maturity warning:** VulnoraIQ is not recommended for unsupervised public internet exposure without the additional controls listed above.
+
 `0.2.0` may be described as:
 
 > **Controlled internal enterprise production-readiness gate passed.**

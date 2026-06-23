@@ -1,6 +1,6 @@
 # GenAI Security Production Readiness Plan
 
-**Plan status:** Completed for `0.2.0` controlled internal enterprise deployment.
+**Plan status: Completed** for `0.2.0` controlled internal enterprise deployment.
 
 **Scenario harness status:** production-grade scenario harness for controlled internal validation.
 
