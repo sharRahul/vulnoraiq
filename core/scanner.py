@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -141,9 +142,24 @@ class Scanner:
             with path.open("r", encoding="utf-8") as handle:
                 return yaml.safe_load(handle) or {}
 
+        targets = load_yaml("targets.yaml")
+        self._merge_runtime_targets(targets)
         return {
             "default": load_yaml("default.yaml"),
-            "targets": load_yaml("targets.yaml"),
+            "targets": targets,
             "attack_profiles": load_yaml("attack_profiles.yaml"),
             "policies": load_yaml("policies.yaml"),
         }
+
+    @staticmethod
+    def _merge_runtime_targets(targets: dict[str, Any]) -> None:
+        runtime_targets_path = Path(os.getenv("VULNORAIQ_RUNTIME_TARGETS_PATH", "reports/output/webui/runtime_targets.yaml"))
+        if not runtime_targets_path.exists():
+            return
+        runtime_targets = yaml.safe_load(runtime_targets_path.read_text(encoding="utf-8")) or {}
+        if not isinstance(runtime_targets, dict):
+            return
+        configured_targets = targets.setdefault("targets", {})
+        for name, target in (runtime_targets.get("targets") or {}).items():
+            if isinstance(target, dict):
+                configured_targets[str(name)] = target

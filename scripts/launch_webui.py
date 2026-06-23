@@ -18,10 +18,14 @@ from typing import Any
 from urllib.error import URLError
 from urllib.request import urlopen
 
+import yaml
+
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_ROOT = ROOT / "reports" / "output" / "webui"
 DEFAULT_JOB_STORE = DEFAULT_OUTPUT_ROOT / "jobs.db"
 LAUNCHER_SETTINGS_PATH = DEFAULT_OUTPUT_ROOT / "launcher-settings.json"
+DEFAULT_RUNTIME_TARGETS = DEFAULT_OUTPUT_ROOT / "runtime_targets.yaml"
+DEFAULT_AGENT_RUNTIME_REGISTRY = DEFAULT_OUTPUT_ROOT / "agent-runtimes.json"
 LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
 
 
@@ -123,6 +127,25 @@ def _selected_launcher_settings(default_host: str, default_port: int) -> dict[st
         }
 
 
+def _merge_runtime_targets(config: dict[str, Any], runtime_targets_path: Path) -> None:
+    if not runtime_targets_path.exists():
+        return
+    runtime_targets = yaml.safe_load(runtime_targets_path.read_text(encoding="utf-8")) or {}
+    if not isinstance(runtime_targets, dict):
+        return
+    configured_targets = config.setdefault("targets", {})
+    if not ("profiles" in config or "web_auth_enabled" in config):
+        configured_targets = configured_targets.setdefault("targets", {})
+    for name, target in (runtime_targets.get("targets") or {}).items():
+        if isinstance(target, dict):
+            configured_targets[str(name)] = target
+
+
+def _apply_runtime_paths(output_root: Path) -> None:
+    os.environ.setdefault("VULNORAIQ_AGENT_RUNTIME_REGISTRY", str(output_root / "agent-runtimes.json"))
+    os.environ.setdefault("VULNORAIQ_RUNTIME_TARGETS_PATH", str(output_root / "runtime_targets.yaml"))
+
+
 def build_startup_status(host: str, port: int, shutdown_allowed: bool) -> dict[str, Any]:
     selected = _selected_launcher_settings(host, port)
     output_root = Path(os.getenv("VULNORAIQ_WEB_OUTPUT_ROOT", selected["output_root"]))
@@ -133,6 +156,11 @@ def build_startup_status(host: str, port: int, shutdown_allowed: bool) -> dict[s
             "Python runtime",
             "pass" if python_ok else "fail",
             f"Python {sys.version.split()[0]} detected; VulnoraIQ requires Python 3.10 or newer.",
+        ),
+        _status_item(
+            "Docker runtime",
+            "pass" if importlib.util.find_spec("subprocess") else "fail",
+            "Required for hosting selected AI agents in local Docker containers.",
         ),
         _status_item(
             "PyYAML dependency",
@@ -158,6 +186,11 @@ def build_startup_status(host: str, port: int, shutdown_allowed: bool) -> dict[s
             "Targets config",
             "pass" if (ROOT / "config" / "targets.yaml").exists() else "fail",
             "Target definitions are available.",
+        ),
+        _status_item(
+            "AI agent runtime templates",
+            "pass" if (ROOT / "config" / "agent_runtimes.yaml").exists() else "fail",
+            "Docker AI agent templates are available.",
         ),
         _status_item(
             "Attack profiles config",
@@ -186,7 +219,7 @@ def build_startup_status(host: str, port: int, shutdown_allowed: bool) -> dict[s
     configuration_options = [
         _option_item("host", "Host", str(selected["host"]), "Loopback host selected for the local launcher."),
         _option_item("port", "Port", str(selected["port"]), "Browser port selected for the local launcher.", input_type="number"),
-        _option_item("output_root", "Output root", str(selected["output_root"]), "Reports and dashboard artifacts are written here."),
+        _option_item("output_root", "Output root", str(selected["output_root"]), "Reports, job history, and Docker agent runtime metadata are written here."),
         _option_item("job_store_path", "Job store", str(selected["job_store_path"]), "SQLite database used for scan history."),
         _option_item(
             "auth_enabled",
@@ -212,20 +245,24 @@ def build_startup_status(host: str, port: int, shutdown_allowed: bool) -> dict[s
         "dependency_checks": dependency_checks,
         "configuration_options": configuration_options,
         "settings_file": str(LAUNCHER_SETTINGS_PATH),
+        "runtime_targets_file": os.getenv("VULNORAIQ_RUNTIME_TARGETS_PATH", str(DEFAULT_RUNTIME_TARGETS)),
     }
 
 
 def _configure_environment(args: argparse.Namespace) -> None:
     DEFAULT_OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
     selected = _selected_launcher_settings(args.host, args.port)
-    Path(str(selected["output_root"])).mkdir(parents=True, exist_ok=True)
-    Path(str(selected["job_store_path"])).parent.mkdir(parents=True, exist_ok=True)
+    output_root = Path(str(selected["output_root"]))
+    job_store_path = Path(str(selected["job_store_path"]))
+    output_root.mkdir(parents=True, exist_ok=True)
+    job_store_path.parent.mkdir(parents=True, exist_ok=True)
     os.environ.setdefault("VULNORAIQ_ENV", "development")
     os.environ.setdefault("VULNORAIQ_AUTH_ENABLED", "false")
     os.environ.setdefault("VULNORAIQ_ENABLE_WEB_SHUTDOWN", "true")
     os.environ.setdefault("VULNORAIQ_JOB_STORE_BACKEND", "sqlite")
-    os.environ.setdefault("VULNORAIQ_JOB_STORE_PATH", str(selected["job_store_path"]))
-    os.environ.setdefault("VULNORAIQ_WEB_OUTPUT_ROOT", str(selected["output_root"]))
+    os.environ.setdefault("VULNORAIQ_JOB_STORE_PATH", str(job_store_path))
+    os.environ.setdefault("VULNORAIQ_WEB_OUTPUT_ROOT", str(output_root))
+    _apply_runtime_paths(output_root)
     os.environ.setdefault("VULNORAIQ_HOST", args.host)
     os.environ.setdefault("VULNORAIQ_PORT", str(args.port))
 
@@ -273,6 +310,7 @@ def run_launcher(args: argparse.Namespace) -> int:
         return 0
 
     import webui.hosted_server as hosted_runtime  # noqa: PLC0415
+    from webui.agent_runtime import AgentRuntimeManager  # noqa: PLC0415
     from webui.hosted_server import (  # noqa: PLC0415
         AUTH_MANAGER,
         HostedWebUiHandler,
@@ -282,49 +320,93 @@ def run_launcher(args: argparse.Namespace) -> int:
         _validate_csrf,
     )
 
+    agent_runtime = AgentRuntimeManager()
+
     class LauncherWebUiHandler(HostedWebUiHandler):
+        def _require_runtime_principal(self, client_ip: str, method: str, clean_path: str, request_id: str):
+            principal = self._principal(client_ip)
+            if not principal:
+                _inc_metric("auth_failures")
+                _audit_structured(
+                    "auth_failure",
+                    AUTH_MANAGER.anonymous(),
+                    request_id,
+                    client_ip,
+                    method,
+                    clean_path,
+                    401,
+                    "runtime auth required",
+                )
+                self._send_error_response(HTTPStatus.UNAUTHORIZED, "authentication required")
+                return None
+            if not self._check_rate_limit(principal, client_ip):
+                return None
+            return principal
+
+        def _validate_runtime_write(self, principal, clean_path: str) -> bool:
+            if not AUTH_MANAGER.can(principal, "manage_runtime"):
+                self._send_error_response(HTTPStatus.FORBIDDEN, "runtime management permission required")
+                return False
+            if not _validate_csrf(self._session_key(principal), self.headers.get("X-CSRF-Token")):
+                _inc_metric("csrf_failures")
+                self._send_error_response(HTTPStatus.FORBIDDEN, "invalid or missing CSRF token")
+                return False
+            if "application/json" not in self.headers.get("Content-Type", "").lower():
+                self._send_error_response(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, "Content-Type must be application/json")
+                return False
+            return True
+
         def _do_GET_routes(self, path: str, client_ip: str, request_id: str) -> None:
-            if path.split("?", 1)[0] == "/api/startup":
-                principal = self._principal(client_ip)
+            clean_path = path.split("?", 1)[0]
+            if clean_path == "/api/startup":
+                principal = self._require_runtime_principal(client_ip, "GET", clean_path, request_id)
                 if not principal:
-                    _inc_metric("auth_failures")
-                    _audit_structured(
-                        "auth_failure",
-                        AUTH_MANAGER.anonymous(),
-                        request_id,
-                        client_ip,
-                        "GET",
-                        "/api/startup",
-                        401,
-                        "startup checks auth required",
-                    )
-                    self._send_error_response(HTTPStatus.UNAUTHORIZED, "authentication required")
-                    return
-                if not self._check_rate_limit(principal, client_ip):
                     return
                 self._send_json(build_startup_status(args.host, args.port, shutdown_allowed))
+                return
+            if clean_path == "/api/agents":
+                principal = self._require_runtime_principal(client_ip, "GET", clean_path, request_id)
+                if not principal:
+                    return
+                self._send_json(agent_runtime.list_state())
+                return
+            if clean_path == "/api/config":
+                principal = self._require_runtime_principal(client_ip, "GET", clean_path, request_id)
+                if not principal:
+                    return
+                cfg = hosted_runtime.load_config()
+                _merge_runtime_targets(cfg, agent_runtime.runtime_targets_path)
+                if not AUTH_MANAGER.can(principal, "manage_runtime"):
+                    cfg = {
+                        "profiles": {k: {"description": v.get("description", "")} for k, v in cfg.get("profiles", {}).items()},
+                        "web_auth_enabled": cfg.get("web_auth_enabled", False),
+                    }
+                self._send_json(cfg)
                 return
             super()._do_GET_routes(path, client_ip, request_id)
 
         def _do_POST_routes(self, path: str, client_ip: str, request_id: str) -> None:
             clean_path = path.split("?", 1)[0]
-            if clean_path == "/api/startup/settings":
-                principal = self._principal(client_ip)
-                if not principal:
-                    _inc_metric("auth_failures")
-                    _audit_structured(
-                        "auth_failure",
-                        AUTH_MANAGER.anonymous(),
-                        request_id,
-                        client_ip,
-                        "POST",
-                        clean_path,
-                        401,
-                        "startup settings auth required",
-                    )
-                    self._send_error_response(HTTPStatus.UNAUTHORIZED, "authentication required")
+            if clean_path == "/api/agents/start":
+                principal = self._require_runtime_principal(client_ip, "POST", clean_path, request_id)
+                if not principal or not self._validate_runtime_write(principal, clean_path):
                     return
-                if not self._check_rate_limit(principal, client_ip):
+                runtime = agent_runtime.start_runtime(self._read_json())
+                _audit_structured("agent_runtime_started", principal, request_id, client_ip, "POST", clean_path, 202, f"runtime={runtime['id']}")
+                self._send_json({"runtime": runtime, "state": agent_runtime.list_state()}, status=HTTPStatus.ACCEPTED)
+                return
+            if clean_path == "/api/agents/stop":
+                principal = self._require_runtime_principal(client_ip, "POST", clean_path, request_id)
+                if not principal or not self._validate_runtime_write(principal, clean_path):
+                    return
+                runtime_id = str(self._read_json().get("runtime_id") or "")
+                runtime = agent_runtime.stop_runtime(runtime_id)
+                _audit_structured("agent_runtime_stopped", principal, request_id, client_ip, "POST", clean_path, 200, f"runtime={runtime['id']}")
+                self._send_json({"runtime": runtime, "state": agent_runtime.list_state()})
+                return
+            if clean_path == "/api/startup/settings":
+                principal = self._require_runtime_principal(client_ip, "POST", clean_path, request_id)
+                if not principal:
                     return
                 if not _validate_csrf(self._session_key(principal), self.headers.get("X-CSRF-Token")):
                     _inc_metric("csrf_failures")
@@ -341,31 +423,19 @@ def run_launcher(args: argparse.Namespace) -> int:
                 job_store_path.parent.mkdir(parents=True, exist_ok=True)
                 os.environ["VULNORAIQ_WEB_OUTPUT_ROOT"] = str(output_root)
                 os.environ["VULNORAIQ_JOB_STORE_PATH"] = str(job_store_path)
+                os.environ["VULNORAIQ_AGENT_RUNTIME_REGISTRY"] = str(output_root / "agent-runtimes.json")
+                os.environ["VULNORAIQ_RUNTIME_TARGETS_PATH"] = str(output_root / "runtime_targets.yaml")
                 hosted_runtime.OUTPUT_ROOT = output_root
                 hosted_runtime.JOB_STORE = hosted_runtime.create_job_store()
                 response = build_startup_status(args.host, args.port, shutdown_allowed)
                 response["settings_message"] = (
-                    "Settings saved. Output root and job store apply now; host and port apply after restarting the local launcher."
+                    "Settings saved. Output root, job store, and agent runtime paths apply now; host and port apply after restarting the local launcher."
                 )
                 self._send_json(response)
                 return
             if clean_path == "/api/server/shutdown":
-                principal = self._principal(client_ip)
+                principal = self._require_runtime_principal(client_ip, "POST", clean_path, request_id)
                 if not principal:
-                    _inc_metric("auth_failures")
-                    _audit_structured(
-                        "auth_failure",
-                        AUTH_MANAGER.anonymous(),
-                        request_id,
-                        client_ip,
-                        "POST",
-                        clean_path,
-                        401,
-                        "shutdown auth required",
-                    )
-                    self._send_error_response(HTTPStatus.UNAUTHORIZED, "authentication required")
-                    return
-                if not self._check_rate_limit(principal, client_ip):
                     return
                 session_key = self._session_key(principal)
                 csrf_token = self.headers.get("X-CSRF-Token")
