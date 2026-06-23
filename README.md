@@ -21,17 +21,15 @@ VulnoraIQ helps teams collect evidence, score findings, generate reports, and tr
 | OWASP LLM coverage | Working starter |
 | GenAI Security readiness | Working starter with safe synthetic `DSGAI01–DSGAI21` scenarios and CI validation |
 | Agentic Applications readiness | Complete for controlled internal phase gates |
-| Public internet-facing service | Out of scope / not recommended |
-| Multi-tenant SaaS hosting | Out of scope / not supported |
 | Certified VAPT-grade security assurance | Not claimed |
 
-> **Maturity warning:** VulnoraIQ is intended to run as a local or self-hosted internal application. Do not expose it directly to the public internet.
+> **Maturity warning:** VulnoraIQ is intended to run as a local or self-hosted internal application for authorised assessment work.
 
 `0.2.0` may be described as:
 
 > **Self-hosted laptop/server AI security testing application with controlled internal production-readiness gate passed.**
 
-It must **not** be described as a SaaS platform, a multi-tenant hosted service, an unsupervised internet-facing service, certified VAPT-grade assurance, or a real-world VAPT replacement.
+It must **not** be described as certified VAPT-grade assurance or a real-world VAPT replacement.
 
 For details, see:
 
