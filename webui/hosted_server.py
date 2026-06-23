@@ -28,7 +28,7 @@ from reports.report_generator import MarkdownReportGenerator
 from reports.sarif_report_generator import SarifReportGenerator
 from webui.auth import AuthPrincipal, WebAuthManager
 from webui.persistent_jobs import JobStore, PersistedScanJob, create_job_store
-from webui.production_checks import ProductionConfigError, validate_all
+from webui.production_checks import validate_all
 
 LOGGER = logging.getLogger("vulnoraiq.webui")
 AUDIT_LOG = logging.getLogger("vulnoraiq.audit")
@@ -63,6 +63,10 @@ _csrf_tokens: dict[str, dict[str, Any]] = {}
 _csrf_token_lock = threading.Lock()
 _metrics: dict[str, int] = {}
 _metrics_lock = threading.Lock()
+
+
+def _env_flag(name: str, default: str = "false") -> bool:
+    return os.getenv(name, default).strip().lower() in ("1", "true", "yes")
 
 
 def _inc_metric(name: str) -> None:
@@ -421,7 +425,8 @@ class HostedWebUiHandler(BaseHTTPRequestHandler):
             self._send_json({"auth_enabled": AUTH_MANAGER.enabled(), "authenticated": bool(principal and principal.authenticated), "auth_required": AUTH_MANAGER.enabled() and principal is None, "token_header": AUTH_MANAGER.header_name(), "username": principal.username if principal else None, "role": principal.role if principal else None, "permissions": sorted(principal.permissions) if principal else []})
             return
         if clean_path == "/metrics":
-            if os.getenv("VULNORAIQ_METRICS_AUTH_REQUIRED", "true").strip().lower() in ("1", "true", "yes") and not self._principal(client_ip):
+            metrics_auth_required = AUTH_MANAGER.is_production() or _env_flag("VULNORAIQ_METRICS_AUTH_REQUIRED", "true")
+            if metrics_auth_required and not self._principal(client_ip):
                 self._send_error_response(HTTPStatus.UNAUTHORIZED, "authentication required")
                 return
             self._serve_metrics()
