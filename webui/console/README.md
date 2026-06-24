@@ -28,9 +28,8 @@ npm run build      # type-check + production build
 
 `npm run build` emits static assets into `../static/console/` with a base path of
 `/static/console/`. The Python hosted server (`webui/hosted_server.py`) serves
-`console/index.html` at `/` when that build is present, and falls back to the
-legacy `static/index.html` otherwise. No Node runtime is required to serve the
-built console.
+`console/index.html` at `/`. No Node runtime is required to serve the built
+console.
 
 ## Architecture
 

@@ -28,6 +28,6 @@ def test_build_linux_platform_release_package_creates_tar_gz_archive(tmp_path: P
     assert f"{prefix}launch-vulnoraiq-webui.sh" in names
     assert f"{prefix}config/targets.yaml" in names
     assert f"{prefix}examples/local_demo_targets/owasp_fixture_targets.py" in names
-    assert f"{prefix}webui/static/index.html" in names
+    assert f"{prefix}webui/static/console/index.html" in names
     assert all("reports/output" not in name for name in names)
     assert all("__pycache__" not in name for name in names)
