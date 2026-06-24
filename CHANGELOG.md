@@ -82,3 +82,23 @@ All notable changes to this project will be documented in this file.
 - Scan concurrency limits.
 - Container smoke test script.
 - Production readiness scorecard, runbook, incident response, release checklist, migration guide, and assessment assurance docs.
+- Dependency checks in CI.
+- OWASP-to-MITRE ATLAS planning crosswalk and mapping metadata validator.
+- GenAI security implementation planning docs.
+- Agentic Applications security implementation planning docs.
+- OWASP source document review index.
+- Source-confirmed GenAI Data Security category extraction for `DSGAI01–DSGAI21`.
+- Source-confirmed OWASP Top 10 for Agentic Applications category extraction for `ASI01–ASI10`.
+
+### Changed
+
+- Version bumped to 0.2.0.
+- Auth, CSRF, rate limiting, security headers, proxy IP resolution, SQLite persistence, HTTP errors, configuration output, metrics, and deployment docs were hardened for the self-hosted application model.
+- Production readiness docs were updated for self-hosted internal scope.
+- README, SECURITY.md, and docs index were rewritten for the `0.2.0` self-hosted production posture.
+- `docs/genai/` and `docs/agentic/` were updated from placeholder planning IDs to source-confirmed ranges.
+- Active LLM oracle/check configs now include OWASP-to-ATLAS mapping metadata.
+
+### Fixed
+
+- CSRF expiry test stability.
