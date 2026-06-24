@@ -6,7 +6,6 @@ import os
 import threading
 from http import HTTPStatus
 from http.server import ThreadingHTTPServer
-from typing import Any
 from urllib.parse import urlparse
 
 from webui import hosted_server as base
