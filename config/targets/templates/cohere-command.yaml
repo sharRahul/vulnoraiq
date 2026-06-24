@@ -1,0 +1,30 @@
+target:
+  name: PLACEHOLDER_COHERE_COMMAND
+  type: http_json
+  base_url: https://api.cohere.com
+  endpoint_path: /v2/chat
+  method: POST
+  auth_token_env: COHERE_API_KEY
+  auth_header: X-API-Key
+  auth_prefix: ""
+  explicit_authorisation: true
+  dry_run: true
+  allow_live_requests: false
+  allow_external: true
+  allowed_host_pattern: "api.cohere.com"
+  model: command-r-plus
+  request_body_template:
+    model: "{{model}}"
+    messages:
+      - role: user
+        content: "{{prompt}}"
+  response_extraction_path: message.content.0.text
+  rate_limit:
+    requests_per_second: 0.5
+  timeout: 30
+  safety_profile: local_lab_safe
+  data_handling_notes: "Approved internal validation only; use minimised and redacted test content."
+  evidence_redaction:
+    redact_headers: [X-API-Key, cookie]
+    redact_body_patterns: ["co-[A-Za-z0-9._-]+"]
+  example_test_profile: baseline

@@ -2,7 +2,7 @@
 
 This document separates current implemented capability from future assurance and maturity work.
 
-> **Current maturity:** VulnoraIQ `0.2.0` is a Docker-first, self-hosted AI security testing lab with controlled internal production-readiness gates. It supports authorised local/internal testing of LLM, RAG, tool-using, agentic, and GenAI data-security scenarios through a Python scanner, target adapters, a hosted React WebUI, CLI, SQLite job persistence, reports, evidence, and CI validation. This is complete for self-hosted laptop/server use within the current authorised local/internal scope.
+> **Current maturity:** VulnoraIQ `0.2.0` is a Docker-first, self-hosted AI security testing lab with controlled internal production-readiness gates. It supports authorised local/internal testing of LLM, RAG, tool-using, agentic, and GenAI data-security scenarios through a Python scanner, target adapters, a hosted React WebUI, WebUI assistant backend/model controls, expanded target templates, CLI, SQLite job persistence, reports, evidence, and CI validation. This is complete for self-hosted laptop/server use within the current authorised local/internal scope.
 
 > **Assurance limitation:** OWASP, GenAI, Agentic, and MITRE mappings are framework evidence and planning/validation controls. They are not independently validated VAPT-grade assurance. See [`ASSESSMENT_ASSURANCE.md`](ASSESSMENT_ASSURANCE.md) for the full assurance boundary.
 
@@ -44,8 +44,9 @@ This document separates current implemented capability from future assurance and
 | Authorisation gate | CLI `--authorised` and WebUI checklist for non-demo scans. |
 | Scanner/reporting | Markdown, JSON, SARIF, Markdown dashboard, HTML dashboard, branded export and evidence output. |
 | Policy and scoring | Findings, scores, policy status, exceptions, and approval evidence validation. |
-| WebUI server | Hardened Python hosted server with security headers, CSRF, rate limiting, structured errors, metrics, and audit logs. |
-| WebUI console | React TypeScript SecOps console with target management, dashboards, findings/intelligence panels, and typed UI data models. |
+| WebUI server | Hardened Python hosted server with security headers, CSRF, rate limiting, structured errors, metrics, audit logs, and assistant chat API wrapper. |
+| WebUI console | React TypeScript SecOps console with target management, dashboards, findings/intelligence panels, live assistant chat, and typed UI data models. |
+| Target template library | Common LLM APIs, RAG endpoints, local model servers, agent frameworks, and provider gateway templates with dry-run defaults and validator coverage. |
 | Persistence | SQLite default with operational backup/restore tooling. |
 | Release validation | Package metadata, OWASP/ATLAS mapping, GenAI readiness, production readiness, runtime config, and functional acceptance scripts. |
 
@@ -55,9 +56,9 @@ This document separates current implemented capability from future assurance and
 | --- | --- |
 | WebUI live progress | SSE `/api/scans/{id}/events` backend is implemented with persisted events and React live progress consumption. |
 | WebUI finding mutations | Persisted finding remediation/status APIs, audit history, and React actions are implemented. |
-| WebUI assistant chat | Assistant backend API remains future work. |
+| WebUI assistant chat | Backend assistant API and React model controls are implemented for the self-hosted WebUI path. |
 | Full OWASP AI Testing Guide | Full 32-test AITG manifest, validator, and `owasp-aitg-full` profile are implemented for safe synthetic coverage. |
-| Real-world GenAI assurance | Current harness uses safe synthetic scenarios and controlled validation; approved-environment validation support is implemented with explicit authorisation, allow-list, dry-run defaults, target templates, redaction, and local fake-target CI coverage. |
+| Real-world GenAI assurance | Current harness uses safe synthetic scenarios and controlled validation; approved-environment validation support is implemented with explicit authorisation, allow-list, dry-run defaults, expanded target templates, redaction, and local fake-target CI coverage. |
 | Enterprise identity | Trusted proxy identity exists; direct OIDC/JWT remains future work. |
 | Release packaging | Release-only packages are documented; signed/notarised/native installers remain future work. |
 | Independent assurance | Independent assurance workflow, checklist, and evidence bundle generation are implemented; external independent review remains required before stronger assurance claims. |
