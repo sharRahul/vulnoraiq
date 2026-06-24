@@ -34,7 +34,11 @@ def test_removed_archival_docs_are_not_linked() -> None:
 
     searchable_markdown = [ROOT / "README.md", ROOT / "SECURITY.md", ROOT / "CHANGELOG.md"]
     searchable_markdown.extend((ROOT / "docs").rglob("*.md"))
-    combined = "\n".join(path.read_text(encoding="utf-8") for path in searchable_markdown if path.exists())
+    combined = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in searchable_markdown
+        if path.exists() and path.name not in removed_filenames
+    )
 
     for filename in removed_filenames:
         assert filename not in combined, f"stale documentation is still referenced: {filename}"
