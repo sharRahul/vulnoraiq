@@ -22,9 +22,9 @@ Authentication and permission errors intentionally do not get generic retry butt
 
 The active scan detail grid now receives Elapsed and ETA cards. The values are computed client-side from visible progress changes and reset when a scan is idle or failed.
 
-### Hosted browser scan flow
+### Hosted browser scan-start flow
 
-A hosted Playwright configuration starts the WebUI server, loads the browser UI, runs a demo scan, waits for the completed dashboard, and verifies artifact links.
+A hosted Playwright configuration starts the WebUI server, loads the browser UI, selects a demo target/profile, starts a scan, and confirms that the hosted API creates the scan job. Full scan completion, dashboard, and artifact assertions remain future extended-browser coverage so normal CI stays bounded by browser/server behavior rather than scan runtime.
 
 ## Validation commands
 
@@ -41,6 +41,7 @@ CI runs the static and hosted WebUI browser checks only on the Python 3.12 matri
 The following are still future improvements, not PR 9 blockers:
 
 - authenticated hosted browser flow with token entry;
+- completed-dashboard and artifact browser assertions in an extended test job;
 - axe accessibility test gate;
 - visual regression snapshots;
 - deeper assertions for every catalog/history/finding filter combination.
