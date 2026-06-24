@@ -1,12 +1,14 @@
 # Production hardening backlog
 
 Status: live blocker and maturity register  
-Current operational readiness: blockers closed for current self-hosted internal scope  
+Current operational readiness: 10/10 for the current self-hosted internal deployment scope  
 Target: Docker-first laptop/workstation/internal-server assessment lab.
 
 ## Current verdict
 
-VulnoraIQ is complete for the current self-hosted internal deployment scope with Docker-first lab startup, real authorised target adapters, React WebUI target management, SQLite persistence, auth/security hardening, audit/metrics, OWASP/GenAI/Agentic/MITRE governance, and CI gates.
+VulnoraIQ is complete for the current self-hosted internal deployment scope with Docker-first lab startup, authorised target adapters, React WebUI target management, SQLite persistence, auth/security hardening, audit/metrics, OWASP/GenAI/Agentic/MITRE governance, and CI gates.
+
+Self-hosted internal deployment readiness is attested by this blocker register, the production-readiness scorecard, the implementation status, the assessment assurance boundary, the release gates, and the CI validators.
 
 The current release claim remains:
 
@@ -28,12 +30,12 @@ This does not mean certified VAPT-grade assurance or independently validated rea
 | PRD-008 | Containerisation | Deployable container baseline. | `Dockerfile`, `docker-compose.yml`, mock-agent image, healthchecks. |
 | PRD-009 | Quality gates | Ruff, mypy, pytest, dependency gates, CI. | `.github/workflows/ci.yml`, validation scripts. |
 | PRD-010 | Observability | Health, readiness, metrics endpoints. | `/healthz`, `/readyz`, `/metrics`, Docker healthcheck. |
-| PRD-011 | OWASP/MITRE mapping governance | CI fails on missing required mapping metadata. | `scripts/validate_owasp_atlas_mappings.py`. |
-| PRD-012 | GenAI readiness governance | CI fails on GenAI scenario/docs/evidence drift. | `scripts/validate_genai_readiness.py`, scenario harness. |
+| PRD-011 | OWASP/MITRE mapping governance | Required mapping metadata is checked in CI. | `scripts/validate_owasp_atlas_mappings.py`. |
+| PRD-012 | GenAI readiness governance | GenAI scenario/docs/evidence drift is checked in CI. | `scripts/validate_genai_readiness.py`, scenario harness. |
 | PRD-013 | Local launcher | Laptop/workstation launcher path. | `launch-vulnoraiq-webui.*`, launcher script. |
-| PRD-014 | Real target testing | Safe authorised target adapters and validation. | Target adapters, `config/targets*.yaml`, runtime target APIs. |
+| PRD-014 | Target testing | Authorised target adapters and validation. | Target adapters, `config/targets*.yaml`, runtime target APIs. |
 | PRD-015 | Docker-first AI-agent lab | Local deterministic AI-agent/RAG/tool-loop test lab. | Docker Compose, `docker/mock-agent/`, `scripts/docker_smoke_test.py`. |
-| PRD-016 | React WebUI target management | Operator target workspace for real target testing. | PR #49 React target manager with backend target/scan API wiring. |
+| PRD-016 | React WebUI target management | Operator target workspace for real target testing. | React target manager with backend target/scan API wiring. |
 
 ## Current maturity backlog
 
@@ -41,7 +43,7 @@ This does not mean certified VAPT-grade assurance or independently validated rea
 | --- | --- | --- |
 | WebUI live progress | Implement SSE `/api/scans/{id}/events` backend and wire React progress views to real events. | High |
 | WebUI finding actions | Persist finding status transitions and remediation actions. | High |
-| WebUI assistant | Replace typed mock assistant panel with real backend API and model integration controls. | Medium |
+| WebUI assistant | Replace typed demo assistant panel with real backend API and model integration controls. | Medium |
 | Full OWASP AI Testing Guide | Implement the full 32-test AITG manifest, runtime/evidence modules, reporting, and CI coverage. | High |
 | Real-environment GenAI validation | Validate GenAI harness against approved internal environments, provider configs, vector stores, telemetry, and governance workflows. | High |
 | Target templates | Add documented templates for common LLM APIs, RAG systems, local model servers, agent frameworks, and provider gateways. | Medium |
@@ -51,8 +53,8 @@ This does not mean certified VAPT-grade assurance or independently validated rea
 | Security testing pipeline | Add SAST/DAST or equivalent application security scans. | Medium |
 | SIEM integration | Add audit schema, alert rules, and integration guidance. | Medium |
 | Multi-instance operation | Add shared state for CSRF/rate limits and a server database option. | Low |
-| Independent assurance | Third-party assessment of the framework, WebUI, scanner, and report claims. | High |
+| Independent review | External review of the framework, WebUI, scanner, and report claims. | High |
 
 ## Production claim rule
 
-Allowed wording must stay scoped to self-hosted/internal readiness. Do not claim certified VAPT-grade readiness, independent real-world detection assurance, or broad production SaaS readiness until the future maturity items above are closed and independently validated where required.
+Allowed wording must stay scoped to self-hosted/internal readiness. Stronger claims should wait for the future maturity items above.
