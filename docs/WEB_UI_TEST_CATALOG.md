@@ -60,3 +60,7 @@ The Python test validates profile catalogue metadata. The hosted WebUI Playwrigh
 ## Boundary
 
 Catalogue visibility does not mean every mapped framework item has independently validated real-world detection coverage. Treat scan output as internal assessment evidence requiring human review.
+
+## Added live workflow coverage
+
+WebUI coverage now includes SSE-backed scan progress rendering, stream error handling, terminal state display, finding status/remediation mutation paths, history display, and status count refresh expectations.

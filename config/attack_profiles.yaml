@@ -61,6 +61,13 @@ profiles:
       - owasp_aivss_scoring_review
       - nist_ai_100_2_adversarial_ml
 
+  owasp-aitg-full:
+    category: AI testing guide suites
+    display_name: OWASP AI Testing Guide full 32-test coverage
+    description: Runs all 32 safe AITG manifest entries using synthetic fixtures by default and authorised targets only when explicitly configured.
+    modules:
+      - aitg_full_manifest
+
   test_owasp_llm01_prompt_injection:
     category: OWASP LLM Top 10 single tests
     display_name: LLM01 prompt injection

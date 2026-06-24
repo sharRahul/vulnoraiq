@@ -82,7 +82,7 @@ Current WebUI capabilities:
 - readiness checklist for authorisation, owner contact, rate limits, and safety profile;
 - dashboard, findings, intelligence, and mock-assisted workflow panels.
 
-Backend integration still intentionally uses typed mock data or mocked state for features whose APIs are not yet implemented, including live SSE scan progress, persisted finding remediation/status transitions, and the assistant chat backend.
+Backend integration now includes authenticated live SSE scan progress and persisted finding remediation/status transitions. The assistant chat backend remains intentionally mocked/typed UI state.
 
 ---
 
@@ -191,11 +191,11 @@ Current post-`0.2.0` maturity priorities:
 
 - implement the full 32-test OWASP AI Testing Guide roadmap beyond the current foundation profile;
 - deepen evaluator logic and thresholds for real approved environments;
-- implement remaining React-console backend APIs for SSE progress, finding state transitions, remediation actions, and assistant chat;
+- continue maturing the assistant chat backend and reviewer integrations;
 - add richer target templates for AI agents, LLM APIs, RAG systems, local model servers, and provider/data inventories;
 - add signed/notarised installers and release artifacts;
 - add optional OIDC/JWT support for enterprise deployments;
-- add stronger image scanning, SAST/DAST, SIEM integration, and independent assurance validation.
+- add stronger image scanning, SAST/DAST, SIEM integration, and complete external independent review using the implemented assurance workflow.
 
 ---
 

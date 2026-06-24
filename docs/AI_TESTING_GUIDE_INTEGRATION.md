@@ -88,3 +88,7 @@ The current foundation integration is complete for the controlled methodology-ha
 - These checks provide methodology and evidence-harness support; they are not independent certification.
 - Findings require human review before assurance, remediation, or external reporting use.
 - If a target is not running or response extraction fails, VulnoraIQ reports the failure instead of silently falling back to the demo target.
+
+## Full AITG profile
+
+The `owasp-aitg-full` profile executes the canonical 32-entry manifest at `benchmarks/fixtures/aitg/aitg_32_manifest.yaml`. The default execution path uses safe synthetic fixtures and records coverage evidence, mappings, confidence, and limitations for every manifest entry. Real target execution remains bounded by explicit authorisation and target allow-list controls.

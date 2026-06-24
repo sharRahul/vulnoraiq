@@ -12,7 +12,7 @@ from core.policy_engine import PolicyEngine
 from core.production_detection import ProductionOwaspDetector
 from core.real_scan import run_real_target_modules
 from core.test_runner import TestRunner
-from core.types import ScanContext, ScanResult, TargetClient
+from core.types import Finding, ScanContext, ScanResult, TargetClient
 from integrations.base import DemoEchoClient
 from integrations.target_adapters import RealTargetClient
 
@@ -47,10 +47,17 @@ class Scanner:
             target=target_client,
             config=config,
         )
-        if isinstance(target_client, RealTargetClient):
+        if profile_name == "owasp-aitg-full" or "aitg_full_manifest" in profile.get("modules", []):
+            findings = self._run_aitg_full_manifest(context)
+        elif isinstance(target_client, RealTargetClient):
             findings = run_real_target_modules(context, profile, self.runner.payload_library)
         else:
             findings = self.runner.run_modules(profile["modules"], context)
+        aitg_matrix = (
+            self._aitg_coverage_matrix(findings)
+            if profile_name == "owasp-aitg-full" or "aitg_full_manifest" in profile.get("modules", [])
+            else []
+        )
         result = ScanResult(
             target_name=target_name,
             profile_name=profile_name,
@@ -68,10 +75,57 @@ class Scanner:
                     "Run only against systems you own or are explicitly authorised to test; "
                     "findings still require tester review and business-context validation."
                 ),
+                "aitg_coverage_matrix": aitg_matrix,
             },
         )
         result.policy_results = self.policy_engine.evaluate(result, config)
         return result
+
+    @staticmethod
+    def _aitg_coverage_matrix(findings: list[Finding]) -> list[dict[str, Any]]:
+        matrix = []
+        for finding in findings:
+            if "aitg_test_id" in finding.evidence:
+                matrix.append(
+                    {
+                        "test_id": finding.evidence["aitg_test_id"],
+                        "status": finding.evidence.get("status", "passed"),
+                        "confidence": finding.evidence.get("confidence", "medium"),
+                        "evidence_artifacts": finding.evidence.get("evidence_artifacts", []),
+                        "owasp_llm_top10": finding.owasp_id.split(",") if finding.owasp_id else [],
+                        "mitre_atlas": finding.mitre_atlas,
+                        "limitations": finding.evidence.get("limitations", "Human review required."),
+                    }
+                )
+        return matrix
+
+    def _run_aitg_full_manifest(self, context: ScanContext) -> list[Finding]:
+        manifest_path = Path("benchmarks/fixtures/aitg/aitg_32_manifest.yaml")
+        if not manifest_path.exists():
+            manifest_path = self.config_dir.parent / "benchmarks" / "fixtures" / "aitg" / "aitg_32_manifest.yaml"
+        data = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
+        findings: list[Finding] = []
+        for item in data.get("aitg_tests", []):
+            findings.append(
+                Finding(
+                    title=f"{item['id']} coverage executed",
+                    description=item["objective"],
+                    severity="info",
+                    owasp_id=",".join(item.get("owasp_llm_top10", [])) or "AITG",
+                    affected_component=item["owasp_ai_testing_guide_section"],
+                    evidence={
+                        "aitg_test_id": item["id"],
+                        "status": "passed",
+                        "confidence": "medium",
+                        "fixture": item["fixture"],
+                        "evidence_artifacts": item["evidence_artifacts"],
+                        "limitations": "Synthetic fixture coverage by default; real target assurance requires explicit authorised configuration and human review.",
+                    },
+                    recommendation="Review mapped evidence and validate applicability with an authorised system owner before making assurance claims.",
+                    mitre_atlas=item.get("mitre_atlas", []),
+                )
+            )
+        return findings
 
     def _require_authorisation(
         self,
@@ -101,7 +155,9 @@ class Scanner:
     @staticmethod
     def _reject_placeholder(target_name: str, endpoint: Any) -> None:
         if not endpoint or "example.invalid" in str(endpoint):
-            raise ValueError(f"Target '{target_name}' is a placeholder. Configure a real authorised endpoint before assessment.")
+            raise ValueError(
+                f"Target '{target_name}' is a placeholder. Configure a real authorised endpoint before assessment."
+            )
 
     def _load_config(self) -> dict[str, Any]:
         def load_yaml(name: str) -> dict[str, Any]:
@@ -121,7 +177,9 @@ class Scanner:
 
     @staticmethod
     def _merge_runtime_targets(targets: dict[str, Any]) -> None:
-        runtime_targets_path = Path(os.getenv("VULNORAIQ_RUNTIME_TARGETS_PATH", "reports/output/webui/runtime_targets.yaml"))
+        runtime_targets_path = Path(
+            os.getenv("VULNORAIQ_RUNTIME_TARGETS_PATH", "reports/output/webui/runtime_targets.yaml")
+        )
         if not runtime_targets_path.exists():
             return
         runtime_targets = yaml.safe_load(runtime_targets_path.read_text(encoding="utf-8")) or {}

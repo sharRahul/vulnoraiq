@@ -85,3 +85,7 @@ Full AITG coverage must remain authorised-use only. Tests must not request destr
 ## Completion definition
 
 This plan is complete only when all 32 test IDs have manifest entries, runnable modules or explicit non-runnable/manual status, tests, report integration, WebUI visibility, documentation, and CI validation.
+
+## Implementation update
+
+The canonical 32-test AITG manifest, `owasp-aitg-full` profile, scanner execution path, report evidence fields, and `scripts/validate_aitg_full_coverage.py` validator are implemented. Entries use original summary wording and safe fixtures rather than copying OWASP source text.

@@ -155,3 +155,7 @@ Back up SQLite and report/evidence paths according to the runbook before upgrade
 ## 10. Deployment limitations
 
 The current codebase is suitable for self-hosted internal use with documented controls. Remaining maturity items include signed/notarised installers, OIDC/JWT integration, image signing/scanning, SAST/DAST pipeline, SIEM-specific rule packs, multi-instance shared state, and independent assurance validation.
+
+## Real-environment target deployment note
+
+For approved internal GenAI validation, start from `config/targets/templates/`, keep `dry_run: true` until change approval, reference credentials only via environment variables, configure host allow-lists and rate limits, and review audit/evidence redaction before retaining reports.

@@ -182,15 +182,36 @@ export interface ConnectivityResult {
 
 export type ScanJobStatus = "queued" | "running" | "completed" | "failed";
 
+export interface ScanEvent {
+  event_id: number;
+  scan_id: string;
+  type: string;
+  timestamp: string;
+  severity: string;
+  message: string;
+  phase?: string | null;
+  progress?: { current: number; total: number; percent: number };
+  data?: Record<string, unknown>;
+}
+
 export interface ScanJob {
   id: string;
   target: string;
   profile: string;
   authorised: boolean;
   status: ScanJobStatus | string;
+  progress?: number;
   created_by?: string;
   created_at?: string;
   started_at?: string | null;
   completed_at?: string | null;
   error?: string | null;
+}
+
+export interface FindingMutationState {
+  status: "open" | "triaged" | "in_progress" | "accepted_risk" | "false_positive" | "fixed" | "wont_fix";
+  owner?: string;
+  remediation_note?: string;
+  updated_at?: string;
+  updated_by?: string;
 }
