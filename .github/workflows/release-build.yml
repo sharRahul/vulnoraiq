@@ -125,7 +125,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist/release
-          pattern: vulnoraiq-${{ env.VULNORAIQ_RELEASE_VERSION }}-*
+          pattern: vulnoraiq-*
           merge-multiple: true
 
       - name: Generate checksums
