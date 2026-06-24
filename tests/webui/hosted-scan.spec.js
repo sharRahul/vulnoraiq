@@ -11,6 +11,13 @@ async function selectPreferredOption(page, selector, preferredValue) {
   return selected;
 }
 
+async function latestJob(page) {
+  const response = await page.request.get('/api/scans');
+  expect(response.ok()).toBeTruthy();
+  const data = await response.json();
+  return (data.jobs || [])[0] || null;
+}
+
 test('runs a hosted demo scan through the WebUI', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'VulnoraIQ', exact: true })).toBeVisible();
@@ -22,9 +29,18 @@ test('runs a hosted demo scan through the WebUI', async ({ page }) => {
   await expect(page.locator('#active-scan-eta')).toBeVisible();
 
   await page.getByRole('button', { name: 'Start selected assessment' }).click();
-
   await expect(page.locator('#active-scan-card')).not.toHaveClass(/idle/);
-  await expect(page.locator('#dashboard')).toBeVisible({ timeout: 90_000 });
+
+  await expect.poll(async () => {
+    const job = await latestJob(page);
+    return job ? job.status : 'missing';
+  }, { timeout: 90_000, intervals: [1000, 2000, 3000] }).toBe('completed');
+
+  const job = await latestJob(page);
+  expect(job).toBeTruthy();
+  await page.evaluate((jobId) => window.loadJob(jobId), job.id);
+
+  await expect(page.locator('#dashboard')).toBeVisible({ timeout: 20_000 });
   await expect(page.locator('#summary-target')).not.toHaveText('-', { timeout: 10_000 });
-  await expect(page.locator('#artifact-links')).not.toHaveText(/No report artifacts available/i);
+  await expect(page.locator('#artifact-links a')).toHaveCountGreaterThan(0);
 });
