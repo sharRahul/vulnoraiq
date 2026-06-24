@@ -4,6 +4,8 @@
 
 The current codebase is **Docker-first for real AI-agent testing** and **React-console-first for the WebUI**. The safe default path starts the WebUI, scanner, job store, reports, evidence capture, and deterministic mock AI-agent target through Docker Compose. Host-native launchers still exist for local laptop/workstation development and demo use, but Docker Compose is the recommended path for real local lab testing.
 
+VulnoraIQ is a **self-hosted internal application** for controlled authorised assessment work. It may be described as a self-hosted laptop/server AI security testing application with controlled internal production-readiness gate passed.
+
 > **Responsible-use boundary:** run VulnoraIQ only against systems you own or are explicitly authorised to assess. Non-demo targets require explicit authorisation. Findings are framework evidence requiring human review, not certified VAPT-grade assurance.
 
 ---
