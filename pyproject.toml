@@ -78,7 +78,13 @@ where = ["."]
 include = ["core*", "integrations*", "modules*", "rag_testing*", "agent_testing*", "reports*", "dashboards*", "scripts*", "benchmarks*", "examples*", "webui*"]
 
 [tool.setuptools.package-data]
-webui = ["static/*.html", "static/*.css", "static/*.js"]
+webui = [
+    "static/*.html",
+    "static/*.css",
+    "static/*.js",
+    "static/console/*",
+    "static/console/assets/*",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
