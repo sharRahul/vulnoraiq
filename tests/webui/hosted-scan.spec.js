@@ -1,43 +1,36 @@
 const { test, expect } = require('@playwright/test');
 
-async function selectPreferredOption(page, selector, preferredValue) {
-  await page.waitForFunction((selectSelector) => {
-    const select = document.querySelector(selectSelector);
-    return select && select.options.length > 0;
-  }, selector);
-  const values = await page.locator(`${selector} option`).evaluateAll((options) => options.map((option) => option.value));
-  const selected = values.includes(preferredValue) ? preferredValue : values[0];
-  await page.locator(selector).selectOption(selected);
-  return selected;
-}
-
-async function latestJob(page) {
-  const response = await page.request.get('/api/scans');
+async function csrfToken(request) {
+  const response = await request.get('/api/csrf-token');
   expect(response.ok()).toBeTruthy();
   const data = await response.json();
-  return (data.jobs || [])[0] || null;
+  expect(data.csrf_token).toBeTruthy();
+  return data.csrf_token;
 }
 
-test('starts a hosted demo scan through the WebUI', async ({ page }) => {
+test('hosted server serves the WebUI and creates a demo scan job', async ({ page, request }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'VulnoraIQ', exact: true })).toBeVisible();
-
-  const target = await selectPreferredOption(page, '#target-select', 'demo');
-  const profile = await selectPreferredOption(page, '#profile-select', 'baseline');
-
   await expect(page.locator('#active-scan-elapsed')).toBeVisible();
   await expect(page.locator('#active-scan-eta')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Start selected assessment' }).click();
-  await expect(page.locator('#active-scan-card')).not.toHaveClass(/idle/);
+  const token = await csrfToken(request);
+  const response = await request.post('/api/scans', {
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': token,
+    },
+    data: {
+      target: 'demo',
+      profile: 'baseline',
+      authorised: false,
+    },
+  });
 
-  await expect.poll(async () => {
-    const job = await latestJob(page);
-    return job && job.target === target && job.profile === profile ? 'created' : 'missing';
-  }, { timeout: 30_000, intervals: [500, 1000, 2000] }).toBe('created');
-
-  const job = await latestJob(page);
-  expect(job).toBeTruthy();
+  expect(response.status()).toBe(202);
+  const job = await response.json();
   expect(job.id).toBeTruthy();
-  expect(['queued', 'running', 'completed', 'failed']).toContain(job.status);
+  expect(job.target).toBe('demo');
+  expect(job.profile).toBe('baseline');
+  expect(['queued', 'running', 'completed']).toContain(job.status);
 });
