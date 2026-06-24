@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 import yaml
@@ -88,7 +89,7 @@ def test_assistant_backend_and_react_panel_are_live_wired() -> None:
     panel = Path("webui/console/src/components/intelligence/AskVulnorAIQChat.tsx").read_text(encoding="utf-8")
     assert response["role"] == "assistant"
     assert response["model"] == "vulnoraiq-local-assistant"
-    assert "Validation approach" in response["content"]
+    assert "Validation approach" in str(response["content"])
     assert "mockAssistantReply" not in panel
     assert "window.setTimeout" not in panel
     assert "/api/assistant/chat" in panel
@@ -116,14 +117,17 @@ def test_expanded_target_templates_pass_real_environment_validator() -> None:
     }
     assert required.issubset({path.name for path in template_paths})
     for path in template_paths:
-        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        data = cast(dict[str, Any], yaml.safe_load(path.read_text(encoding="utf-8")) or {})
         target = data.get("target")
         assert isinstance(target, dict), path
-        validate_real_environment_config(path.stem, target)
-        assert target["explicit_authorisation"] is True
-        assert target["dry_run"] is True
-        assert target["allow_live_requests"] is False
-        assert target.get("auth_token_env") or target.get("token_env_var") or path.name == "ollama-local.yaml"
-        assert target.get("rate_limit", {}).get("requests_per_second", 0) > 0
-        assert target.get("allowed_host_pattern")
-        assert target.get("evidence_redaction", {}).get("redact_headers")
+        typed_target = cast(dict[str, Any], target)
+        validate_real_environment_config(path.stem, typed_target)
+        rate_limit = cast(dict[str, Any], typed_target.get("rate_limit", {}))
+        evidence_redaction = cast(dict[str, Any], typed_target.get("evidence_redaction", {}))
+        assert typed_target["explicit_authorisation"] is True
+        assert typed_target["dry_run"] is True
+        assert typed_target["allow_live_requests"] is False
+        assert typed_target.get("auth_token_env") or typed_target.get("token_env_var") or path.name == "ollama-local.yaml"
+        assert float(rate_limit.get("requests_per_second", 0)) > 0
+        assert typed_target.get("allowed_host_pattern")
+        assert evidence_redaction.get("redact_headers")
