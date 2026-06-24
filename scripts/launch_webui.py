@@ -205,8 +205,8 @@ def build_startup_status(host: str, port: int, shutdown_allowed: bool) -> dict[s
         ),
         _status_item(
             "Web UI assets",
-            "pass" if (ROOT / "webui" / "static" / "index.html").exists() else "fail",
-            "Static Web UI files are present.",
+            "pass" if (ROOT / "webui" / "static" / "console" / "index.html").exists() else "fail",
+            "Built console assets are present (webui/static/console).",
         ),
         _status_item(
             "Output directory",
