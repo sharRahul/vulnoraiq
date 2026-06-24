@@ -8,6 +8,7 @@ import yaml
 
 from core.scanner import Scanner
 from integrations.target_adapters import redact, validate_real_environment_config
+from webui.assistant import AssistantOrchestrator
 from webui.persistent_jobs import SqliteJobStore
 
 
@@ -73,3 +74,56 @@ def test_react_console_uses_backend_scan_and_finding_apis() -> None:
     assert "WebUI live progress" not in current_backlog
     assert "WebUI finding actions" not in current_backlog
     assert "High-priority items completed on 2026-06-24" in backlog
+
+
+def test_assistant_backend_and_react_panel_are_live_wired() -> None:
+    response = AssistantOrchestrator().chat(
+        {
+            "message": "How should I validate this?",
+            "finding": {"title": "Prompt boundary review", "severity": "medium", "status": "open"},
+            "controls": {"model": "vulnoraiq-local-assistant", "temperature": 0.3, "system_prompt": "Use concise guidance."},
+        },
+        actor="tester",
+    )
+    panel = Path("webui/console/src/components/intelligence/AskVulnorAIQChat.tsx").read_text(encoding="utf-8")
+    assert response["role"] == "assistant"
+    assert response["model"] == "vulnoraiq-local-assistant"
+    assert "Validation approach" in response["content"]
+    assert "mockAssistantReply" not in panel
+    assert "window.setTimeout" not in panel
+    assert "/api/assistant/chat" in panel
+    assert "/api/assistant/config" in panel
+    assert "temperature" in panel
+    assert "system_prompt" in panel
+
+
+def test_expanded_target_templates_pass_real_environment_validator() -> None:
+    template_paths = sorted(Path("config/targets/templates").glob("*.yaml"))
+    assert len(template_paths) >= 14
+    required = {
+        "anthropic-claude.yaml",
+        "google-gemini.yaml",
+        "cohere-command.yaml",
+        "ollama-local.yaml",
+        "vllm-openai-compatible.yaml",
+        "localai-openai-compatible.yaml",
+        "pinecone-langchain-rag.yaml",
+        "langgraph-agent.yaml",
+        "crewai-agent.yaml",
+        "litellm-gateway.yaml",
+        "portkey-gateway.yaml",
+        "aws-bedrock-gateway.yaml",
+    }
+    assert required.issubset({path.name for path in template_paths})
+    for path in template_paths:
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        target = data.get("target")
+        assert isinstance(target, dict), path
+        validate_real_environment_config(path.stem, target)
+        assert target["explicit_authorisation"] is True
+        assert target["dry_run"] is True
+        assert target["allow_live_requests"] is False
+        assert target.get("auth_token_env") or target.get("token_env_var") or path.name == "ollama-local.yaml"
+        assert target.get("rate_limit", {}).get("requests_per_second", 0) > 0
+        assert target.get("allowed_host_pattern")
+        assert target.get("evidence_redaction", {}).get("redact_headers")
