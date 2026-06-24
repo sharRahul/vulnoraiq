@@ -42,7 +42,7 @@ def test_supply_chain_docs_are_linked_from_docs_index() -> None:
     status = Path("docs/IMPLEMENTATION_STATUS.md").read_text(encoding="utf-8")
 
     assert "SUPPLY_CHAIN_PIPELINE.md" in docs_index
-    assert "Trivy" in pipeline_doc
+    assert "scan reports" in pipeline_doc
     assert "Cosign" in pipeline_doc
     current_backlog = backlog.split("## Current maturity backlog", 1)[1].split("## Production claim rule", 1)[0]
     assert "Container supply chain" not in current_backlog
