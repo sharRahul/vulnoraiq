@@ -45,6 +45,16 @@ const SCAN_EVENT_TYPES = [
 const SEVERITIES: Severity[] = ["critical", "high", "medium", "low", "info"];
 const EMPTY_TREND: VulnerabilityTrendPoint[] = [];
 
+function emptySeverityCounts(): Record<Severity, number> {
+  return {
+    critical: 0,
+    high: 0,
+    medium: 0,
+    low: 0,
+    info: 0,
+  };
+}
+
 async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(path, { credentials: "same-origin", ...options });
   if (!response.ok) throw new Error(await response.text());
@@ -192,7 +202,7 @@ function selectLatestScan(scans: ScanJob[]): ScanJob | null {
 }
 
 function dashboardMetrics(findings: Finding[], activeScan: ScanJob | null): DashboardMetrics {
-  const counts = Object.fromEntries(SEVERITIES.map((severity) => [severity, 0])) as Record<Severity, number>;
+  const counts = emptySeverityCounts();
   findings.forEach((finding) => {
     counts[finding.severity] += 1;
   });
@@ -218,7 +228,7 @@ function dashboardMetrics(findings: Finding[], activeScan: ScanJob | null): Dash
 }
 
 function severityDistribution(findings: Finding[]): SeverityDistributionPoint[] {
-  const counts = Object.fromEntries(SEVERITIES.map((severity) => [severity, 0])) as Record<Severity, number>;
+  const counts = emptySeverityCounts();
   findings.forEach((finding) => {
     counts[finding.severity] += 1;
   });
