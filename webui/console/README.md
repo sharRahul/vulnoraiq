@@ -34,7 +34,7 @@ No Node runtime is required to serve the built console.
 
 - `src/types/` — strongly typed domain model for targets, jobs, findings, dashboard metrics, trends, remediation, and assistant/chat state.
 - `src/components/` — app shell, header, workspace layout, navigation, dashboard, intelligence, findings, target management, and shared UI primitives.
-- `src/data/mock.ts` — demo data for panels whose backend APIs are not complete yet.
+- `src/data/cleanState.ts` — empty initial state for all dashboard data until a backend scan is run.
 
 ## Backend integration status
 

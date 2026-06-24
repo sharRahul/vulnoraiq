@@ -1,48 +1,45 @@
-from __future__ import annotations
+"""Launches VulnoraIQ via Docker Compose — no local Python venv required."""
 
-import os
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-VENV_DIR = ROOT / ".venv"
-BOOTSTRAP_MARKER = VENV_DIR / ".vulnoraiq-bootstrap-ok"
+COMPOSE_FILE = ROOT / "docker-compose.yml"
 
 
-def _venv_python() -> Path:
-    if os.name == "nt":
-        return VENV_DIR / "Scripts" / "python.exe"
-    return VENV_DIR / "bin" / "python"
-
-
-def _run(command: list[str]) -> None:
-    print("+ " + " ".join(command))
-    subprocess.run(command, cwd=ROOT, check=True)
-
-
-def _ensure_virtualenv() -> Path:
-    python = _venv_python()
-    if not python.exists():
-        print("Creating local VulnoraIQ virtual environment in .venv ...")
-        _run([sys.executable, "-m", "venv", str(VENV_DIR)])
-    if not BOOTSTRAP_MARKER.exists():
-        print("Installing VulnoraIQ into the local launcher environment ...")
-        _run([str(python), "-m", "pip", "install", "--upgrade", "pip"])
-        _run([str(python), "-m", "pip", "install", "-e", ".[release]"])
-        BOOTSTRAP_MARKER.write_text("ok\n", encoding="utf-8")
-    return python
+def _run_compose(args: list[str]) -> None:
+    cmd = ["docker", "compose", *args]
+    print("+ " + " ".join(cmd))
+    subprocess.run(cmd, cwd=ROOT, check=True)
 
 
 def main() -> None:
-    os.chdir(ROOT)
-    python = _ensure_virtualenv()
-    launcher = ROOT / "scripts" / "launch_webui.py"
-    if not launcher.exists():
-        raise SystemExit("Unable to find scripts/launch_webui.py. Use a complete VulnoraIQ source checkout or release package.")
-    os.environ.setdefault("VULNORAIQ_LAUNCH_MODE", "double_click_launcher")
-    print("Starting the VulnoraIQ browser GUI flow on loopback...")
-    os.execv(str(python), [str(python), str(launcher), *sys.argv[1:]])
+    try:
+        subprocess.run(
+            ["docker", "info"],
+            capture_output=True,
+            check=True,
+            cwd=ROOT,
+        )
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        print(
+            "Docker engine is not running.\n\n"
+            "VulnoraIQ requires Docker Desktop or a compatible Docker engine.\n"
+            "Install / start Docker, then re-launch.\n"
+        )
+        sys.exit(1)
+
+    if not COMPOSE_FILE.exists():
+        print(f"docker-compose.yml not found at {COMPOSE_FILE}")
+        sys.exit(1)
+
+    _run_compose(["build"])
+    _run_compose(["up", "-d"])
+    _run_compose(["ps"])
+
+    print("\nVulnoraIQ WebUI is running at http://127.0.0.1:8787")
+    print("Run `docker compose down` to stop.")
 
 
 if __name__ == "__main__":

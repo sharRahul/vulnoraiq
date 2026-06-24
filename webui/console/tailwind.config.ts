@@ -48,8 +48,8 @@ const config: Config = {
         sm: "0.375rem",
       },
       boxShadow: {
-        card: "0 1px 2px rgba(42, 47, 53, 0.04), 0 1px 3px rgba(42, 47, 53, 0.06)",
-        "card-hover": "0 4px 12px rgba(42, 47, 53, 0.08), 0 2px 4px rgba(42, 47, 53, 0.06)",
+        card: "var(--shadow-card)",
+        "card-hover": "var(--shadow-card-hover)",
         pane: "0 1px 0 var(--border)",
       },
       keyframes: {

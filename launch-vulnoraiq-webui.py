@@ -1,6 +1,4 @@
-from __future__ import annotations
-
-from scripts.launch_webui import main
+from scripts.bootstrap_launch import main
 
 if __name__ == "__main__":
     main()
