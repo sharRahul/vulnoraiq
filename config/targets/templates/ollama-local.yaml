@@ -1,0 +1,25 @@
+target:
+  name: PLACEHOLDER_OLLAMA_LOCAL
+  type: ollama_generate
+  base_url: http://127.0.0.1:11434
+  endpoint_path: /api/generate
+  method: POST
+  explicit_authorisation: true
+  dry_run: true
+  allow_live_requests: false
+  allowed_host_pattern: "127.0.0.1|localhost"
+  model: llama3.1
+  request_body_template:
+    model: "{{model}}"
+    prompt: "{{prompt}}"
+    stream: false
+  response_extraction_path: response
+  rate_limit:
+    requests_per_second: 1
+  timeout: 60
+  safety_profile: local_lab_safe
+  data_handling_notes: "Local/offline validation; confirm model and prompt logs do not retain sensitive data."
+  evidence_redaction:
+    redact_headers: [cookie]
+    redact_body_patterns: ["token=[A-Za-z0-9._-]+"]
+  example_test_profile: baseline
