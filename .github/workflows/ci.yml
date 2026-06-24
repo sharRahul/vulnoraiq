@@ -62,6 +62,12 @@ jobs:
       - name: Validate GenAI security readiness
         run: python scripts/validate_genai_readiness.py
 
+      - name: Validate AITG full coverage
+        run: python scripts/validate_aitg_full_coverage.py
+
+      - name: Validate independent assurance bundle
+        run: python scripts/validate_assurance_bundle.py
+
       - name: Run production-testing readiness gate
         run: python scripts/validate_production_testing_readiness.py --output-dir reports/output/production-readiness
 

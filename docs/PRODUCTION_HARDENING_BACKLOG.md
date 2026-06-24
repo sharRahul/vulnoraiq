@@ -58,3 +58,7 @@ This does not mean certified VAPT-grade assurance or independently validated rea
 ## Production claim rule
 
 Allowed wording must stay scoped to self-hosted/internal readiness. Stronger claims should wait for the future maturity items above.
+
+## High-priority items completed on 2026-06-24
+
+The previous high-priority backlog entries for WebUI live progress, WebUI finding actions, full AITG coverage, controlled real-environment GenAI validation support, and independent assurance workflow support have implementation, tests, and CI validators. Remaining maturity work includes external reviewer execution, SIEM/SOAR integrations, signed release hardening, and stronger third-party validation.

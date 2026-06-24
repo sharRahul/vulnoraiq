@@ -80,3 +80,7 @@ The hosted WebUI Playwright flow is also part of the GitHub Actions CI path on P
 ## Security boundary
 
 Launcher/local mode is for loopback laptop/workstation use. For shared/internal-server use, enable production mode, auth, reverse-proxy/TLS controls, and the documented deployment/runbook process.
+
+## Live scan progress and finding actions
+
+The hosted React console now consumes `/api/scans/{scan_id}/events` with `EventSource` for persisted live progress. The target workspace shows stream state, latest phase, progress, event timeline, finding count, completion, and error states. Finding remediation/status APIs are available under `/api/scans/{scan_id}/findings/...`; mutations require authentication and CSRF protection and create persistent history/audit records.

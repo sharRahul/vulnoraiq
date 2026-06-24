@@ -77,3 +77,7 @@ Every scenario case expands into a result requiring fields such as:
 ## Not claimed
 
 This plan does not claim that VulnoraIQ can independently detect every real GenAI data-security issue in production environments. That stronger claim requires approved real-environment validation, provider/data inventory connectors, governance evidence, privacy/legal review, and independent assurance.
+
+## Approved-environment validation implementation
+
+The harness now includes controlled approved-environment validation support: target templates, minimal adapter interfaces, URL/host/authorisation/rate-limit validation, dry-run defaults, and redaction checks. Synthetic scenarios remain the default readiness evidence, and external independent assurance remains required for stronger claims.

@@ -61,3 +61,7 @@ The React WebUI target workspace currently calls backend APIs for:
 - Public or external hosts must be disallowed unless the safety profile explicitly permits them for an approved environment.
 - Headers, request bodies, responses, evidence, and reports are passed through redaction before persistence.
 - Docker lab targets should use Docker service names, not host `localhost`.
+
+## Approved real-environment GenAI validation
+
+Synthetic validation remains the default. Real-environment GenAI validation is supported only for approved internal environments and requires explicit authorisation, an allow-list or allowed host pattern, environment-variable credential references, dry-run defaults, rate limits, timeouts, audit logging, and evidence redaction. Templates are provided in `config/targets/templates/` for OpenAI-compatible LLM APIs, RAG endpoints, local model servers, agent framework endpoints, provider gateways, and vector-store-backed apps. Do not put real credentials in target YAML; use `token_env_var`/`auth_token_env` references.

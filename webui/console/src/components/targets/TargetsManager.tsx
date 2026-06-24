@@ -16,12 +16,12 @@ import {
   Wifi,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { ConnectivityResult, ScanJob, TargetConfig, TargetRecord } from "@/types";
+import type { ConnectivityResult, ScanEvent, ScanJob, TargetConfig, TargetRecord } from "@/types";
 import { cn } from "@/lib/utils";
 
 const TARGET_TYPES = ["http_json", "chat_completions", "ollama_generate", "webhook_json", "rag_query", "agent_tool_loop"];
 const ENVIRONMENTS = ["local", "lab", "internal", "production-like"];
-const SCAN_PROFILES = ["baseline", "agent_readiness", "rag_readiness", "owasp_llm_2025"];
+const SCAN_PROFILES = ["baseline", "rag", "agent", "full", "owasp-aitg-full"];
 
 const defaultTarget = (): TargetConfig => ({
   name: "New authorised AI target",
@@ -87,6 +87,8 @@ export function TargetsManager() {
   const [testing, setTesting] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [liveEvents, setLiveEvents] = useState<ScanEvent[]>([]);
+  const [streamState, setStreamState] = useState<"idle" | "connecting" | "live" | "error" | "complete">("idle");
 
   const selected = useMemo(() => targets.find((target) => target.id === selectedId), [selectedId, targets]);
   const filteredTargets = useMemo(() => {
@@ -214,21 +216,43 @@ export function TargetsManager() {
     }
   }
 
+  function connectScanEvents(jobId: string) {
+    setLiveEvents([]);
+    setStreamState("connecting");
+    const source = new EventSource(`/api/scans/${encodeURIComponent(jobId)}/events`, { withCredentials: true });
+    const onEvent = (event: MessageEvent) => {
+      const payload = JSON.parse(event.data) as ScanEvent;
+      setLiveEvents((prev) => [...prev.slice(-49), payload]);
+      setStreamState("live");
+      if (["scan_completed", "scan_failed"].includes(payload.type)) {
+        setScanning(false);
+        setStreamState(payload.type === "scan_completed" ? "complete" : "error");
+        source.close();
+        void loadJobs();
+      }
+    };
+    ["scan_queued", "scan_started", "target_validated", "phase_started", "check_started", "check_completed", "finding_created", "evidence_saved", "report_written", "scan_completed", "scan_failed", "heartbeat"].forEach((type) => source.addEventListener(type, onEvent));
+    source.onerror = () => {
+      setStreamState((state) => (state === "complete" ? state : "error"));
+    };
+  }
+
   async function startScan() {
     setScanning(true);
     setError(null);
     try {
       const token = await csrfToken();
-      await api<ScanJob>("/api/scans", {
+      const job = await api<ScanJob>("/api/scans", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRF-Token": token },
         body: JSON.stringify({ target: draftId, profile: scanProfile, authorised: draftId !== "demo" }),
       });
-      await loadJobs();
+      setJobs((prev) => [job, ...prev.filter((item) => item.id !== job.id)]);
+      connectScanEvents(job.id);
     } catch (exc) {
       setError(exc instanceof Error ? exc.message : String(exc));
-    } finally {
       setScanning(false);
+      setStreamState("error");
     }
   }
 
@@ -329,7 +353,12 @@ export function TargetsManager() {
               <Panel title="Launch scan" icon={<PlayCircle className="size-4" />}>
                 <select value={scanProfile} onChange={(e) => setScanProfile(e.target.value)} className="input text-sm">{SCAN_PROFILES.map((profile) => <option key={profile}>{profile}</option>)}</select>
                 <Button className="mt-3 w-full" variant="success" onClick={startScan} disabled={scanning || (!isDemo && draft.authorisation_required === false)}>{scanning ? <Loader2 className="animate-spin" /> : <PlayCircle />} Start authorised scan</Button>
-                <p className="mt-2 text-xs text-muted-foreground">Non-demo scans are sent with an explicit authorised flag and still pass backend permission checks.</p>
+                <p className="mt-2 text-xs text-muted-foreground">Live progress streams from the authenticated SSE endpoint. State: {streamState}.</p>
+                {liveEvents.length ? <div className="mt-3 space-y-2" aria-live="polite">
+                  <div className="h-2 overflow-hidden rounded bg-muted"><div className="h-full bg-[var(--accent-sage)]" style={{ width: `${Math.max(...liveEvents.map((event) => event.progress?.percent || 0))}%` }} /></div>
+                  <p className="text-xs font-semibold">{liveEvents[liveEvents.length - 1]?.phase || liveEvents[liveEvents.length - 1]?.type} · findings {liveEvents.filter((event) => event.type === "finding_created").length}</p>
+                  <ol className="max-h-40 space-y-1 overflow-auto text-xs text-muted-foreground">{liveEvents.slice(-8).map((event, index) => <li key={`${event.event_id}-${index}`}>{event.type}: {event.message}</li>)}</ol>
+                </div> : null}
               </Panel>
               <Panel title="Recent jobs" icon={<RefreshCw className="size-4" />}>
                 <div className="space-y-2">{latestJobs.length ? latestJobs.map((job) => <JobRow key={job.id} job={job} />) : <p className="text-sm text-muted-foreground">No scan jobs for this target yet.</p>}</div>

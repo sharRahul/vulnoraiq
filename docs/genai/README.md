@@ -35,3 +35,7 @@ The GenAI harness currently requires:
 ## Current limitation
 
 The GenAI harness validates safe synthetic scenarios and evidence consistency. Approved real-environment validation, provider/data inventory connectors, governance integrations, and independent assurance remain future maturity work.
+
+## Approved environment validation support
+
+Approved real-environment validation support is implemented for internal targets using documented templates, dry-run defaults, allow-list validation, rate limits, environment-variable secret references, adapter interfaces, audit logging, and redaction. This does not create independent certification; operators remain responsible for written permission and scope.

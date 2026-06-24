@@ -1,0 +1,865 @@
+aitg_tests:
+- id: AITG-APP-01
+  title: Application behaviour and business integration safe control review 1
+  objective: Validate application behaviour and business integration evidence using
+    safe synthetic fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Application behaviour and business integration
+  owasp_llm_top10:
+  - LLM01:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: hybrid-authorised
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-APP-02
+  title: Application behaviour and business integration safe control review 2
+  objective: Validate application behaviour and business integration evidence using
+    safe synthetic fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Application behaviour and business integration
+  owasp_llm_top10:
+  - LLM02:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: hybrid-authorised
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-APP-03
+  title: Application behaviour and business integration safe control review 3
+  objective: Validate application behaviour and business integration evidence using
+    safe synthetic fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Application behaviour and business integration
+  owasp_llm_top10:
+  - LLM03:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: hybrid-authorised
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-APP-04
+  title: Application behaviour and business integration safe control review 4
+  objective: Validate application behaviour and business integration evidence using
+    safe synthetic fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Application behaviour and business integration
+  owasp_llm_top10:
+  - LLM04:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: hybrid-authorised
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-APP-05
+  title: Application behaviour and business integration safe control review 5
+  objective: Validate application behaviour and business integration evidence using
+    safe synthetic fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Application behaviour and business integration
+  owasp_llm_top10:
+  - LLM05:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: hybrid-authorised
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-APP-06
+  title: Application behaviour and business integration safe control review 6
+  objective: Validate application behaviour and business integration evidence using
+    safe synthetic fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Application behaviour and business integration
+  owasp_llm_top10:
+  - LLM06:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: hybrid-authorised
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-APP-07
+  title: Application behaviour and business integration safe control review 7
+  objective: Validate application behaviour and business integration evidence using
+    safe synthetic fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Application behaviour and business integration
+  owasp_llm_top10:
+  - LLM07:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: hybrid-authorised
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-APP-08
+  title: Application behaviour and business integration safe control review 8
+  objective: Validate application behaviour and business integration evidence using
+    safe synthetic fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Application behaviour and business integration
+  owasp_llm_top10:
+  - LLM08:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: hybrid-authorised
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-APP-09
+  title: Application behaviour and business integration safe control review 9
+  objective: Validate application behaviour and business integration evidence using
+    safe synthetic fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Application behaviour and business integration
+  owasp_llm_top10:
+  - LLM09:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: hybrid-authorised
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-APP-10
+  title: Application behaviour and business integration safe control review 10
+  objective: Validate application behaviour and business integration evidence using
+    safe synthetic fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Application behaviour and business integration
+  owasp_llm_top10:
+  - LLM10:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: hybrid-authorised
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-APP-11
+  title: Application behaviour and business integration safe control review 11
+  objective: Validate application behaviour and business integration evidence using
+    safe synthetic fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Application behaviour and business integration
+  owasp_llm_top10:
+  - LLM01:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: hybrid-authorised
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-APP-12
+  title: Application behaviour and business integration safe control review 12
+  objective: Validate application behaviour and business integration evidence using
+    safe synthetic fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Application behaviour and business integration
+  owasp_llm_top10:
+  - LLM02:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: hybrid-authorised
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-APP-13
+  title: Application behaviour and business integration safe control review 13
+  objective: Validate application behaviour and business integration evidence using
+    safe synthetic fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Application behaviour and business integration
+  owasp_llm_top10:
+  - LLM03:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: hybrid-authorised
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-APP-14
+  title: Application behaviour and business integration safe control review 14
+  objective: Validate application behaviour and business integration evidence using
+    safe synthetic fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Application behaviour and business integration
+  owasp_llm_top10:
+  - LLM04:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: hybrid-authorised
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-MOD-01
+  title: Model behaviour and governance safe control review 1
+  objective: Validate model behaviour and governance evidence using safe synthetic
+    fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Model behaviour and governance
+  owasp_llm_top10:
+  - LLM05:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: synthetic-fixture
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-MOD-02
+  title: Model behaviour and governance safe control review 2
+  objective: Validate model behaviour and governance evidence using safe synthetic
+    fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Model behaviour and governance
+  owasp_llm_top10:
+  - LLM06:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: synthetic-fixture
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-MOD-03
+  title: Model behaviour and governance safe control review 3
+  objective: Validate model behaviour and governance evidence using safe synthetic
+    fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Model behaviour and governance
+  owasp_llm_top10:
+  - LLM07:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: synthetic-fixture
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-MOD-04
+  title: Model behaviour and governance safe control review 4
+  objective: Validate model behaviour and governance evidence using safe synthetic
+    fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Model behaviour and governance
+  owasp_llm_top10:
+  - LLM08:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: synthetic-fixture
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-MOD-05
+  title: Model behaviour and governance safe control review 5
+  objective: Validate model behaviour and governance evidence using safe synthetic
+    fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Model behaviour and governance
+  owasp_llm_top10:
+  - LLM09:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: synthetic-fixture
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-MOD-06
+  title: Model behaviour and governance safe control review 6
+  objective: Validate model behaviour and governance evidence using safe synthetic
+    fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Model behaviour and governance
+  owasp_llm_top10:
+  - LLM10:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: synthetic-fixture
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-MOD-07
+  title: Model behaviour and governance safe control review 7
+  objective: Validate model behaviour and governance evidence using safe synthetic
+    fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Model behaviour and governance
+  owasp_llm_top10:
+  - LLM01:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: synthetic-fixture
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-INF-01
+  title: Infrastructure and deployment safe control review 1
+  objective: Validate infrastructure and deployment evidence using safe synthetic
+    fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Infrastructure and deployment
+  owasp_llm_top10:
+  - LLM02:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: synthetic-fixture
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-INF-02
+  title: Infrastructure and deployment safe control review 2
+  objective: Validate infrastructure and deployment evidence using safe synthetic
+    fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Infrastructure and deployment
+  owasp_llm_top10:
+  - LLM03:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: synthetic-fixture
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-INF-03
+  title: Infrastructure and deployment safe control review 3
+  objective: Validate infrastructure and deployment evidence using safe synthetic
+    fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Infrastructure and deployment
+  owasp_llm_top10:
+  - LLM04:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: synthetic-fixture
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-INF-04
+  title: Infrastructure and deployment safe control review 4
+  objective: Validate infrastructure and deployment evidence using safe synthetic
+    fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Infrastructure and deployment
+  owasp_llm_top10:
+  - LLM05:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: synthetic-fixture
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-INF-05
+  title: Infrastructure and deployment safe control review 5
+  objective: Validate infrastructure and deployment evidence using safe synthetic
+    fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Infrastructure and deployment
+  owasp_llm_top10:
+  - LLM06:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: synthetic-fixture
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-INF-06
+  title: Infrastructure and deployment safe control review 6
+  objective: Validate infrastructure and deployment evidence using safe synthetic
+    fixtures and authorised target metadata.
+  owasp_ai_testing_guide_section: Infrastructure and deployment
+  owasp_llm_top10:
+  - LLM07:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: synthetic-fixture
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-DAT-01
+  title: Data and retrieval controls safe control review 1
+  objective: Validate data and retrieval controls evidence using safe synthetic fixtures
+    and authorised target metadata.
+  owasp_ai_testing_guide_section: Data and retrieval controls
+  owasp_llm_top10:
+  - LLM08:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: synthetic-fixture
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-DAT-02
+  title: Data and retrieval controls safe control review 2
+  objective: Validate data and retrieval controls evidence using safe synthetic fixtures
+    and authorised target metadata.
+  owasp_ai_testing_guide_section: Data and retrieval controls
+  owasp_llm_top10:
+  - LLM09:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: synthetic-fixture
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-DAT-03
+  title: Data and retrieval controls safe control review 3
+  objective: Validate data and retrieval controls evidence using safe synthetic fixtures
+    and authorised target metadata.
+  owasp_ai_testing_guide_section: Data and retrieval controls
+  owasp_llm_top10:
+  - LLM10:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: synthetic-fixture
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-DAT-04
+  title: Data and retrieval controls safe control review 4
+  objective: Validate data and retrieval controls evidence using safe synthetic fixtures
+    and authorised target metadata.
+  owasp_ai_testing_guide_section: Data and retrieval controls
+  owasp_llm_top10:
+  - LLM01:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: synthetic-fixture
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented
+- id: AITG-DAT-05
+  title: Data and retrieval controls safe control review 5
+  objective: Validate data and retrieval controls evidence using safe synthetic fixtures
+    and authorised target metadata.
+  owasp_ai_testing_guide_section: Data and retrieval controls
+  owasp_llm_top10:
+  - LLM02:2025
+  mitre_atlas:
+  - AML.T0051
+  - AML.T0054
+  test_type: synthetic-fixture
+  fixture: benchmarks/fixtures/owasp_starter_fixture.yaml
+  expected_detector_behavior: Produce pass/fail/not_applicable evidence without unsafe
+    exploit automation or secret disclosure.
+  evidence_artifacts:
+  - structured_result
+  - redacted_request_response
+  - coverage_matrix_row
+  reporting_fields:
+  - status
+  - confidence
+  - limitations
+  - mapping
+  - evidence_links
+  safety_notes: Default execution uses safe synthetic fixtures; real target execution
+    requires explicit authorisation and allow-list validation.
+  implementation_status: implemented

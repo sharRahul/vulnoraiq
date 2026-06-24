@@ -6,6 +6,7 @@ import json
 import logging
 import mimetypes
 import os
+import re
 import secrets
 import threading
 import time
@@ -135,19 +136,24 @@ def _audit_structured(
     status: int = 0,
     detail: str = "",
 ) -> None:
-    AUDIT_LOG.info(json.dumps({
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "event": _safe_audit_field(event),
-        "request_id": _safe_audit_field(request_id),
-        "user": _safe_audit_field(principal.username),
-        "role": _safe_audit_field(principal.role),
-        "authenticated": str(principal.authenticated).lower(),
-        "client_ip": _safe_audit_field(client_ip),
-        "method": _safe_audit_field(method),
-        "path": _safe_audit_field(path),
-        "status": status,
-        "detail": _safe_audit_field(detail),
-    }, default=str))
+    AUDIT_LOG.info(
+        json.dumps(
+            {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "event": _safe_audit_field(event),
+                "request_id": _safe_audit_field(request_id),
+                "user": _safe_audit_field(principal.username),
+                "role": _safe_audit_field(principal.role),
+                "authenticated": str(principal.authenticated).lower(),
+                "client_ip": _safe_audit_field(client_ip),
+                "method": _safe_audit_field(method),
+                "path": _safe_audit_field(path),
+                "status": status,
+                "detail": _safe_audit_field(detail),
+            },
+            default=str,
+        )
+    )
 
 
 def _rate_limit(client_ip: str) -> bool:
@@ -218,7 +224,6 @@ def _can_download_job_artifact(principal: AuthPrincipal, job: PersistedScanJob) 
     return AUTH_MANAGER.can(principal, "download_artifacts") and job.created_by == principal.username
 
 
-
 def _runtime_targets_path() -> Path:
     return Path(os.getenv("VULNORAIQ_RUNTIME_TARGETS_PATH", str(OUTPUT_ROOT / "runtime_targets.yaml")))
 
@@ -254,6 +259,7 @@ def _delete_runtime_target(target_id: str) -> bool:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(yaml.safe_dump(runtime, sort_keys=True), encoding="utf-8")
     return True
+
 
 def load_config() -> dict[str, Any]:
     def read_yaml(name: str) -> dict[str, Any]:
@@ -302,18 +308,24 @@ def run_scan_job(job_id: str) -> None:
     if not _acquire_scan_slot(job_id):
         return
     try:
+
         def mutate(fn):
             JOB_STORE.update(job_id, fn)
 
         def start(job: PersistedScanJob) -> None:
             job.status = "running"
             job.started_at = datetime.now(timezone.utc).isoformat()
-            job.add_event("initialising", "Loading scanner configuration and selected profile.", 8)
+            job.add_event("scan_started", "Scan started; loading scanner configuration and selected profile.", 5)
+            job.add_event("target_validated", "Target configuration and authorisation controls validated.", 12)
+
         mutate(start)
         job = JOB_STORE.get(job_id)
         if not job:
             return
-        result = Scanner(config_dir=CONFIG_ROOT).scan(target_name=job.target, profile_name=job.profile, authorised=job.authorised)
+        job.add_event("phase_started", "Executing selected safe assessment checks.", 20)
+        result = Scanner(config_dir=CONFIG_ROOT).scan(
+            target_name=job.target, profile_name=job.profile, authorised=job.authorised
+        )
         output_dir = OUTPUT_ROOT / job.id
         output_dir.mkdir(parents=True, exist_ok=True)
         markdown_path = MarkdownReportGenerator().generate(result, output_dir / "scan-report.md")
@@ -333,6 +345,14 @@ def run_scan_job(job_id: str) -> None:
                 "dashboard_markdown": str(dashboard_path),
                 "dashboard_html": str(html_dashboard_path),
             }
+            for idx, finding in enumerate(report_data.get("findings", []), start=1):
+                item.add_event(
+                    "finding_created",
+                    f"Finding recorded: {str(finding.get('title') or finding.get('owasp_id') or 'finding')[:120]}",
+                    min(85, 30 + idx),
+                )
+            item.add_event("evidence_saved", "Evidence and report artefacts saved with redaction controls.", 92)
+            item.add_event("report_written", "Markdown, JSON, SARIF, and dashboard reports written.", 96)
             item.summary = {
                 "target": report_data.get("target"),
                 "profile": report_data.get("profile"),
@@ -344,6 +364,7 @@ def run_scan_job(job_id: str) -> None:
                 "findings": report_data.get("findings", []),
             }
             item.add_event("completed", "Scan completed and reports are ready.", 100)
+
         mutate(complete)
         _inc_metric("scans_completed")
     except Exception:
@@ -355,6 +376,7 @@ def run_scan_job(job_id: str) -> None:
             item.error = "internal scan error"
             item.completed_at = datetime.now(timezone.utc).isoformat()
             item.add_event("failed", "internal scan error", 100, level="error")
+
         JOB_STORE.update(job_id, fail)
     finally:
         _release_scan_slot(job_id)
@@ -380,12 +402,18 @@ class HostedWebUiHandler(BaseHTTPRequestHandler):
         if not suppress_hsts and (TRUST_PROXY_HEADERS or self._client_ip() != "127.0.0.1"):
             self.send_header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
         self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
-        self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; form-action 'self'; base-uri 'self'; frame-ancestors 'none'")
+        self.send_header(
+            "Content-Security-Policy",
+            "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; form-action 'self'; base-uri 'self'; frame-ancestors 'none'",
+        )
         self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
 
     def _principal(self, client_ip: str) -> AuthPrincipal | None:
         if AUTH_MANAGER.auth_mode() == "trusted_proxy":
-            headers = {k: self.headers.get(k, "") for k in ("X-Authenticated-User", "X-Authenticated-Email", "X-Authenticated-Groups", "X-VulnoraIQ-Role")}
+            headers = {
+                k: self.headers.get(k, "")
+                for k in ("X-Authenticated-User", "X-Authenticated-Email", "X-Authenticated-Groups", "X-VulnoraIQ-Role")
+            }
             return AUTH_MANAGER.authenticate_proxy_identity(headers, trusted=_is_trusted_proxy(self))
         return AUTH_MANAGER.authenticate_token(self.headers.get(AUTH_MANAGER.header_name()))
 
@@ -430,7 +458,16 @@ class HostedWebUiHandler(BaseHTTPRequestHandler):
         if principal:
             return principal
         _inc_metric("auth_failures")
-        _audit_structured("auth_failure", AUTH_MANAGER.anonymous(), request_id, client_ip, method, path, 401, "authentication required")
+        _audit_structured(
+            "auth_failure",
+            AUTH_MANAGER.anonymous(),
+            request_id,
+            client_ip,
+            method,
+            path,
+            401,
+            "authentication required",
+        )
         self._send_error_response(HTTPStatus.UNAUTHORIZED, "authentication required")
         return None
 
@@ -442,6 +479,8 @@ class HostedWebUiHandler(BaseHTTPRequestHandler):
                 self._do_GET_routes(path, client_ip, request_id)
             elif method == "POST":
                 self._do_POST_routes(path, client_ip, request_id)
+            elif method == "PATCH":
+                self._do_PATCH_routes(path, client_ip, request_id)
             else:
                 self.send_error(HTTPStatus.METHOD_NOT_ALLOWED, "Method not allowed")
         except ValueError as exc:
@@ -460,11 +499,29 @@ class HostedWebUiHandler(BaseHTTPRequestHandler):
         if clean_path == "/readyz":
             cfg = load_config()
             ready = bool(cfg.get("targets")) and bool(cfg.get("profiles"))
-            self._send_json({"status": "ready" if ready else "not_ready", "targets_loaded": len(cfg.get("targets", {})), "profiles_loaded": len(cfg.get("profiles", {})), "auth_enabled": cfg.get("web_auth_enabled", False)}, status=HTTPStatus.OK if ready else HTTPStatus.SERVICE_UNAVAILABLE)
+            self._send_json(
+                {
+                    "status": "ready" if ready else "not_ready",
+                    "targets_loaded": len(cfg.get("targets", {})),
+                    "profiles_loaded": len(cfg.get("profiles", {})),
+                    "auth_enabled": cfg.get("web_auth_enabled", False),
+                },
+                status=HTTPStatus.OK if ready else HTTPStatus.SERVICE_UNAVAILABLE,
+            )
             return
         if clean_path == "/api/session":
             principal = self._principal(client_ip)
-            self._send_json({"auth_enabled": AUTH_MANAGER.enabled(), "authenticated": bool(principal and principal.authenticated), "auth_required": AUTH_MANAGER.enabled() and principal is None, "token_header": AUTH_MANAGER.header_name(), "username": principal.username if principal else None, "role": principal.role if principal else None, "permissions": sorted(principal.permissions) if principal else []})
+            self._send_json(
+                {
+                    "auth_enabled": AUTH_MANAGER.enabled(),
+                    "authenticated": bool(principal and principal.authenticated),
+                    "auth_required": AUTH_MANAGER.enabled() and principal is None,
+                    "token_header": AUTH_MANAGER.header_name(),
+                    "username": principal.username if principal else None,
+                    "role": principal.role if principal else None,
+                    "permissions": sorted(principal.permissions) if principal else [],
+                }
+            )
             return
         if clean_path == "/metrics":
             metrics_auth_required = AUTH_MANAGER.is_production() or _env_flag("VULNORAIQ_METRICS_AUTH_REQUIRED", "true")
@@ -494,14 +551,25 @@ class HostedWebUiHandler(BaseHTTPRequestHandler):
         if clean_path == "/api/config":
             cfg = load_config()
             if not AUTH_MANAGER.can(principal, "manage_runtime"):
-                cfg = {"profiles": {k: {"description": v.get("description", "")} for k, v in cfg.get("profiles", {}).items()}, "web_auth_enabled": cfg.get("web_auth_enabled", False)}
+                cfg = {
+                    "profiles": {
+                        k: {"description": v.get("description", "")} for k, v in cfg.get("profiles", {}).items()
+                    },
+                    "web_auth_enabled": cfg.get("web_auth_enabled", False),
+                }
             self._send_json(cfg)
             return
         if clean_path == "/api/scans":
             if not AUTH_MANAGER.can(principal, "view_scans"):
                 self._forbidden()
                 return
-            self._send_json({"jobs": [job.to_dict(include_events=False) for job in JOB_STORE.list() if _can_view_job(principal, job)]})
+            self._send_json(
+                {
+                    "jobs": [
+                        job.to_dict(include_events=False) for job in JOB_STORE.list() if _can_view_job(principal, job)
+                    ]
+                }
+            )
             return
         if clean_path.startswith("/api/scans/"):
             self._handle_scan_get(clean_path, principal, client_ip, request_id)
@@ -551,6 +619,35 @@ class HostedWebUiHandler(BaseHTTPRequestHandler):
                 return
             self._send_json(connectivity_check(target_id, cfg[target_id]))
             return
+        parts = [unquote(item) for item in clean_path.split("/") if item]
+        if len(parts) == 6 and parts[:2] == ["api", "scans"] and parts[3] == "findings" and parts[5] == "actions":
+            if not _validate_csrf(self._session_key(principal), self.headers.get("X-CSRF-Token")):
+                self._send_error_response(HTTPStatus.FORBIDDEN, "invalid or missing CSRF token")
+                return
+            job = JOB_STORE.get(parts[2])
+            if not job:
+                self._send_error_response(HTTPStatus.NOT_FOUND, "scan not found")
+                return
+            if not _can_view_job(principal, job):
+                self._forbidden()
+                return
+            payload = self._validate_finding_patch(self._read_json())
+            updated = JOB_STORE.update_finding(job.id, parts[4], payload, principal.username)
+            if not updated:
+                self._send_error_response(HTTPStatus.NOT_FOUND, "finding not found")
+                return
+            _audit_structured(
+                "finding_action",
+                principal,
+                request_id,
+                client_ip,
+                "POST",
+                clean_path,
+                200,
+                f"scan={job.id} finding={parts[4]}",
+            )
+            self._send_json({"finding_state": updated})
+            return
         if clean_path != "/api/scans":
             self.send_error(HTTPStatus.NOT_FOUND, "Not found")
             return
@@ -591,6 +688,9 @@ class HostedWebUiHandler(BaseHTTPRequestHandler):
                 return
             self._send_json(job.to_dict())
             return
+        if parts[3] == "findings":
+            self._handle_finding_get(parts, principal, job)
+            return
         if parts[3] == "events":
             if not _can_view_job(principal, job):
                 self._forbidden()
@@ -605,7 +705,9 @@ class HostedWebUiHandler(BaseHTTPRequestHandler):
             return
         self.send_error(HTTPStatus.NOT_FOUND, "Scan resource not found")
 
-    def _send_artifact(self, job: PersistedScanJob, artifact_name: str, principal: AuthPrincipal, client_ip: str, request_id: str) -> None:
+    def _send_artifact(
+        self, job: PersistedScanJob, artifact_name: str, principal: AuthPrincipal, client_ip: str, request_id: str
+    ) -> None:
         name = artifact_name.replace("\\", "/")
         if "/" in name or ".." in name:
             self._send_error_response(HTTPStatus.BAD_REQUEST, "invalid artifact name")
@@ -620,7 +722,16 @@ class HostedWebUiHandler(BaseHTTPRequestHandler):
             return
         data = file_path.read_bytes()
         _inc_metric("artifact_downloads")
-        _audit_structured("artifact_download", principal, request_id, client_ip, "GET", f"/api/scans/{job.id}/artifact/{artifact_name}", 200, f"artifact={artifact_name} job={job.id}")
+        _audit_structured(
+            "artifact_download",
+            principal,
+            request_id,
+            client_ip,
+            "GET",
+            f"/api/scans/{job.id}/artifact/{artifact_name}",
+            200,
+            f"artifact={artifact_name} job={job.id}",
+        )
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Type", mimetypes.guess_type(file_path.name)[0] or "application/octet-stream")
         self.send_header("Content-Disposition", f'attachment; filename="{file_path.name.replace(chr(34), "")}"')
@@ -630,26 +741,134 @@ class HostedWebUiHandler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def _send_events(self, job_id: str) -> None:
+        last_id = 0
+        raw_last_id = self.headers.get("Last-Event-ID", "0").strip()
+        if raw_last_id.isdigit():
+            last_id = int(raw_last_id)
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Type", "text/event-stream")
         self.send_header("Cache-Control", "no-cache")
         self.send_header("Connection", "keep-alive")
         self._security_headers()
         self.end_headers()
-        sent = 0
         while True:
             job = JOB_STORE.get(job_id)
             if not job:
                 return
-            for event in job.events[sent:]:
-                self.wfile.write(f"data: {json.dumps(asdict(event), default=str)}\n\n".encode())
+            if hasattr(JOB_STORE, "list_events_after"):
+                events = JOB_STORE.list_events_after(job_id, last_id)
+            else:
+                events = [ev for ev in job.events if ev.event_id > last_id]
+            for event in events:
+                payload = asdict(event)
+                payload["scan_id"] = job_id
+                payload["severity"] = payload.pop("level", "info")
+                payload["progress"] = {"current": int(event.progress), "total": 100, "percent": float(event.progress)}
+                last_id = int(event.event_id or last_id + 1)
+                self.wfile.write(
+                    f"id: {last_id}\nevent: {event.type}\ndata: {json.dumps(payload, default=str)}\n\n".encode()
+                )
                 self.wfile.flush()
-                sent += 1
             if job.status in TERMINAL_STATES:
                 self.wfile.write(f"event: done\ndata: {json.dumps(job.to_dict(), default=str)}\n\n".encode())
                 self.wfile.flush()
                 return
+            heartbeat = {
+                "event_id": last_id,
+                "scan_id": job_id,
+                "type": "heartbeat",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "severity": "info",
+                "message": "scan still running",
+                "phase": job.events[-1].stage if job.events else "running",
+                "progress": {"current": job.progress, "total": 100, "percent": float(job.progress)},
+                "data": {},
+            }
+            self.wfile.write(f"event: heartbeat\ndata: {json.dumps(heartbeat)}\n\n".encode())
+            self.wfile.flush()
             time.sleep(0.4)
+
+    def _redact(self, value: Any) -> Any:
+        if isinstance(value, dict):
+            return {
+                k: ("[REDACTED]" if re.search(r"token|secret|key|cookie|authorization", k, re.I) else self._redact(v))
+                for k, v in value.items()
+            }
+        if isinstance(value, str):
+            return re.sub(r"(?i)(bearer\s+)[a-z0-9._\-]+|sk-[a-z0-9._\-]+", "[REDACTED]", value)
+        return value
+
+    def _validate_finding_patch(self, payload: dict[str, Any]) -> dict[str, Any]:
+        allowed = {"open", "triaged", "in_progress", "accepted_risk", "false_positive", "fixed", "wont_fix"}
+        status = payload.get("status")
+        if status and status not in allowed:
+            raise ValueError("invalid finding status")
+        if status == "false_positive" and not payload.get("false_positive_reason"):
+            raise ValueError("false_positive requires a reason")
+        if status == "accepted_risk" and not payload.get("accepted_risk_reason"):
+            raise ValueError("accepted_risk requires a reason")
+        return self._redact(payload)
+
+    def _handle_finding_get(self, parts: list[str], principal: AuthPrincipal, job: PersistedScanJob) -> None:
+        if not _can_view_job(principal, job):
+            self._forbidden()
+            return
+        if not hasattr(JOB_STORE, "list_findings"):
+            self._send_json({"findings": job.summary.get("findings", [])})
+            return
+        if len(parts) == 4:
+            self._send_json({"findings": JOB_STORE.list_findings(job.id)})
+            return
+        finding_id = parts[4]
+        findings = JOB_STORE.list_findings(job.id)
+        finding = next((f for f in findings if str(f.get("id") or f.get("owasp_id")) == finding_id), None)
+        if not finding:
+            self._send_error_response(HTTPStatus.NOT_FOUND, "finding not found")
+            return
+        if len(parts) == 5:
+            self._send_json({"finding": finding})
+            return
+        if len(parts) == 6 and parts[5] == "history":
+            self._send_json({"history": JOB_STORE.finding_history(job.id, finding_id)})
+            return
+        self.send_error(HTTPStatus.NOT_FOUND, "Finding resource not found")
+
+    def _do_PATCH_routes(self, path: str, client_ip: str, request_id: str) -> None:
+        clean_path = urlparse(path).path
+        principal = self._require_principal(client_ip, "PATCH", clean_path, request_id)
+        if not principal or not self._check_rate_limit(principal, client_ip):
+            return
+        if not _validate_csrf(self._session_key(principal), self.headers.get("X-CSRF-Token")):
+            self._send_error_response(HTTPStatus.FORBIDDEN, "invalid or missing CSRF token")
+            return
+        parts = [unquote(item) for item in clean_path.split("/") if item]
+        if len(parts) == 5 and parts[:2] == ["api", "scans"] and parts[3] == "findings":
+            job = JOB_STORE.get(parts[2])
+            if not job:
+                self._send_error_response(HTTPStatus.NOT_FOUND, "scan not found")
+                return
+            if not _can_view_job(principal, job):
+                self._forbidden()
+                return
+            updated = JOB_STORE.update_finding(
+                job.id, parts[4], self._validate_finding_patch(self._read_json()), principal.username
+            )
+            if not updated:
+                self._send_error_response(HTTPStatus.NOT_FOUND, "finding not found")
+                return
+            _audit_structured(
+                "finding_mutation",
+                principal,
+                request_id,
+                client_ip,
+                "PATCH",
+                clean_path,
+                200,
+                f"scan={job.id} finding={parts[4]}",
+            )
+            self._send_json({"finding_state": updated})
+            return
+        self.send_error(HTTPStatus.NOT_FOUND, "Not found")
 
     def _serve_static(self, relative_path: str) -> None:
         safe_relative = Path(relative_path)
@@ -740,7 +959,9 @@ def _rate_limit_cleanup_loop() -> None:
 
 
 def main() -> None:
-    logging.basicConfig(level=os.getenv("VULNORAIQ_LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    logging.basicConfig(
+        level=os.getenv("VULNORAIQ_LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(name)s %(message)s"
+    )
     audit_handler = logging.StreamHandler()
     audit_handler.setLevel(logging.INFO)
     audit_handler.setFormatter(logging.Formatter("%(asctime)s AUDIT %(message)s"))

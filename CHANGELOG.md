@@ -111,3 +111,10 @@ All notable changes to this project will be documented in this file.
 - RAG, agent, payload, reporting, dashboard, and CI scaffolding.
 - Safe demo target and unit tests.
 - Policy-as-code and MITRE ATLAS mapping documentation.
+
+## Unreleased
+
+- Implemented authenticated persisted SSE scan events, WebUI live progress consumption, and persisted finding remediation/history APIs.
+- Added full 32-test OWASP AI Testing Guide manifest, `owasp-aitg-full` profile, runtime execution path, and CI validator.
+- Added approved real-environment GenAI target templates, adapter interfaces, validation controls, and redaction tests.
+- Added independent assurance evidence bundle generator, validator, and review checklist without claiming completed external assurance.

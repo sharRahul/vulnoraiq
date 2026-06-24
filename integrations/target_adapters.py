@@ -229,3 +229,32 @@ def connectivity_check(name: str, cfg: dict[str, Any]) -> dict[str, Any]:
     prompt = str(cfg.get("health_prompt", "Health check: reply with OK."))
     result = invoke_target(name, cfg, prompt)
     return {"target_id": name, "ready": result.ok and bool(result.answer), "normalized_response": result.answer[:500], "status_code": result.status_code, "error": result.error, "request": result.request, "response_preview": redact(result.response.get("body")) if result.response else None}
+
+class LLMTargetAdapter(RealTargetClient):
+    """Minimal OpenAI-compatible LLM target adapter."""
+
+class RAGTargetAdapter(RealTargetClient):
+    """Minimal RAG endpoint target adapter."""
+
+class AgentTargetAdapter(RealTargetClient):
+    """Minimal agent framework endpoint target adapter."""
+
+class GatewayTargetAdapter(RealTargetClient):
+    """Minimal provider gateway target adapter."""
+
+
+def validate_real_environment_config(name: str, raw: dict[str, Any]) -> dict[str, Any]:
+    cfg = normalize_target_config(name, raw)
+    if not cfg.get("explicit_authorisation") and not cfg.get("authorised"):
+        raise ValueError("real-environment targets require explicit_authorisation: true")
+    if cfg.get("dry_run", True) is not True and not cfg.get("allow_live_requests"):
+        raise ValueError("dry-run is the default; set allow_live_requests only for approved internal validation")
+    validate_url(cfg)
+    if not cfg.get("allowed_hosts") and not cfg.get("allowed_host_pattern") and not _load_safety_profile(str(cfg.get("safety_profile", ""))).get("allowed_hosts"):
+        raise ValueError("target allow-list or allowed_host_pattern is required")
+    if not cfg.get("rate_limit"):
+        raise ValueError("rate_limit is required")
+    for key in ("api_key", "token", "password", "authorization"):
+        if key in {str(k).lower() for k in cfg}:
+            raise ValueError("credentials must be referenced through environment variables, not inline values")
+    return cfg

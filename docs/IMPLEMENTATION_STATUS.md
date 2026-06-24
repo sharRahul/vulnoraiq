@@ -53,14 +53,14 @@ This document separates current implemented capability from future assurance and
 
 | Area | Status |
 | --- | --- |
-| WebUI live progress | SSE `/api/scans/{id}/events` backend remains future work for live streaming in the React console. |
-| WebUI finding mutations | Persisted finding remediation/status APIs remain future work. |
+| WebUI live progress | SSE `/api/scans/{id}/events` backend is implemented with persisted events and React live progress consumption. |
+| WebUI finding mutations | Persisted finding remediation/status APIs, audit history, and React actions are implemented. |
 | WebUI assistant chat | Assistant backend API remains future work. |
-| Full OWASP AI Testing Guide | Current foundation profile exists; full 32-test AITG implementation is planned. |
-| Real-world GenAI assurance | Current harness uses safe synthetic scenarios and controlled validation; approved-environment validation remains future work. |
+| Full OWASP AI Testing Guide | Full 32-test AITG manifest, validator, and `owasp-aitg-full` profile are implemented for safe synthetic coverage. |
+| Real-world GenAI assurance | Current harness uses safe synthetic scenarios and controlled validation; approved-environment validation support is implemented with explicit authorisation, allow-list, dry-run defaults, target templates, redaction, and local fake-target CI coverage. |
 | Enterprise identity | Trusted proxy identity exists; direct OIDC/JWT remains future work. |
 | Release packaging | Release-only packages are documented; signed/notarised/native installers remain future work. |
-| Independent assurance | External review of VulnoraIQ itself remains future work. |
+| Independent assurance | Independent assurance workflow, checklist, and evidence bundle generation are implemented; external independent review remains required before stronger assurance claims. |
 
 ## Safe usage summary
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import builtins
 import json
 import os
 import sqlite3
@@ -18,6 +19,10 @@ class PersistedScanEvent:
     message: str
     progress: int
     level: str = "info"
+    event_id: int = 0
+    type: str = "phase_started"
+    phase: str | None = None
+    data: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
@@ -39,7 +44,47 @@ class PersistedScanJob:
 
     def add_event(self, stage: str, message: str, progress: int, level: str = "info") -> None:
         self.progress = progress
-        self.events.append(PersistedScanEvent(datetime.now(timezone.utc).isoformat(), stage, message, progress, level))
+        etype = {
+            "queued": "scan_queued",
+            "initialising": "scan_started",
+            "target_validation": "target_validated",
+            "completed": "scan_completed",
+            "failed": "scan_failed",
+            "finding": "finding_created",
+            "evidence": "evidence_saved",
+            "report": "report_written",
+        }.get(
+            stage,
+            stage
+            if stage
+            in {
+                "scan_queued",
+                "scan_started",
+                "target_validated",
+                "phase_started",
+                "check_started",
+                "check_completed",
+                "finding_created",
+                "evidence_saved",
+                "report_written",
+                "scan_completed",
+                "scan_failed",
+                "heartbeat",
+            }
+            else "phase_started",
+        )
+        self.events.append(
+            PersistedScanEvent(
+                datetime.now(timezone.utc).isoformat(),
+                stage,
+                message,
+                progress,
+                level,
+                type=etype,
+                phase=stage,
+                data={},
+            )
+        )
 
     def to_dict(self, include_events: bool = True) -> dict[str, Any]:
         data = asdict(self)
@@ -58,17 +103,25 @@ class PersistedScanJob:
 class JobStore(Protocol):
     """Storage interface for scan job persistence."""
 
-    def create(self, target: str, profile: str, authorised: bool, created_by: str = "anonymous") -> PersistedScanJob:
-        ...
+    def create(
+        self, target: str, profile: str, authorised: bool, created_by: str = "anonymous"
+    ) -> PersistedScanJob: ...
 
-    def get(self, job_id: str) -> PersistedScanJob | None:
-        ...
+    def get(self, job_id: str) -> PersistedScanJob | None: ...
 
-    def list(self) -> list[PersistedScanJob]:
-        ...
+    def list(self) -> list[PersistedScanJob]: ...
 
-    def update(self, job_id: str, fn) -> PersistedScanJob | None:
-        ...
+    def update(self, job_id: str, fn) -> PersistedScanJob | None: ...
+
+    def list_events_after(self, job_id: str, after_id: int = 0) -> builtins.list[PersistedScanEvent]: ...
+
+    def list_findings(self, scan_id: str) -> builtins.list[dict[str, Any]]: ...
+
+    def update_finding(
+        self, scan_id: str, finding_id: str, patch: dict[str, Any], actor: str
+    ) -> dict[str, Any] | None: ...
+
+    def finding_history(self, scan_id: str, finding_id: str) -> builtins.list[dict[str, Any]]: ...
 
 
 class PersistentJobStore:
@@ -107,6 +160,22 @@ class PersistentJobStore:
             self._save_all(jobs)
             return job
 
+    def list_events_after(self, job_id: str, after_id: int = 0) -> builtins.list[PersistedScanEvent]:
+        job = self.get(job_id)
+        if not job:
+            return []
+        return [event for event in job.events if event.event_id > after_id]
+
+    def list_findings(self, scan_id: str) -> builtins.list[dict[str, Any]]:
+        job = self.get(scan_id)
+        return list(job.summary.get("findings") or []) if job else []
+
+    def update_finding(self, scan_id: str, finding_id: str, patch: dict[str, Any], actor: str) -> dict[str, Any] | None:
+        return None
+
+    def finding_history(self, scan_id: str, finding_id: str) -> builtins.list[dict[str, Any]]:
+        return []
+
     def _load_all(self) -> dict[str, PersistedScanJob]:
         if not self.path.exists():
             return {}
@@ -123,7 +192,7 @@ class PersistentJobStore:
 class SqliteJobStore:
     """SQLite-backed scan job store for production use."""
 
-    SCHEMA_VERSION = 1
+    SCHEMA_VERSION = 2
 
     def __init__(self, path: str | Path = "reports/output/webui/jobs.db") -> None:
         self.path = Path(path)
@@ -161,11 +230,48 @@ class SqliteJobStore:
                 stage TEXT NOT NULL,
                 message TEXT NOT NULL,
                 progress INTEGER NOT NULL DEFAULT 0,
-                level TEXT NOT NULL DEFAULT 'info'
+                level TEXT NOT NULL DEFAULT 'info',
+                type TEXT NOT NULL DEFAULT 'phase_started',
+                phase TEXT,
+                data TEXT NOT NULL DEFAULT '{}'
+            );
+            CREATE TABLE IF NOT EXISTS finding_states (
+                scan_id TEXT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+                finding_id TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'open',
+                severity TEXT,
+                triage_state TEXT,
+                owner TEXT,
+                remediation_note TEXT,
+                due_date TEXT,
+                false_positive_reason TEXT,
+                accepted_risk_reason TEXT,
+                updated_at TEXT NOT NULL,
+                updated_by TEXT NOT NULL,
+                PRIMARY KEY (scan_id, finding_id)
+            );
+            CREATE TABLE IF NOT EXISTS finding_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                scan_id TEXT NOT NULL,
+                finding_id TEXT NOT NULL,
+                previous_state TEXT NOT NULL DEFAULT '{}',
+                new_state TEXT NOT NULL DEFAULT '{}',
+                actor TEXT NOT NULL,
+                timestamp TEXT NOT NULL,
+                note TEXT
             );
             CREATE INDEX IF NOT EXISTS idx_events_job_id ON events(job_id);
             CREATE INDEX IF NOT EXISTS idx_jobs_created_at ON jobs(created_at);
         """)
+        for stmt in (
+            "ALTER TABLE events ADD COLUMN type TEXT NOT NULL DEFAULT 'phase_started'",
+            "ALTER TABLE events ADD COLUMN phase TEXT",
+            "ALTER TABLE events ADD COLUMN data TEXT NOT NULL DEFAULT '{}'",
+        ):
+            try:
+                self._conn.execute(stmt)
+            except sqlite3.OperationalError:
+                pass
         self._conn.commit()
         self._ensure_schema_version()
 
@@ -211,9 +317,17 @@ class SqliteJobStore:
                created_at, started_at, completed_at, error, outputs, summary)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
-                job.id, job.target, job.profile, int(job.authorised), job.created_by,
-                job.status, job.progress, job.created_at, job.started_at,
-                job.completed_at, job.error,
+                job.id,
+                job.target,
+                job.profile,
+                int(job.authorised),
+                job.created_by,
+                job.status,
+                job.progress,
+                job.created_at,
+                job.started_at,
+                job.completed_at,
+                job.error,
                 json.dumps(job.outputs, sort_keys=True),
                 json.dumps(job.summary, default=str, sort_keys=True),
             ),
@@ -227,7 +341,11 @@ class SqliteJobStore:
             """UPDATE jobs SET status=?, progress=?, started_at=?, completed_at=?, error=?,
                outputs=?, summary=? WHERE id=?""",
             (
-                job.status, job.progress, job.started_at, job.completed_at, job.error,
+                job.status,
+                job.progress,
+                job.started_at,
+                job.completed_at,
+                job.error,
                 json.dumps(job.outputs, sort_keys=True),
                 json.dumps(job.summary, default=str, sort_keys=True),
                 job.id,
@@ -240,13 +358,23 @@ class SqliteJobStore:
 
     def _insert_event(self, job_id: str, ev: PersistedScanEvent) -> None:
         self._conn.execute(
-            "INSERT INTO events (job_id, timestamp, stage, message, progress, level) VALUES (?, ?, ?, ?, ?, ?)",
-            (job_id, ev.timestamp, ev.stage, ev.message, ev.progress, ev.level),
+            "INSERT INTO events (job_id, timestamp, stage, message, progress, level, type, phase, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                job_id,
+                ev.timestamp,
+                ev.stage,
+                ev.message,
+                ev.progress,
+                ev.level,
+                ev.type,
+                ev.phase,
+                json.dumps(ev.data, sort_keys=True),
+            ),
         )
 
     def _row_to_job(self, row: sqlite3.Row) -> PersistedScanJob:
         events = self._conn.execute(
-            "SELECT timestamp, stage, message, progress, level FROM events WHERE job_id = ? ORDER BY id",
+            "SELECT id as event_id, timestamp, stage, message, progress, level, type, phase, data FROM events WHERE job_id = ? ORDER BY id",
             (row["id"],),
         ).fetchall()
         return PersistedScanJob(
@@ -261,10 +389,92 @@ class SqliteJobStore:
             started_at=row["started_at"],
             completed_at=row["completed_at"],
             error=row["error"],
-            events=[PersistedScanEvent(**dict(ev)) for ev in events],
+            events=[
+                PersistedScanEvent(**{**dict(ev), "data": json.loads(dict(ev).get("data") or "{}")}) for ev in events
+            ],
             outputs=json.loads(row["outputs"] or "{}"),
             summary=json.loads(row["summary"] or "{}"),
         )
+
+    def list_events_after(self, job_id: str, after_id: int = 0) -> builtins.list[PersistedScanEvent]:
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT id as event_id, timestamp, stage, message, progress, level, type, phase, data FROM events WHERE job_id = ? AND id > ? ORDER BY id",
+                (job_id, after_id),
+            ).fetchall()
+            return [
+                PersistedScanEvent(**{**dict(row), "data": json.loads(dict(row).get("data") or "{}")}) for row in rows
+            ]
+
+    def list_findings(self, scan_id: str) -> builtins.list[dict[str, Any]]:
+        job = self.get(scan_id)
+        if not job:
+            return []
+        findings = list(job.summary.get("findings") or [])
+        states = {
+            r["finding_id"]: dict(r)
+            for r in self._conn.execute("SELECT * FROM finding_states WHERE scan_id=?", (scan_id,)).fetchall()
+        }
+        for idx, finding in enumerate(findings):
+            fid = str(finding.get("id") or finding.get("owasp_id") or f"finding-{idx + 1}")
+            finding.setdefault("id", fid)
+            state = states.get(fid)
+            if state:
+                finding["remediation_state"] = state
+                finding["status"] = state["status"]
+        return findings
+
+    def update_finding(self, scan_id: str, finding_id: str, patch: dict[str, Any], actor: str) -> dict[str, Any] | None:
+        if not any(str(f.get("id") or f.get("owasp_id")) == finding_id for f in self.list_findings(scan_id)):
+            return None
+        now = datetime.now(timezone.utc).isoformat()
+        prev = self._conn.execute(
+            "SELECT * FROM finding_states WHERE scan_id=? AND finding_id=?", (scan_id, finding_id)
+        ).fetchone()
+        previous = dict(prev) if prev else {"status": "open"}
+        defaults = {
+            "status": "open",
+            "severity": None,
+            "triage_state": None,
+            "owner": None,
+            "remediation_note": None,
+            "due_date": None,
+            "false_positive_reason": None,
+            "accepted_risk_reason": None,
+        }
+        new = {
+            **defaults,
+            **previous,
+            **{k: v for k, v in patch.items() if k in defaults},
+            "scan_id": scan_id,
+            "finding_id": finding_id,
+            "updated_at": now,
+            "updated_by": actor,
+        }
+        self._conn.execute(
+            """INSERT OR REPLACE INTO finding_states (scan_id,finding_id,status,severity,triage_state,owner,remediation_note,due_date,false_positive_reason,accepted_risk_reason,updated_at,updated_by) VALUES (:scan_id,:finding_id,:status,:severity,:triage_state,:owner,:remediation_note,:due_date,:false_positive_reason,:accepted_risk_reason,:updated_at,:updated_by)""",
+            new,
+        )
+        self._conn.execute(
+            "INSERT INTO finding_history (scan_id,finding_id,previous_state,new_state,actor,timestamp,note) VALUES (?,?,?,?,?,?,?)",
+            (
+                scan_id,
+                finding_id,
+                json.dumps(previous, sort_keys=True, default=str),
+                json.dumps(new, sort_keys=True, default=str),
+                actor,
+                now,
+                str(patch.get("note") or patch.get("remediation_note") or "")[:500],
+            ),
+        )
+        self._conn.commit()
+        return new
+
+    def finding_history(self, scan_id: str, finding_id: str) -> builtins.list[dict[str, Any]]:
+        rows = self._conn.execute(
+            "SELECT * FROM finding_history WHERE scan_id=? AND finding_id=? ORDER BY id", (scan_id, finding_id)
+        ).fetchall()
+        return [dict(r) for r in rows]
 
 
 def create_job_store() -> JobStore:

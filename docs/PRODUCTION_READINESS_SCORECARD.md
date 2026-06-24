@@ -68,3 +68,7 @@ Do not describe VulnoraIQ as:
 - safe to use against systems without written authorisation;
 - a replacement for independent penetration testing;
 - horizontally scalable production SaaS.
+
+## 2026-06-24 high-priority workflow update
+
+Implemented workflow support now covers authenticated SSE scan progress, persisted WebUI finding actions, full 32-test AITG manifest/profile validation, approved-environment GenAI target templates and validation controls, and independent assurance bundle generation. The project still does not claim certified or completed external independent assurance.

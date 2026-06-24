@@ -1,0 +1,19 @@
+target:
+  name: PLACEHOLDER_INTERNAL_TARGET
+  type: chat_completions
+  base_url: http://localhost:8080
+  endpoint_path: /v1/chat/completions
+  token_env_var: VULNORAIQ_TARGET_TOKEN
+  explicit_authorisation: true
+  dry_run: true
+  allow_live_requests: false
+  allowed_host_pattern: "localhost|*.internal"
+  rate_limit:
+    requests_per_second: 1
+  timeout: 15
+  safety_profile: local_lab_safe
+  data_handling_notes: "Approved internal validation only; redact secrets and minimise retained prompts."
+  evidence_redaction:
+    redact_headers: [Authorization, Cookie, X-API-Key]
+    redact_body_patterns: ["Bearer [A-Za-z0-9._-]+", "sk-[A-Za-z0-9._-]+"]
+  example_test_profile: owasp-aitg-full
