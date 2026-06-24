@@ -25,6 +25,8 @@ All notable changes to this project will be documented in this file.
 - Quick-start guidance for stopping the Web UI in foreground, background, launcher, Docker, and Docker Compose runs.
 - Docker-first AI-agent lab with deterministic mock agent, Docker target config, safety profile, and smoke tooling.
 - React target-management workspace with target search/filtering, readiness metrics, validation, authorisation checklist, scan creation controls, and recent job refresh.
+- WebUI assistant backend API with CSRF-protected chat requests, server-side model controls, and React model/temperature/instruction controls.
+- Expanded real-environment target templates for Anthropic Claude, Google Gemini, Cohere, Ollama, vLLM, LocalAI, Pinecone/LangChain RAG, LangGraph, CrewAI, LiteLLM, Portkey, and AWS Bedrock gateway patterns.
 
 ### Changed
 
@@ -37,6 +39,7 @@ All notable changes to this project will be documented in this file.
 - README, docs index, deployment guide, security policy, implementation status, readiness scorecard, backlog, release checklist, assurance, runbook, incident response, GenAI readiness plan, and Agentic Applications readiness plan were aligned to the same product positioning and completion vocabulary.
 - Local standalone launcher mode is documented as a loopback-only convenience path, separate from the hardened hosted/production `vulnoraiq-web` path.
 - WebUI docs now identify the React console as the supported UI and mark the legacy static console direction as superseded.
+- `vulnoraiq-web` now starts the assistant-enabled hosted WebUI wrapper.
 
 ### Fixed
 
@@ -98,23 +101,3 @@ All notable changes to this project will be documented in this file.
 - JSON job store backend is legacy/dev only; SQLite is default.
 - File-based auth is disabled in production mode.
 - `VULNORAIQ_ADMIN_TOKEN` is required in production.
-- Minimum Python 3.10 required.
-- `VULNORAIQ_AUTH_MODE=token` is default; set to `trusted_proxy` for proxy-based identity.
-
-## [0.1.0] - 2026-05-13
-
-### Added
-
-- Initial repository scaffold.
-- OWASP LLM Top 10 2025-aligned module structure.
-- Core scanner, runner, orchestrator, risk scoring, and results engine.
-- RAG, agent, payload, reporting, dashboard, and CI scaffolding.
-- Safe demo target and unit tests.
-- Policy-as-code and MITRE ATLAS mapping documentation.
-
-## Unreleased
-
-- Implemented authenticated persisted SSE scan events, WebUI live progress consumption, and persisted finding remediation/history APIs.
-- Added full 32-test OWASP AI Testing Guide manifest, `owasp-aitg-full` profile, runtime execution path, and CI validator.
-- Added approved real-environment GenAI target templates, adapter interfaces, validation controls, and redaction tests.
-- Added independent assurance evidence bundle generator, validator, and review checklist without claiming completed external assurance.
