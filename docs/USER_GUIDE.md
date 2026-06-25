@@ -9,7 +9,7 @@ Use one of these supported paths:
 | Path | Best for | Start command |
 | --- | --- | --- |
 | Desktop Mode | Recommended laptop/workstation use | `launch-vulnoraiq-webui.bat`, `.command`, or `.sh` |
-| Docker Lab Mode | Servers, VMs, CI, reproducible dev labs | `launch-vulnoraiq-docker-lab.*` or `docker compose up -d` |
+| Docker GUI lab / Docker Lab Mode | Servers, VMs, CI, reproducible dev labs | `launch-vulnoraiq-docker-lab.*` or `docker compose up -d` |
 | Python package/source checkout | CLI and local WebUI development | `vulnoraiq-web --host 127.0.0.1 --port 8787` |
 | Internal server | Shared controlled environment | production config validation plus reverse proxy/TLS/auth |
 
