@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 
 import yaml
@@ -15,8 +16,19 @@ from reports.report_generator import MarkdownReportGenerator
 from reports.sarif_report_generator import SarifReportGenerator
 
 
+def _fixture_mode_enabled() -> bool:
+    return os.getenv("VULNORAIQ_ALLOW_TEST_FIXTURE_TARGETS", "false").strip().lower() in ("1", "true", "yes")
+
+
+def _ensure_test_target_config_for_fixture_scan(target_name: str) -> None:
+    if _fixture_mode_enabled() and target_name == "demo" and not os.getenv("VULNORAIQ_TARGET_CONFIG"):
+        os.environ["VULNORAIQ_TARGET_CONFIG"] = "targets.test.yaml"
+
+
 def _load_targets() -> dict:
-    path = Path(__import__("os").getenv("VULNORAIQ_CONFIG_DIR", "config")) / __import__("os").getenv("VULNORAIQ_TARGET_CONFIG", "targets.yaml")
+    config_dir = Path(os.getenv("VULNORAIQ_CONFIG_DIR", "config"))
+    target_config = os.getenv("VULNORAIQ_TARGET_CONFIG", "targets.yaml")
+    path = config_dir / target_config
     return (yaml.safe_load(path.read_text(encoding="utf-8")) or {}).get("targets", {})
 
 
@@ -44,7 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
 def add_scan_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--target", required=True, help="Target name from your config/targets.yaml (required). No default target is provided.")
     parser.add_argument("--profile", default="baseline", help="Assessment profile from config/attack_profiles.yaml. Default: baseline")
-    outroot = __import__("os").getenv("VULNORAIQ_WEB_OUTPUT_ROOT", "reports/output")
+    outroot = os.getenv("VULNORAIQ_WEB_OUTPUT_ROOT", "reports/output")
     parser.add_argument("--output", default=str(Path(outroot) / "scan-report.md"), help="Markdown report output path.")
     parser.add_argument("--json-output", default=str(Path(outroot) / "scan-report.json"), help="Structured JSON report output path.")
     parser.add_argument("--sarif-output", default=str(Path(outroot) / "scan-report.sarif"), help="SARIF-style report output path.")
@@ -54,7 +66,8 @@ def add_scan_args(parser: argparse.ArgumentParser) -> None:
 
 
 def run_scan(args: argparse.Namespace) -> None:
-    scanner = Scanner(config_dir=Path(__import__("os").getenv("VULNORAIQ_CONFIG_DIR", "config")))
+    _ensure_test_target_config_for_fixture_scan(args.target)
+    scanner = Scanner(config_dir=Path(os.getenv("VULNORAIQ_CONFIG_DIR", "config")))
     result = scanner.scan(target_name=args.target, profile_name=args.profile, authorised=args.authorised)
     markdown_output = MarkdownReportGenerator().generate(result, args.output)
     json_output = JsonReportGenerator().generate(result, args.json_output)
@@ -79,7 +92,7 @@ def main() -> None:
             print(json.dumps(connectivity_check(args.target, targets[args.target]), indent=2, default=str))
             return
     if args.command == "reports":
-        root = Path(__import__("os").getenv("VULNORAIQ_WEB_OUTPUT_ROOT", "reports/output"))
+        root = Path(os.getenv("VULNORAIQ_WEB_OUTPUT_ROOT", "reports/output"))
         for path in sorted(root.rglob("*")):
             if path.is_file() and path.suffix in {".md", ".json", ".sarif", ".html"}:
                 print(path)
