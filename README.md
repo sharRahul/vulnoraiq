@@ -2,7 +2,7 @@
 
 **VulnoraIQ** is a self-hosted AI security testing application for authorised assessment of LLM applications, RAG systems, AI agents, and orchestration layers.
 
-It provides a browser WebUI, CLI, Agent Lab, target configuration, scan execution, evidence capture, reports, audit logs, and CI validation workflows. Findings are **assessment evidence for human review**; VulnoraIQ does not claim certified VAPT-grade assurance. See [`docs/ASSESSMENT_ASSURANCE.md`](docs/ASSESSMENT_ASSURANCE.md).
+VulnoraIQ is a **self-hosted internal application** for controlled **laptop/server** AI security testing. It provides a browser WebUI, CLI, Agent Lab, target configuration, scan execution, evidence capture, reports, audit logs, and CI validation workflows. Findings are **assessment evidence for human review**; VulnoraIQ does not claim certified VAPT-grade assurance. See [`docs/ASSESSMENT_ASSURANCE.md`](docs/ASSESSMENT_ASSURANCE.md).
 
 ## Product direction
 
@@ -43,11 +43,11 @@ User clicks launcher
 
 | Run path | Requirements |
 | --- | --- |
-| Desktop Mode from source/package | Docker Desktop or compatible Docker Engine with Docker Compose v2, Python 3.10+, internet access for first dependency/image builds, and a modern browser. |
-| Advanced Docker Lab / Docker GUI lab | Docker Desktop or compatible Docker Engine with Docker Compose v2, internet access for first image/dependency builds, and a modern browser. |
+| Desktop Mode from source/package | Docker Engine or Docker Desktop with Docker Compose v2, Python 3.10 or newer, internet access for first dependency/image builds, and a modern browser. |
+| Advanced Docker Lab / Docker GUI lab | Docker Engine or Docker Desktop with Docker Compose v2, internet access for first image/dependency builds, and a modern browser. |
 | Agent Lab GPU mode | Host GPU container support. Agent Lab passes Docker GPU runtime flags; it does not install host GPU drivers. |
 | Local Ollama / LM Studio | Provider running on the host. Agent containers reach host providers through `host.docker.internal` where supported/configured. |
-| Development tests | Python 3.10+, Node.js 20+, npm, and Playwright browser dependencies. |
+| Development tests | Python 3.10 or newer, Node.js 20 or newer, npm, Playwright browser dependencies, and a modern browser. |
 
 **Packaging note:** Desktop Mode currently requires Python when running from a source checkout or source-style release package. The next packaging phase should bundle/freeze the runtime so normal users only need Docker Desktop plus the downloaded VulnoraIQ package.
 
