@@ -75,9 +75,9 @@ def analyze_project(name: str) -> dict[str, Any]:
     all_source = "\n".join(source_map.values())
 
     # detect framework
-    for fw, patterns in FRAMEWORK_PATTERNS.items():
-        for pat in patterns:
-            if pat in all_source:
+    for fw, keywords in FRAMEWORK_PATTERNS.items():
+        for keyword in keywords:
+            if keyword in all_source:
                 result["framework"] = fw
                 break
         if result["framework"]:
@@ -95,8 +95,8 @@ def analyze_project(name: str) -> dict[str, Any]:
         re.compile(r'\.listen\((\d+)\)'),
     ]
     seen_ports: set[int] = set()
-    for pat in port_patterns:
-        for m in pat.finditer(all_source):
+    for port_pat in port_patterns:
+        for m in port_pat.finditer(all_source):
             try:
                 p = int(m.group(1))
                 if 1024 <= p <= 65535 and p not in seen_ports:
@@ -124,8 +124,8 @@ def analyze_project(name: str) -> dict[str, Any]:
 
     # detect endpoints
     fw_endpoint_patterns = ENDPOINT_PATTERNS.get(result.get("framework", ""), [])
-    for pat in fw_endpoint_patterns:
-        for m in pat.finditer(all_source):
+    for ep_pat in fw_endpoint_patterns:
+        for m in ep_pat.finditer(all_source):
             groups = m.groups()
             if len(groups) == 2:
                 verb, path = groups
@@ -172,17 +172,18 @@ def analyze_project(name: str) -> dict[str, Any]:
 
 
 def _call_name(node: ast.Call) -> str | None:
-    if isinstance(node.func, ast.Attribute):
-        parts = []
-        cur = node.func
+    func = node.func
+    if isinstance(func, ast.Attribute):
+        parts: list[str] = []
+        cur: ast.expr = func
         while isinstance(cur, ast.Attribute):
             parts.append(cur.attr)
             cur = cur.value
         if isinstance(cur, ast.Name):
             parts.append(cur.id)
         return ".".join(reversed(parts))
-    if isinstance(node.func, ast.Name):
-        return node.func.id
+    if isinstance(func, ast.Name):
+        return func.id
     return None
 
 

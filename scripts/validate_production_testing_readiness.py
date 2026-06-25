@@ -46,7 +46,7 @@ class ProductionTestingReadinessValidator:
             self._check_owasp_oracle_coverage(),
             self._check_production_owasp_detection(),
             self._check_non_demo_authorisation_gate(),
-            self._check_authorised_demo_full_profile(),
+            self._check_unknown_target_rejection(),
             self._check_ci_lint_type_check(),
             self._check_legacy_server_absent(),
             self._check_auth_defaults_enabled(),
@@ -119,7 +119,7 @@ class ProductionTestingReadinessValidator:
         )
 
     def _check_authorised_demo_full_profile(self) -> ReadinessCheck:
-        result = Scanner().scan(target_name="demo", profile_name="full", authorised=False)
+        result = Scanner().scan(target_name="demo", profile_name="full", authorised=True)
         detector_meta = result.metadata.get("production_owasp_detection", {})
         failures = []
         for finding in result.findings:
@@ -131,6 +131,15 @@ class ProductionTestingReadinessValidator:
             "authorised_demo_full_profile", status, "Demo full-profile scan exercised OWASP detector categories.",
             {"finding_count": result.finding_count, "detector_meta": detector_meta, "failures": failures},
         )
+
+    def _check_unknown_target_rejection(self) -> ReadinessCheck:
+        try:
+            Scanner().scan(target_name="nonexistent", profile_name="baseline", authorised=True)
+            return ReadinessCheck("unknown_target_rejection", "fail", "Scanner accepted unknown target.", {})
+        except ValueError:
+            return ReadinessCheck("unknown_target_rejection", "pass", "Scanner correctly rejects unknown targets.", {})
+        except Exception as exc:
+            return ReadinessCheck("unknown_target_rejection", "fail", f"Scanner raised unexpected error: {exc}", {})
 
     def _check_ci_lint_type_check(self) -> ReadinessCheck:
         ci_yml = Path(".github/workflows/ci.yml")
