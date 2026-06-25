@@ -20,7 +20,7 @@ def _fixture_targets_allowed() -> bool:
     return os.getenv("VULNORAIQ_ALLOW_TEST_FIXTURE_TARGETS", "false").strip().lower() in ("1", "true", "yes")
 
 
-class TestFixtureTargetClient:
+class TestFixtureTargetClient(TargetClient):
     """Deterministic target used only when test fixture targets are explicitly enabled."""
 
     name: str
