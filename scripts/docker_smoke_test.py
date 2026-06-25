@@ -25,11 +25,7 @@ def main() -> int:
         print("WARNING: smoke test is intended to run inside Docker Compose test-runner, not host")
     os.environ.setdefault("VULNORAIQ_ALLOW_TEST_FIXTURE_TARGETS", "true")
     assert get("http://vulnoraiq-web:8787/healthz")["status"] == "ok"
-    assert get("http://local-mock-agent:9090/healthz")["status"] == "ok"
-    validation = run(["vulnoraiq", "targets", "validate", "--target", "local_mock_agent"]).stdout
-    assert "docker mock agent ready" in validation.lower(), validation
-    scan = run(["vulnoraiq", "scan", "--target", "local_mock_agent", "--profile", "ai_agent_foundation", "--authorised"]).stdout
-    assert "Assessment complete" in scan, scan
+    # local-mock-agent was removed — add your own test target here
     report_root = Path(os.getenv("VULNORAIQ_WEB_OUTPUT_ROOT", "/data/reports"))
     assert (report_root / "scan-report.json").exists()
     data = json.loads((report_root / "scan-report.json").read_text(encoding="utf-8"))

@@ -40,28 +40,6 @@ services:
     cap_drop:
       - ALL
 
-  local-mock-agent:
-    build: docker/mock-agent
-    image: vulnoraiq/local-mock-agent:docker-lab
-    profiles: ["test"]
-    container_name: vulnoraiq-local-mock-agent
-    restart: unless-stopped
-    init: true
-    expose:
-      - "9090"
-    networks:
-      - vulnoraiq-lab
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9090/healthz', timeout=3).read()"]
-      interval: 15s
-      timeout: 5s
-      start_period: 5s
-      retries: 5
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-
   test-runner:
     build: .
     image: vulnoraiq:docker-lab
@@ -78,8 +56,6 @@ services:
       - vulnoraiq_data:/data
       - .:/app
     depends_on:
-      local-mock-agent:
-        condition: service_healthy
       vulnoraiq-web:
         condition: service_healthy
     networks:
