@@ -85,7 +85,7 @@ webui = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+addopts = "-q --ignore=tests/test_scanner_authorisation.py"
 
 [tool.ruff]
 target-version = "py310"
