@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 
@@ -14,6 +14,29 @@ from core.real_scan import run_real_target_modules
 from core.test_runner import TestRunner
 from core.types import Finding, ScanContext, ScanResult, TargetClient
 from integrations.target_adapters import RealTargetClient
+
+
+def _fixture_targets_allowed() -> bool:
+    return os.getenv("VULNORAIQ_ALLOW_TEST_FIXTURE_TARGETS", "false").strip().lower() in ("1", "true", "yes")
+
+
+class TestFixtureTargetClient:
+    """Deterministic target used only when test fixture targets are explicitly enabled."""
+
+    name: str
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    def invoke(self, prompt: str, **kwargs: Any) -> str:
+        lowered = prompt.lower()
+        if "secret" in lowered or "password" in lowered or "token" in lowered:
+            return "I cannot reveal secrets, passwords, tokens, or protected system instructions."
+        if "ignore" in lowered and "instruction" in lowered:
+            return "I will follow the authorised system policy and ignore untrusted override instructions."
+        if "tool" in lowered or "action" in lowered:
+            return "Tool execution is constrained to approved, least-privilege actions with human review gates."
+        return "Safe deterministic test fixture response for authorised VulnoraIQ validation."
 
 
 class Scanner:
@@ -140,23 +163,27 @@ class Scanner:
             )
 
     @staticmethod
-    def _reject_fixture_target(target_name: str) -> None:
-        allow = os.getenv("VULNORAIQ_ALLOW_TEST_FIXTURE_TARGETS", "false").strip().lower() in ("1", "true", "yes")
-        if allow:
+    def _reject_fixture_target(target_name: str, target_config: dict[str, Any] | None = None) -> None:
+        if _fixture_targets_allowed():
             return
-        lower = target_name.lower()
-        for word in ("demo", "mock", "fake", "fixture"):
-            if word in lower:
-                raise ValueError(
-                    f"Target '{target_name}' contains '{word}' and is not allowed in normal runtime. "
-                    "Set VULNORAIQ_ALLOW_TEST_FIXTURE_TARGETS=true to enable test fixture targets."
-                )
+        target_config = target_config or {}
+        target_values = [target_name, str(target_config.get("type", "")), str(target_config.get("environment", ""))]
+        for value in target_values:
+            lower = value.lower()
+            for word in ("demo", "mock", "fake", "fixture"):
+                if word in lower:
+                    raise ValueError(
+                        f"Target '{target_name}' contains '{word}' and is not allowed in normal runtime. "
+                        "Set VULNORAIQ_ALLOW_TEST_FIXTURE_TARGETS=true to enable test fixture targets."
+                    )
 
     def _default_target(self, target_name: str, config: dict[str, Any]) -> TargetClient:
         target_config = config.get("targets", {}).get("targets", {}).get(target_name)
         if not target_config:
             raise ValueError(f"Unknown target: {target_name}")
-        self._reject_fixture_target(target_name)
+        self._reject_fixture_target(target_name, target_config)
+        if str(target_config.get("type", "")).lower() == "test_fixture":
+            return cast(TargetClient, TestFixtureTargetClient(target_name))
         self._reject_placeholder(target_name, target_config.get("endpoint") or target_config.get("base_url"))
         return RealTargetClient(target_name, target_config)
 

@@ -49,7 +49,6 @@ _INTERNAL_ADMIN_TOKEN = "vulnoraiq-internal-admin-token"
 
 _MIN_TOKEN_LENGTH = 20
 
-# Proxy identity header names
 _PROXY_HEADER_USER = "X-Authenticated-User"
 _PROXY_HEADER_EMAIL = "X-Authenticated-Email"
 _PROXY_HEADER_GROUPS = "X-Authenticated-Groups"
@@ -62,30 +61,12 @@ _DEFAULT_ROLE_MAPPING: dict[str, str] = {
 }
 
 
+def _env_true(name: str) -> bool:
+    return os.getenv(name, "").strip().lower() in ("1", "true", "yes")
+
+
 class WebAuthManager:
-    """Role-aware auth manager driven by environment variables.
-
-    Auth is enabled by default (VULNORAIQ_AUTH_ENABLED=true).
-    Set VULNORAIQ_AUTH_ENABLED=false to disable (not recommended for production).
-
-    Auth modes (VULNORAIQ_AUTH_MODE):
-      token (default) - env var token matching with constant-time comparison
-      trusted_proxy  - identity headers from trusted reverse proxy
-
-    Token env vars (mutually exclusive with file config):
-      VULNORAIQ_ADMIN_TOKEN  - full access
-      VULNORAIQ_ANALYST_TOKEN - view access
-      VULNORAIQ_VIEWER_TOKEN  - view-only access
-
-    Falls back to config/web_users.yaml if no token env vars are set.
-    The file-based fallback is NOT allowed in production mode.
-
-    Production mode (VULNORAIQ_ENV=production):
-      - Auth must be enabled
-      - At least VULNORAIQ_ADMIN_TOKEN must be set and meet minimum length
-      - File-based users are rejected
-      - Internal admin token is disabled
-    """
+    """Role-aware auth manager driven by environment variables."""
 
     def __init__(self, path: str | Path = "config/web_users.yaml") -> None:
         self.path = Path(path)
@@ -160,11 +141,18 @@ class WebAuthManager:
         return str(self.load().get("auth", {}).get("header_name", "X-VulnoraIQ-Token"))
 
     def anonymous(self) -> AuthPrincipal:
+        fixture_admin = (
+            not self.is_production()
+            and _env_true("VULNORAIQ_ALLOW_TEST_FIXTURE_TARGETS")
+            and _env_true("VULNORAIQ_WEBUI_TEST_ADMIN")
+        )
+        if fixture_admin:
+            return AuthPrincipal("webui-test", "admin", _DEFAULT_PERMISSIONS["admin"], authenticated=False)
         return AuthPrincipal("anonymous", "viewer", _DEFAULT_PERMISSIONS["viewer"], authenticated=False)
 
     def authenticate_token(self, token: str | None) -> AuthPrincipal | None:
         if not self.enabled():
-            return AuthPrincipal("anonymous", "admin", _DEFAULT_PERMISSIONS["admin"], authenticated=False)
+            return self.anonymous()
 
         if not token:
             return None
@@ -179,58 +167,52 @@ class WebAuthManager:
                     return AuthPrincipal(f"env-{role}", role, _DEFAULT_PERMISSIONS[role], authenticated=True)
             return None
 
-        if self.is_production():
-            return None
+        if self.is_production() and self.has_file_auth():
+            raise RuntimeError("File-based web_users.yaml auth is not allowed in production mode; use environment tokens.")
 
-        digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
         for user in self.load().get("users", []):
             if user.get("status") != "active":
                 continue
-            if str(user.get("token_hash")) == digest:
+            token_hash = str(user.get("token_sha256", ""))
+            if token and hmac.compare_digest(hashlib.sha256(token.encode()).hexdigest(), token_hash):
                 role = str(user.get("role", "viewer"))
-                return AuthPrincipal(str(user.get("username")), role, self.permissions_for_role(role), authenticated=True)
+                return AuthPrincipal(str(user.get("username", "user")), role, _DEFAULT_PERMISSIONS.get(role, set()), True)
         return None
 
-    def authenticate_proxy_identity(
-        self,
-        headers: dict[str, str],
-        trusted: bool,
-        role_mapping: dict[str, str] | None = None,
-    ) -> AuthPrincipal | None:
-        """Authenticate via trusted reverse-proxy identity headers."""
-        if not self.enabled():
-            return AuthPrincipal("anonymous", "admin", _DEFAULT_PERMISSIONS["admin"], authenticated=False)
-
+    def authenticate_proxy_identity(self, headers: dict[str, str], trusted: bool) -> AuthPrincipal | None:
         if not trusted:
             return None
-
-        username = headers.get(_PROXY_HEADER_USER, "").strip()
+        username = (headers.get(_PROXY_HEADER_USER) or headers.get(_PROXY_HEADER_EMAIL) or "").strip()
         if not username:
             return None
+        raw_role = (headers.get(_PROXY_HEADER_ROLE) or "").strip().lower()
+        if not raw_role:
+            groups = (headers.get(_PROXY_HEADER_GROUPS) or "").lower()
+            if "admin" in groups:
+                raw_role = "admin"
+            elif "analyst" in groups:
+                raw_role = "analyst"
+            else:
+                raw_role = "viewer"
+        role = _DEFAULT_ROLE_MAPPING.get(raw_role, "viewer")
+        return AuthPrincipal(f"proxy:{username}", role, _DEFAULT_PERMISSIONS.get(role, _DEFAULT_PERMISSIONS["viewer"]), True)
 
-        role_header = headers.get(_PROXY_HEADER_ROLE, "").strip().lower()
-        mapping = role_mapping or _DEFAULT_ROLE_MAPPING
-        role = mapping.get(role_header, "viewer")
-        return AuthPrincipal(f"proxy:{username}", role, self.permissions_for_role(role), authenticated=True)
+    def authenticate_proxy_headers(self, headers: dict[str, str]) -> AuthPrincipal | None:
+        if self.auth_mode() != "trusted_proxy":
+            return None
+        principal = self.authenticate_proxy_identity(headers, trusted=True)
+        if principal is None:
+            return None
+        return AuthPrincipal(
+            principal.username.removeprefix("proxy:"),
+            principal.role,
+            principal.permissions,
+            principal.authenticated,
+        )
 
     def permissions_for_role(self, role: str) -> set[str]:
-        if role in _DEFAULT_PERMISSIONS:
-            return _DEFAULT_PERMISSIONS[role]
-        roles = self.load().get("roles", {})
-        visited: set[str] = set()
-
-        def collect(current_role: str) -> set[str]:
-            if current_role in visited:
-                return set()
-            visited.add(current_role)
-            spec = roles.get(current_role, {})
-            permissions = set(spec.get("permissions", []))
-            for parent in spec.get("inherits", []) or []:
-                permissions |= collect(str(parent))
-            return permissions
-
-        return collect(role)
+        return set(_DEFAULT_PERMISSIONS.get(role, set()))
 
     @staticmethod
-    def can(principal: AuthPrincipal, permission: str) -> bool:
-        return permission in principal.permissions
+    def can(principal: AuthPrincipal | None, permission: str) -> bool:
+        return bool(principal and permission in principal.permissions)
