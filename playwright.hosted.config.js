@@ -24,6 +24,8 @@ module.exports = defineConfig({
     timeout: 45_000,
     env: {
       ...process.env,
+      VULNORAIQ_ALLOW_TEST_FIXTURE_TARGETS: 'true',
+      VULNORAIQ_TARGET_CONFIG: 'targets.test.yaml',
       VULNORAIQ_AUTH_ENABLED: 'false',
       VULNORAIQ_WEB_OUTPUT_ROOT: 'reports/output/webui-hosted-playwright',
       VULNORAIQ_JOB_STORE_PATH: 'reports/output/webui-hosted-playwright/jobs.db',
