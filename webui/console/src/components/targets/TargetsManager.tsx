@@ -421,13 +421,13 @@ function Toggle({ checked, onChange, title, body, icon }: { checked: boolean; on
     <button type="button" onClick={() => onChange(!checked)} className={cn("rounded-xl border p-3 text-left shadow-card", checked ? "border-primary bg-muted" : "border-border bg-card")}>
       <span className="ui-title-row font-bold"><span className="ui-icon">{icon}</span><span className="break-anywhere">{title}</span></span>
       <span className="mt-1 block text-xs text-muted-foreground">{body}</span>
-      <span className="mt-3 inline-flex rounded px-2 py-1 text-xs font-bold" style={{ background: checked ? "var(--accent-sage)" : "var(--muted)" }}>{checked ? "Enabled" : "Disabled"}</span>
+      <span className={cn("mt-3 inline-flex rounded px-2 py-1 text-xs font-bold", checked ? "text-[#1b2110]" : "text-muted-foreground")} style={{ background: checked ? "var(--accent-sage)" : "var(--muted)" }}>{checked ? "Enabled" : "Disabled"}</span>
     </button>
   );
 }
 
 function Warning({ title, body, danger = false }: { title: string; body: string; danger?: boolean }) {
-  return <div className={cn("mt-4 rounded-lg border p-3 text-sm", danger ? "border-[var(--sev-high)] bg-[var(--sev-high)]/10" : "border-[var(--sev-medium)] bg-[var(--sev-medium)]/10")}><p className="ui-title-row font-bold"><AlertTriangle className="size-4 shrink-0" /> <span>{title}</span></p><p className="mt-1 break-anywhere text-muted-foreground">{body}</p></div>;
+  return <div className={cn("mt-4 rounded-lg border p-3 text-sm", danger ? "border-[var(--sev-high)] bg-[var(--sev-high)]/10" : "border-[var(--sev-medium)] bg-[var(--sev-medium)]/10")}><p className="ui-title-row font-bold"><AlertTriangle className={cn("size-4 shrink-0", danger ? "text-[var(--sev-high)]" : "text-[var(--sev-medium)]")} /> <span>{title}</span></p><p className="mt-1 break-anywhere text-muted-foreground">{body}</p></div>;
 }
 
 function Metric({ label, value }: { label: string; value: number }) {

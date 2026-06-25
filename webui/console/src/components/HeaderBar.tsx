@@ -98,7 +98,7 @@ export function HeaderBar({
           <span
             className={cn(
               "size-1.5 shrink-0 rounded-full",
-              scanning ? "animate-pulse bg-[var(--accent-sage)]" : "bg-muted-foreground/50",
+              scanning ? "animate-pulse bg-[var(--accent-sage)]" : "bg-muted-foreground opacity-50",
             )}
           />
           <span className="truncate">{scanLabel}</span>

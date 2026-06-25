@@ -158,7 +158,7 @@ export function AgentHost() {
             </div>
             <Button variant="secondary" onClick={() => void loadAgents()} className="shrink-0"><RefreshCw /> <span>Refresh</span></Button>
           </div>
-          {error ? <div className="mt-4 rounded-lg border border-[var(--sev-high)] bg-[var(--sev-high)]/10 p-3 text-sm"><p className="ui-title-row font-bold"><AlertTriangle className="size-4 shrink-0" /> <span>{error}</span></p></div> : null}
+          {error ? <div className="mt-4 rounded-lg border border-[var(--sev-high)] bg-[var(--sev-high)]/10 p-3 text-sm"><p className="ui-title-row font-bold"><AlertTriangle className="size-4 shrink-0 text-[var(--sev-high)]" /> <span>{error}</span></p></div> : null}
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(300px,400px)]">
