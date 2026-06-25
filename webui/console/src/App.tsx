@@ -11,6 +11,7 @@ import { AssetNavigationPane } from "@/components/navigation/AssetNavigationPane
 import { AnalysisWorkspace } from "@/components/workspace/AnalysisWorkspace";
 import { IntelligencePanel } from "@/components/intelligence/IntelligencePanel";
 import { AgentHost } from "@/components/agents/AgentHost";
+import { ProjectImporter } from "@/components/projects/ProjectImporter";
 import { TargetsManager } from "@/components/targets/TargetsManager";
 import { useTheme } from "@/hooks/useTheme";
 import { emptyDashboardMetrics, emptySeverityDistribution, emptyTrendData } from "@/data/cleanState";
@@ -299,7 +300,7 @@ function ConsoleInner() {
 
   return (
     <AppShell view={view} onChangeView={setView} theme={theme} onToggleTheme={toggleTheme} scanning={scanning} scanStatusLabel={scanPhase} scanProgressPercent={scanProgressPercent} scanFindingCount={liveFindingCount} scanDisabled={configuredTargetIds.length === 0} onToggleScan={handleToggleScan}>
-      {view === "agents" ? <AgentHost /> : view === "targets" ? <TargetsManager /> : view === "overview" ? (
+      {view === "projects" ? <ProjectImporter /> : view === "agents" ? <AgentHost /> : view === "targets" ? <TargetsManager /> : view === "overview" ? (
         <div className="h-full overflow-y-auto scrollbar-thin p-4 sm:p-6">
           <div className="mx-auto max-w-[1400px]">
             <DashboardOverview metrics={metrics} trend={emptyTrendData} distribution={runtimeFindings.length ? distribution : emptySeverityDistribution} loading={dashboardLoading} />

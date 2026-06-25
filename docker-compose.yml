@@ -24,6 +24,7 @@ services:
       - vulnoraiq_data:/data
       - ./config:/app/config:ro
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./projects:/app/projects:ro
     group_add:
       - "999"  # docker group id; allows docker CLI to use the socket
     networks:

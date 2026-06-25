@@ -3,7 +3,7 @@
 templates:
   vulnerable-chatbot:
     display_name: Vulnerable AI Chatbot
-    description: Intentional vulnerable chatbot with prompt injection and command injection weaknesses (port 5000 + 7000). Build first: docker build -t vulnerable-chatbot path/to/Vulnerable-AI-Chatbot-main
+    description: "Intentional vulnerable chatbot with prompt injection and command injection weaknesses (port 5000 + 7000). Build first: docker build -t vulnerable-chatbot path/to/Vulnerable-AI-Chatbot-main"
     image: vulnerable-chatbot
     ports:
       - "5000:5000"

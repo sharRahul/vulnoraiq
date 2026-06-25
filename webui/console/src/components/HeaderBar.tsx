@@ -1,5 +1,6 @@
 import {
   Cpu,
+  FolderOpen,
   LayoutDashboard,
   Loader2,
   Moon,
@@ -12,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export type ConsoleView = "overview" | "workspace" | "targets" | "agents";
+export type ConsoleView = "overview" | "workspace" | "targets" | "agents" | "projects";
 
 interface HeaderBarProps {
   view: ConsoleView;
@@ -83,6 +84,12 @@ export function HeaderBar({
           onClick={() => onChangeView("agents")}
           icon={<Cpu className="size-4" />}
           label="Agents"
+        />
+        <ViewTab
+          active={view === "projects"}
+          onClick={() => onChangeView("projects")}
+          icon={<FolderOpen className="size-4" />}
+          label="Projects"
         />
       </nav>
 

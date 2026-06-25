@@ -28,10 +28,11 @@ from integrations.target_adapters import connectivity_check
 from reports.json_report_generator import JsonReportGenerator
 from reports.report_generator import MarkdownReportGenerator
 from reports.sarif_report_generator import SarifReportGenerator
-from webui.agent_host import agent_logs, deploy_agent, get_agent, list_agents, list_templates, remove_agent, start_agent, stop_agent, template_targets
+from webui.agent_host import _run_docker, agent_logs, deploy_agent, get_agent, list_agents, list_templates, remove_agent, start_agent, stop_agent, template_targets
 from webui.auth import AuthPrincipal, WebAuthManager
 from webui.persistent_jobs import JobStore, PersistedScanJob, create_job_store
 from webui.production_checks import validate_all
+from webui.project_analyzer import analyze_project, generate_dockerfile, list_projects
 
 LOGGER = logging.getLogger("vulnoraiq.webui")
 AUDIT_LOG = logging.getLogger("vulnoraiq.audit")
@@ -582,6 +583,20 @@ class HostedWebUiHandler(BaseHTTPRequestHandler):
             template_key = parts[2]
             self._send_json({"template": list_templates().get(template_key, {})})
             return
+        if clean_path == "/api/projects":
+            self._send_json({"projects": list_projects()})
+            return
+        if clean_path.startswith("/api/projects/") and clean_path.endswith("/analyze"):
+            parts = [unquote(item) for item in clean_path.split("/") if item]
+            project_name = parts[2]
+            self._send_json(analyze_project(project_name))
+            return
+        if clean_path.startswith("/api/projects/") and clean_path.endswith("/dockerfile"):
+            parts = [unquote(item) for item in clean_path.split("/") if item]
+            project_name = parts[2]
+            df = generate_dockerfile(project_name)
+            self._send_json({"dockerfile": df or "", "exists": df is not None})
+            return
         if clean_path == "/api/config":
             cfg = load_config()
             if not AUTH_MANAGER.can(principal, "manage_runtime"):
@@ -699,6 +714,81 @@ class HostedWebUiHandler(BaseHTTPRequestHandler):
                 self._send_error_response(HTTPStatus.BAD_REQUEST, f"unknown action: {action}")
                 return
             self._send_json({"ok": ok, "agent_id": agent_id, "action": action})
+            return
+        if clean_path == "/api/projects/deploy":
+            if not _validate_csrf(self._session_key(principal), self.headers.get("X-CSRF-Token")):
+                self._send_error_response(HTTPStatus.FORBIDDEN, "invalid or missing CSRF token")
+                return
+            if not AUTH_MANAGER.can(principal, "manage_runtime"):
+                self._forbidden()
+                return
+            payload = self._read_json()
+            project_name = str(payload.get("project", "")).strip()
+            env = payload.get("env") or {}
+            if not project_name:
+                self._send_error_response(HTTPStatus.BAD_REQUEST, "project name is required")
+                return
+            from webui.project_analyzer import PROJECTS_ROOT, analyze_project
+            import subprocess
+            proj_path = PROJECTS_ROOT / project_name
+            if not proj_path.exists():
+                self._send_error_response(HTTPStatus.NOT_FOUND, f"project '{project_name}' not found")
+                return
+            project_info = analyze_project(project_name)
+            df_path = proj_path / "Dockerfile"
+            if not df_path.exists():
+                df_content = generate_dockerfile(project_name)
+                if not df_content:
+                    self._send_error_response(HTTPStatus.BAD_REQUEST, "cannot generate Dockerfile for this project")
+                    return
+                df_path.write_text(df_content, encoding="utf-8")
+            image_tag = f"vulnoraiq-project-{project_name}".lower().replace("_", "-")
+            ports = project_info.get("ports", [5000])
+            try:
+                _run_docker(["build", "-t", image_tag, str(proj_path)])
+            except RuntimeError as exc:
+                self._send_error_response(HTTPStatus.INTERNAL_SERVER_ERROR, f"build failed: {exc}")
+                return
+            container_name = f"vulnoraiq-agent-{project_name}"
+            try:
+                _run_docker(["rm", "-f", container_name])
+            except RuntimeError:
+                pass
+            port_flags = []
+            for p in ports:
+                port_flags += ["-p", f"{p}:{p}"]
+            env_flags = []
+            for k, v in env.items():
+                if v:
+                    env_flags += ["-e", f"{k}={v}"]
+            cmd = ["run", "-d", "--name", container_name, "--label", "vulnoraiq.agent=project-deploy", "--label", f"vulnoraiq.agent.id={project_name}", "--network", "vulnoraiq_vulnoraiq-lab", "--restart", "unless-stopped"] + port_flags + env_flags + ["-v", f"{proj_path}:/app:ro", image_tag]
+            try:
+                container_id, _ = _run_docker(cmd)
+            except RuntimeError:
+                raise
+            for ep in project_info.get("endpoints", []):
+                endpoint_path = ep.get("path", "/")
+                param_key = ep.get("param_key", "prompt")
+                method = ep.get("method", "GET")
+                target_id = f"{project_name}-{ep['method'].lower()}-{endpoint_path.replace('/', '_').strip('_') or 'root'}"
+                request_body = {param_key: "{{prompt}}"} if method == "POST" else None
+                cfg = {
+                    "name": f"{project_name} {ep['method']} {endpoint_path}",
+                    "type": "http_json",
+                    "base_url": f"http://{container_name}:{ports[0]}",
+                    "endpoint_path": endpoint_path,
+                    "method": method,
+                    "request_body_template": request_body or {},
+                    "response_extraction_path": "",
+                    "authorisation_required": True,
+                    "environment": "lab",
+                    "safety_profile": "local_lab_safe",
+                }
+                try:
+                    _save_runtime_target(target_id, cfg)
+                except ValueError:
+                    pass
+            self._send_json({"container_id": container_id, "agent_id": project_name, "name": container_name, "status": "deployed", "ports": ports, "endpoints": project_info.get("endpoints", [])})
             return
         parts = [unquote(item) for item in clean_path.split("/") if item]
         if len(parts) == 6 and parts[:2] == ["api", "scans"] and parts[3] == "findings" and parts[5] == "actions":
