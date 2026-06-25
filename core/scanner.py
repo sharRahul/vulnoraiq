@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 
@@ -20,7 +20,7 @@ def _fixture_targets_allowed() -> bool:
     return os.getenv("VULNORAIQ_ALLOW_TEST_FIXTURE_TARGETS", "false").strip().lower() in ("1", "true", "yes")
 
 
-class TestFixtureTargetClient(TargetClient):
+class TestFixtureTargetClient:
     """Deterministic target used only when test fixture targets are explicitly enabled."""
 
     name: str
@@ -183,7 +183,7 @@ class Scanner:
             raise ValueError(f"Unknown target: {target_name}")
         self._reject_fixture_target(target_name, target_config)
         if str(target_config.get("type", "")).lower() == "test_fixture":
-            return TestFixtureTargetClient(target_name)
+            return cast(TargetClient, TestFixtureTargetClient(target_name))
         self._reject_placeholder(target_name, target_config.get("endpoint") or target_config.get("base_url"))
         return RealTargetClient(target_name, target_config)
 
