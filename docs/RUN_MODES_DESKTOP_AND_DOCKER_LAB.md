@@ -21,7 +21,9 @@ User clicks native launcher
   -> Browser opens http://127.0.0.1:8787
   -> User opens Agent Lab
   -> User imports/selects a real AI-agent project
-  -> VulnoraIQ stores it under ./agent-lab/projects/
+       - preferred: Local folder upload from the browser
+       - alternatives: ZIP upload, Git import, or mapped ./projects/<agent-name>/ refresh
+  -> VulnoraIQ stores WebUI imports under ./agent-lab/projects/
   -> User configures API key, local LLM, remote LLM, CPU/GPU runtime
   -> VulnoraIQ uses Docker only to build/run the imported agent
   -> VulnoraIQ auto-creates a target for the running agent
@@ -40,7 +42,11 @@ User starts Docker Lab launcher or manual Docker Compose
   -> Browser opens http://127.0.0.1:8787
   -> User opens Agent Lab
   -> User imports/selects a real AI-agent project
-  -> VulnoraIQ stores it under /data/agent_lab/projects
+       - Local folder upload from the browser
+       - ZIP upload
+       - Git import
+       - mapped ./projects/<agent-name>/ through /app/projects
+  -> VulnoraIQ stores WebUI imports under /data/agent_lab/projects
   -> User configures API key, local LLM, remote LLM, CPU/GPU runtime
   -> vulnoraiq-web uses Docker to build/run the imported agent
   -> VulnoraIQ auto-creates a target for the running agent
@@ -63,15 +69,23 @@ scan-reports/
   exports/
 
 agent-lab/
-  projects/
+  projects/          # managed WebUI imports: folder upload, ZIP upload, Git import
   deployments.yaml
+
+projects/            # optional mapped AI-agent folders for refresh-only discovery
+  <agent-name>/
 ```
+
+Normal desktop users should prefer **Local folder upload** from the WebUI. That flow lets the browser select a local source folder and upload the selected files into `agent-lab/projects/`. The backend never receives permission to browse arbitrary local paths.
+
+The `projects/` folder is still useful when an operator wants persistent host-visible projects that appear after Agent Lab refresh. Mapped projects are treated as read-only by Agent Lab.
 
 Docker Lab Mode may keep using `/data`, but should optionally support host-visible bind mounts later:
 
 ```text
 ./scan-reports:/data/reports-visible or equivalent mapped output
 ./agent-lab:/data/agent_lab
+./projects:/app/projects:ro
 ```
 
 ## Runtime responsibilities
@@ -79,6 +93,8 @@ Docker Lab Mode may keep using `/data`, but should optionally support host-visib
 | Responsibility | Desktop Mode | Docker Lab Mode |
 | --- | --- | --- |
 | Start WebUI | Host process | Compose service |
+| Managed Agent Lab imports | `./agent-lab/projects/` | `/data/agent_lab/projects/` |
+| Optional mapped projects | `./projects/` | `/app/projects` from `./projects:/app/projects:ro` |
 | Build imported agent | Host Docker CLI/API | Docker CLI/API from `vulnoraiq-web` |
 | Run imported agent | Docker container | Docker container |
 | Scan target | Host VulnoraIQ scanner | Containerised VulnoraIQ scanner |
@@ -91,7 +107,8 @@ Docker Lab Mode may keep using `/data`, but should optionally support host-visib
 ### Phase 1: repo/source mode foundation
 
 - Add a native desktop launcher script that runs VulnoraIQ on the host.
-- Set Desktop Mode environment variables for `scan-reports/` and `agent-lab/`.
+- Set Desktop Mode environment variables for `scan-reports/`, `agent-lab/`, and optional mapped `projects/`.
+- Support WebUI local folder upload into managed Agent Lab storage.
 - Keep Docker Lab launchers available as explicit advanced launchers.
 - Make Agent Lab create/use a desktop Docker network when running from host.
 - Make Agent Lab auto-created targets use `127.0.0.1:<port>` in Desktop Mode and container DNS in Docker Lab Mode.
@@ -114,6 +131,7 @@ Docker Lab Mode may keep using `/data`, but should optionally support host-visib
 ## Security notes
 
 - Imported agents remain untrusted and must run in Docker containers by default.
+- Local folder upload sends only files explicitly selected by the operator; it does not give the backend arbitrary filesystem access.
 - API keys configured for imported agents should be injected into the agent runtime only and redacted from stored metadata.
 - Desktop Mode should keep the WebUI on `127.0.0.1`.
 - Docker Lab Mode must remain loopback-only unless deployed behind production auth, TLS, reverse proxy controls, audit retention, and backups.
