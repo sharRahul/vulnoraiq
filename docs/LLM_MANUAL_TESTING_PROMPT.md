@@ -15,7 +15,7 @@ Core behaviours to verify:
 1. Desktop Mode
    - VulnoraIQ WebUI runs natively on the host.
    - The WebUI binds to 127.0.0.1:8787.
-   - Desktop Mode creates scan-reports/ and agent-lab/.
+   - Desktop Mode creates scan-reports/, agent-lab/, agent-lab/projects/, and projects/.
    - Desktop Mode does not create a vulnoraiq-web Docker container.
    - Docker is used only for sandboxed Agent Lab runtimes or local test runtimes.
 
@@ -24,6 +24,7 @@ Core behaviours to verify:
    - The host-published port is loopback-only.
    - The container is healthy.
    - CLI commands work inside the container.
+   - The Docker Lab mapped ./projects folder is mounted read-only into /app/projects.
 
 3. Auth mode boundary
    - Local single-user/admin mode uses VULNORAIQ_AUTH_MODE=local_admin.
@@ -40,8 +41,14 @@ Core behaviours to verify:
    - Browser console and network tabs do not show repeated unexpected errors.
    - Dark mode and light mode do not have major icon, contrast, or overlapping-text issues.
 
-5. Agent Lab
-   - Import/build/deploy/remove a safe local test agent if possible.
+5. Agent Lab import and project-folder behaviour
+   - The Agent Lab import panel shows Git URL, ZIP upload, Local folder upload, and Mapped folder options.
+   - Local folder upload lets the tester select a local agent source folder through the browser and imports it into managed Agent Lab storage.
+   - The browser-mediated folder upload must not require the backend to read an arbitrary raw local filesystem path.
+   - Desktop Mode creates ./projects/ for optional mapped projects.
+   - A project placed at ./projects/<agent-name>/ appears after Mapped folder > Refresh Projects.
+   - Managed imports are writable and may have Dockerfiles generated for supported Python/Node projects.
+   - Mapped projects are read-only; if a mapped project has no Dockerfile, deployment must fail with a clear actionable message or require importing/copying into managed Agent Lab.
    - Auto-created targets are reachable in the correct mode.
    - Agent Lab remains clearly experimental and does not run untrusted third-party code.
 
@@ -56,10 +63,11 @@ Core behaviours to verify:
    - Missing CSRF token on mutating API fails closed.
    - Wrong production token fails closed.
    - Oversized or rate-limited requests do not crash the server.
+   - Unsafe archive paths or invalid project IDs are rejected.
 
 Testing rules:
 
-- Start by recording OS, Python, pip, Docker, Docker Compose, Node/npm, branch, and commit SHA.
+- Start by recording OS, browser, Python, pip, Docker, Docker Compose, Node/npm, branch, and commit SHA.
 - Start from a clean working tree where possible.
 - Do not test against third-party systems.
 - Do not make destructive changes outside the repository workspace, Docker containers, and Docker volumes created for this test.
@@ -72,17 +80,18 @@ Testing rules:
 Execution order:
 
 1. Read docs/MANUAL_TEST_PLAN.md completely.
-2. Capture environment details.
+2. Capture environment details, including browser and Docker Desktop/Engine status.
 3. Run install/static validation.
 4. Inspect documentation consistency.
 5. Execute Desktop Mode tests.
 6. Execute Docker Lab tests.
 7. Execute auth/security-boundary tests.
 8. Execute WebUI visual/functional tests.
-9. Execute safe scan workflow tests.
-10. Execute Agent Lab tests where environment permits.
-11. Execute persistence and release package tests.
-12. Produce a final manual test report using the template in docs/MANUAL_TEST_PLAN.md.
+9. Execute Agent Lab import tests, including Local folder upload and mapped ./projects refresh.
+10. Execute Agent Lab build/deploy/target tests where environment permits.
+11. Execute safe scan workflow tests.
+12. Execute persistence and release package tests.
+13. Produce a final manual test report using the template in docs/MANUAL_TEST_PLAN.md.
 
 Final output requirements:
 
@@ -97,5 +106,5 @@ Final output requirements:
 ## Optional shorter prompt
 
 ```text
-Read docs/MANUAL_TEST_PLAN.md in this repository and execute it as a strict manual QA/security regression pass. Verify Desktop Mode, Docker Lab Mode, VULNORAIQ_AUTH_MODE=local_admin, production token auth, WebUI pages, Agent Lab, safe scans, reports, persistence, UI layout/dark mode, and release packaging. Do not test third-party systems. Do not hide failures or invent results. Produce a Markdown report using the template in docs/MANUAL_TEST_PLAN.md, with PASS/FAIL/SKIPPED for each test ID and full defect details for every failure.
+Read docs/MANUAL_TEST_PLAN.md in this repository and execute it as a strict manual QA/security regression pass. Verify Desktop Mode, Docker Lab Mode, VULNORAIQ_AUTH_MODE=local_admin, production token auth, WebUI pages, Agent Lab Local folder upload, ZIP upload, Git import, mapped ./projects refresh, managed-vs-mapped project behaviour, safe scans, reports, persistence, UI layout/dark mode, and release packaging. Do not test third-party systems. Do not hide failures or invent results. Produce a Markdown report using the template in docs/MANUAL_TEST_PLAN.md, with PASS/FAIL/SKIPPED for each test ID and full defect details for every failure.
 ```

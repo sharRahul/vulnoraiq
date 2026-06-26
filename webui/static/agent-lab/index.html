@@ -14,7 +14,7 @@
         <div>
           <p class="eyebrow">Experimental Agent Lab</p>
           <h1>Import, configure, run, register, and test real AI agents</h1>
-          <p class="lede">Use Git import, ZIP upload, or mapped project folders. Configure Ollama, LM Studio, OpenRouter, or custom OpenAI-compatible providers, then run the agent in Docker with optional GPU access and auto-create VulnoraIQ scan targets.</p>
+          <p class="lede">Use Git import, ZIP upload, local folder upload, or mapped project folders. Configure Ollama, LM Studio, OpenRouter, or custom OpenAI-compatible providers, then run the agent in Docker with optional GPU access and auto-create VulnoraIQ scan targets.</p>
         </div>
         <div class="hero-actions">
           <a href="/" class="button secondary">Main Console</a>
@@ -31,6 +31,7 @@
           <div class="tabs" role="tablist">
             <button class="tab active" data-tab="git">Git URL</button>
             <button class="tab" data-tab="zip">ZIP upload</button>
+            <button class="tab" data-tab="folder">Local folder upload</button>
             <button class="tab" data-tab="mounted">Mapped folder</button>
           </div>
 
@@ -47,15 +48,23 @@
             <button class="button" type="submit">Upload ZIP</button>
           </form>
 
+          <form id="folder-form" class="tab-panel">
+            <label>Project ID <span class="optional">optional; defaults to selected folder name</span><input id="folder-project-id" placeholder="agent-name" /></label>
+            <label>Local agent folder<input id="folder-files" type="file" webkitdirectory directory multiple required /></label>
+            <p class="muted">Select a local AI-agent source folder. The browser uploads it into managed Agent Lab storage under <code>./agent-lab/projects/</code>; VulnoraIQ never receives a raw local filesystem path.</p>
+            <button class="button" type="submit">Upload Selected Folder</button>
+          </form>
+
           <div id="mounted-panel" class="tab-panel">
-            <p class="muted">Place a real project directory in <code>./projects/</code> on the host. It is mounted read-only in Docker and appears below after refresh. If it has no Dockerfile, import it into the managed Agent Lab first or add a Dockerfile.</p>
+            <p class="muted">Desktop Mode creates <code>./projects/</code> beside the launcher. Place a real AI agent in <code>./projects/&lt;agent-name&gt;/</code>, then refresh. Managed imports live in <code>./agent-lab/projects/</code>.</p>
+            <p class="muted">Mapped projects are read-only. If a mapped project has no Dockerfile, either add one to that folder or upload/import it into managed Agent Lab so VulnoraIQ can generate one.</p>
             <button id="refresh-mounted" class="button secondary" type="button">Refresh Projects</button>
           </div>
         </article>
 
         <article class="card">
           <h2>2. Select Project</h2>
-          <input id="project-filter" placeholder="Filter imported/mounted projects…" />
+          <input id="project-filter" placeholder="Filter imported/mapped projects…" />
           <div id="project-list" class="list"></div>
         </article>
       </section>
