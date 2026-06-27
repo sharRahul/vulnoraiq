@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CveMetadataCard } from "./CveMetadataCard";
 import { CweDescriptionCard } from "./CweDescriptionCard";
 import { IntelligenceMappingCard } from "./IntelligenceMappingCard";
-import { AskVulnorAIQChat } from "./AskVulnorAIQChat";
+import { AskVulnoraIQChat } from "./AskVulnoraIQChat";
 
 export function IntelligencePanel({ finding }: { finding: Finding }) {
   return (
@@ -17,7 +17,7 @@ export function IntelligencePanel({ finding }: { finding: Finding }) {
           </TabsTrigger>
           <TabsTrigger value="chat">
             <MessagesSquare className="size-3.5" />
-            Ask VulnorAIQ
+            Ask VulnoraIQ
           </TabsTrigger>
         </TabsList>
       </div>
@@ -35,7 +35,7 @@ export function IntelligencePanel({ finding }: { finding: Finding }) {
         value="chat"
         className="flex-1 overflow-hidden data-[state=inactive]:hidden"
       >
-        <AskVulnorAIQChat finding={finding} />
+        <AskVulnoraIQChat finding={finding} />
       </TabsContent>
     </Tabs>
   );

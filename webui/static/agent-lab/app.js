@@ -218,9 +218,36 @@ function renderProjects() {
   q('project-list').innerHTML =
     state.projects
       .filter((p) => !f || p.id.toLowerCase().includes(f))
-      .map((p) => `<button class="project" data-id="${p.id}"><strong>${p.id}</strong><br><span class="muted">${p.framework || 'unknown'} | ${(p.ports || []).join(',') || 'no ports'} | ${p.source}</span></button>`)
+      .map((p) => {
+        const managed = p.source !== 'mounted';
+        const del = managed
+          ? `<button class="project-delete" data-del="${p.id}" title="Delete this managed project" aria-label="Delete ${p.id}">Delete</button>`
+          : '<span class="muted project-readonly" title="Mapped projects are read-only; remove the folder from ./projects/ to delete">mapped</span>';
+        return `<div class="project-row"><button class="project" data-id="${p.id}"><strong>${p.id}</strong><br><span class="muted">${p.framework || 'unknown'} | ${(p.ports || []).join(',') || 'no ports'} | ${p.source}</span></button>${del}</div>`;
+      })
       .join('') || '<p class="muted">No projects found. Upload a local folder, upload a ZIP, import from Git, or put an AI agent in ./projects/&lt;agent-name&gt;/ and refresh.</p>';
   document.querySelectorAll('[data-id]').forEach((b) => (b.onclick = () => selectProject(b.dataset.id)));
+  document.querySelectorAll('[data-del]').forEach((b) => (b.onclick = () => deleteProject(b.dataset.del)));
+}
+
+async function deleteProject(id) {
+  if (!window.confirm(`Delete managed project '${id}'? This permanently removes its imported files from Agent Lab storage.`)) return;
+  try {
+    const data = await request('/api/agent-lab/projects/' + encodeURIComponent(id) + '/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': await token() }, body: '{}' });
+    if (data.deleted) {
+      note('Deleted project ' + id);
+      if (state.selected && state.selected.project_id === id) {
+        state.selected = null;
+        showJson('analysis', 'Select a project to analyze it.');
+        q('deploy').disabled = true;
+      }
+      await load();
+    } else {
+      note('Project ' + id + ' could not be deleted (not a managed project).', false);
+    }
+  } catch (e) {
+    note(e.message, false);
+  }
 }
 
 async function selectProject(id) {

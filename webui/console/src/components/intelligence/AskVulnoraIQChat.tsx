@@ -40,7 +40,7 @@ async function csrfToken(): Promise<string> {
   return data.csrf_token;
 }
 
-export function AskVulnorAIQChat({ finding }: { finding: Finding }) {
+export function AskVulnoraIQChat({ finding }: { finding: Finding }) {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -189,8 +189,8 @@ export function AskVulnorAIQChat({ finding }: { finding: Finding }) {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(input); } }}
             rows={1}
-            placeholder="Ask VulnorAIQ about this finding…"
-            aria-label="Ask VulnorAIQ"
+            placeholder="Ask VulnoraIQ about this finding…"
+            aria-label="Ask VulnoraIQ"
             className="max-h-28 min-h-[38px] flex-1 resize-none rounded-md border border-border bg-canvas px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
           <Button type="submit" variant="primary" size="icon" disabled={busy || !input.trim()} aria-label="Send message">

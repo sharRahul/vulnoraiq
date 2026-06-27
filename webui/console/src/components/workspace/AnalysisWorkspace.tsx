@@ -18,9 +18,7 @@ import { FindingMarkdownReader } from "./FindingMarkdownReader";
 interface AnalysisWorkspaceProps {
   finding: Finding;
   asset?: Asset;
-  applied: boolean;
   history?: FindingHistoryEntry[];
-  onApplyFix: () => void;
   onMarkForReview: () => void;
 }
 
@@ -39,13 +37,11 @@ function parseState(value: FindingHistoryEntry["new_state"]): Record<string, unk
 export function AnalysisWorkspace({
   finding,
   asset,
-  applied,
   history = [],
-  onApplyFix,
   onMarkForReview,
 }: AnalysisWorkspaceProps) {
   const [split, setSplit] = useState(true);
-  const status = statusStyles[applied ? "fixed" : finding.status];
+  const status = statusStyles[finding.status];
 
   return (
     <div className="flex h-full flex-col">
@@ -85,7 +81,7 @@ export function AnalysisWorkspace({
       <div className="flex-1 overflow-y-auto scrollbar-thin p-4">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-            Remediation View
+            Mitigation View
           </h2>
           <div className="hidden items-center gap-1 rounded-md border border-border bg-muted p-0.5 lg:flex">
             <Button
@@ -118,8 +114,6 @@ export function AnalysisWorkspace({
           <VulnerableCodeBlock block={finding.vulnerableCode} />
           <RemediatedCodeBlock
             remediation={finding.remediation}
-            applied={applied}
-            onApplyFix={onApplyFix}
             onMarkForReview={onMarkForReview}
           />
         </div>

@@ -52,7 +52,7 @@ export function HeaderBar({
         </span>
         <div className="min-w-0 leading-none">
           <p className="truncate font-sans text-sm font-extrabold tracking-tight text-foreground">
-            VulnorAIQ
+            VulnoraIQ
           </p>
           <p className="hidden truncate text-[10px] font-medium uppercase tracking-wide text-muted-foreground sm:block">
             AI Security Operations

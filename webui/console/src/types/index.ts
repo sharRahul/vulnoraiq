@@ -1,4 +1,4 @@
-// Strongly typed domain model for the VulnorAIQ SecOps console.
+// Strongly typed domain model for the VulnoraIQ SecOps console.
 
 export type Severity = "critical" | "high" | "medium" | "low" | "info";
 

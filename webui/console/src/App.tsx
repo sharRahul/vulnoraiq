@@ -290,13 +290,12 @@ function ConsoleInner() {
     }
   }
 
-  const handleApplyFix = (finding: Finding) => persistFindingState(finding, { status: "fixed", remediation_note: "Fix applied from the WebUI remediation panel.", note: "Fix applied from WebUI." });
-  const handleMarkForReview = (finding: Finding) => persistFindingState(finding, { status: "triaged", remediation_note: "Marked for reviewer validation from the WebUI remediation panel.", note: "Marked for review from WebUI." });
+  const handleMarkForReview = (finding: Finding) => persistFindingState(finding, { status: "triaged", remediation_note: "Marked for reviewer validation from the WebUI mitigation panel.", note: "Marked for review from WebUI." });
   const handleSelectFinding = (id: string) => { setSelectedFindingId(id); setView("workspace"); };
 
   const navPane = <AssetNavigationPane assets={displayAssets} findingsById={findingsById} selectedFindingId={selectedFindingId} onSelectFinding={handleSelectFinding} />;
-  const middlePane = selectedFinding ? <AnalysisWorkspace finding={selectedFinding} asset={selectedAsset} applied={selectedFinding.status === "fixed"} history={selectedFindingHistory} onApplyFix={() => handleApplyFix(selectedFinding)} onMarkForReview={() => handleMarkForReview(selectedFinding)} /> : <EmptyState icon={MousePointerSquareDashed} title="No scan finding selected" description="Run a scan or open a saved scan result. Clean workspaces show no sample findings or dummy assets." />;
-  const intelPane = selectedFinding ? <IntelligencePanel finding={selectedFinding} /> : <EmptyState icon={ScanSearch} title="No finding selected" description="Vulnerability intelligence and the Ask VulnorAIQ assistant appear here after a real backend finding is selected." />;
+  const middlePane = selectedFinding ? <AnalysisWorkspace finding={selectedFinding} asset={selectedAsset} history={selectedFindingHistory} onMarkForReview={() => handleMarkForReview(selectedFinding)} /> : <EmptyState icon={MousePointerSquareDashed} title="No scan finding selected" description="Run a scan or open a saved scan result. Clean workspaces show no sample findings or dummy assets." />;
+  const intelPane = selectedFinding ? <IntelligencePanel finding={selectedFinding} /> : <EmptyState icon={ScanSearch} title="No finding selected" description="Vulnerability intelligence and the Ask VulnoraIQ assistant appear here after a real backend finding is selected." />;
 
   return (
     <AppShell view={view} onChangeView={setView} theme={theme} onToggleTheme={toggleTheme} scanning={scanning} scanStatusLabel={scanPhase} scanProgressPercent={scanProgressPercent} scanFindingCount={liveFindingCount} scanDisabled={configuredTargetIds.length === 0} onToggleScan={handleToggleScan}>
