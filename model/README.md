@@ -15,15 +15,14 @@ python vulnoraiq/model/prepare_dataset.py
 python vulnoraiq/model/train.py
 ```
 
-The script creates `./vulnoraiq-assistant/` with:
-- `adapter/` — LoRA adapter weights (~10 MB)
-- `merged/` — Full merged model in HF format
-- `vulnoraiq-assistant-q4_k_m.gguf` — GGUF model ready for VulnoraIQ
+The script creates `./assistant-output/` with:
+- `adapter/` — LoRA adapter weights
+- `merged/` — full merged model in HF format (convert this to GGUF, see below)
 
 Test it with:
 
 ```bash
-VULNORAIQ_ASSISTANT_MODEL_PATH=./assistant-output/vulnoraiq-assistant-Q4_K_M.gguf \
+VULNORAIQ_ASSISTANT_MODEL_PATH=./assistant-output/nora-1.5b-Q6_K.gguf \
     python -c "from webui.assistant_llm import LocalAssistantModel; \
     m = LocalAssistantModel.instance(); \
     print(m.generate([{'role':'user','content':'What is prompt injection?'}], temperature=0.2, max_tokens=256))"
@@ -41,7 +40,7 @@ fabrication, grounding, safe framing, CVE-reference use), not exact text.
 python model/evaluate.py --selftest
 
 # score a model, then compare old vs new by running twice
-VULNORAIQ_ASSISTANT_MODEL_PATH=model/assistant-output/nora-0.5b-Q6_K.gguf \
+VULNORAIQ_ASSISTANT_MODEL_PATH=model/assistant-output/nora-1.5b-Q6_K.gguf \
     python model/evaluate.py
 ```
 
@@ -64,7 +63,7 @@ ids/CVSS scores. The runtime injects that reference material from:
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--base` | Qwen/Qwen2.5-0.5B-Instruct | Base model (try 1.5B or 3B for better quality) |
+| `--base` | Qwen/Qwen2.5-1.5B-Instruct | Base model (0.5B = smaller/faster, 3B = best quality; stay in the Qwen family to keep the ChatML template) |
 | `--dataset` | auto (from OWASP docs) | Custom JSONL dataset path |
 | `--epochs` | 2 | Training epochs (early stopping on eval_loss also enabled) |
 | `--lr` | 2e-4 | Peak learning rate |
@@ -87,37 +86,56 @@ Run `prepare_dataset.py` to generate from OWASP docs. Add your own examples by a
 
 ## Model recommendations
 
-| Model | Params | VRAM | Quality |
-|-------|--------|------|---------|
-| Qwen2.5-0.5B-Instruct | 0.5B | ~4 GB | Good for basic guidance |
-| Qwen2.5-1.5B-Instruct | 1.5B | ~6 GB | Better explanations |
-| Qwen2.5-3B-Instruct | 3B | ~8 GB | Best quality on 16 GB GPU |
-| Llama-3.2-1B-Instruct | 1B | ~5 GB | Good alternative |
-| Gemma-2-2B | 2B | ~7 GB | Good alternative |
+| Model | Params | VRAM | GGUF (Q6_K) | Notes |
+|-------|--------|------|-------------|-------|
+| **Qwen2.5-1.5B-Instruct** | 1.5B | ~6 GB | ~1.3 GB | **Default.** Best quality/effort balance; Apache-2.0; drop-in ChatML. |
+| Qwen2.5-0.5B-Instruct | 0.5B | ~4 GB | ~0.5 GB | Smaller/faster; leans hardest on RAG. |
+| Qwen2.5-3B-Instruct | 3B | ~8 GB | ~2.5 GB | Highest quality on a 16 GB GPU. |
+| Llama-3.2-1B-Instruct | 1B | ~5 GB | ~1.0 GB | Fallback only — needs ChatML retemplating + Llama license. |
 
-## Hosting for VulnoraIQ distribution
+Nora's job is grounding on injected reference material, so larger models mainly buy
+better synthesis and fewer degenerate/off-template outputs. Measure any base change
+with `evaluate.py` rather than assuming.
 
-After training, upload the GGUF to HuggingFace:
+## Distributing Nora (model file, not a hosted service)
+
+Hosting the GGUF on HuggingFace distributes the **weights file** — it does *not*
+stand up a public Nora anyone can chat with. Each VulnoraIQ instance auto-downloads
+the GGUF and runs Nora **locally, in-process** (llama-cpp) on the user's own hardware.
+
+After training and converting to GGUF (e.g. `nora-1.5b-Q6_K.gguf`):
 
 ```bash
-python vulnoraiq/model/train.py --upload-to-hf youruser/vulnoraiq-assistant
+# upload the GGUF to a HuggingFace repo you own
+huggingface-cli upload youruser/nora-assistant nora-1.5b-Q6_K.gguf
 ```
 
-Users set these env vars to pull your model:
+Users point their instance at it:
 
 ```
-VULNORAIQ_ASSISTANT_MODEL_REPO=youruser/vulnoraiq-assistant
-VULNORAIQ_ASSISTANT_MODEL_FILE=vulnoraiq-assistant-q4_k_m.gguf
+VULNORAIQ_ASSISTANT_MODEL_REPO=youruser/nora-assistant
+VULNORAIQ_ASSISTANT_MODEL_FILE=nora-1.5b-Q6_K.gguf
 ```
 
-The first-run autodownload will fetch it automatically.
+The first-run autodownload fetches it automatically. Notes:
 
-## Manual GGUF conversion
+- The repo must be **public** — the auto-download uses a plain URL with no token, so
+  a private/gated repo would 401.
+- Redistribution is fine on a **Qwen** base (Apache-2.0); a Llama base adds license
+  conditions.
+- A public, browser-accessible Nora is a *separate* deployment of the WebUI itself —
+  add auth and a privacy review first, since findings can contain sensitive target
+  data and Nora has web/CVE lookup.
 
-If the built-in export fails:
+## GGUF conversion
+
+`train.py` stops at the merged HF model; convert it to GGUF with llama.cpp:
 
 ```bash
 git clone https://github.com/ggerganov/llama.cpp
-python llama.cpp/convert_hf_to_gguf.py vulnoraiq-assistant/merged \
-    --outtype q4_k_m -o vulnoraiq-assistant-q4_k_m.gguf
+python llama.cpp/convert_hf_to_gguf.py assistant-output/merged \
+    --outtype q6_k -o assistant-output/nora-1.5b-Q6_K.gguf
 ```
+
+Size is no longer constrained, so `q6_k` (~1.3 GB for 1.5B) is a good quality/size
+balance; use `q8_0` for maximum fidelity or `q4_k_m` for the smallest file.

@@ -19,8 +19,9 @@ os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Fine-tune a small LLM for VulnoraIQ")
-    p.add_argument("--base", default="Qwen/Qwen2.5-0.5B-Instruct",
-                    help="HuggingFace base model")
+    p.add_argument("--base", default="Qwen/Qwen2.5-1.5B-Instruct",
+                    help="HuggingFace base model (Qwen family keeps the ChatML template; "
+                         "0.5B is smaller/faster, 3B is higher quality)")
     p.add_argument("--dataset", default=None,
                     help="Path to JSONL training file (default: auto-generated from OWASP docs)")
     p.add_argument("--output", default="./assistant-output",
