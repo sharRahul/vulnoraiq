@@ -48,12 +48,12 @@ export function AskVulnoraIQChat({ finding }: { finding: Finding }) {
   const [error, setError] = useState<string | null>(null);
   const [controls, setControls] = useState<AssistantControls>({
     provider: "local",
-    model: "vulnoraiq-local-assistant",
+    model: "nora-assistant",
     temperature: 0.2,
     system_prompt: "Provide concise guidance for authorised internal assessment work.",
     max_tokens: 800,
   });
-  const [allowedModels, setAllowedModels] = useState<string[]>(["vulnoraiq-local-assistant"]);
+  const [allowedModels, setAllowedModels] = useState<string[]>(["nora-assistant"]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export function AskVulnoraIQChat({ finding }: { finding: Finding }) {
         setAllowedModels(config.allowed_models?.length ? config.allowed_models : [config.default_model]);
         setControls({
           provider: config.provider || "local",
-          model: config.default_model || "vulnoraiq-local-assistant",
+          model: config.default_model || "nora-assistant",
           temperature: config.default_temperature ?? 0.2,
           system_prompt: config.default_system_prompt,
           max_tokens: 800,

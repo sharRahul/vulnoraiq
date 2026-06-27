@@ -29,6 +29,37 @@ VULNORAIQ_ASSISTANT_MODEL_PATH=./assistant-output/vulnoraiq-assistant-Q4_K_M.ggu
     print(m.generate([{'role':'user','content':'What is prompt injection?'}], temperature=0.2, max_tokens=256))"
 ```
 
+## Evaluation
+
+Validate behaviour against a held-out, hand-written eval set (`eval_dataset.jsonl`)
+that is phrased unlike the templated training data — an honest signal of whether the
+model generalises. Cases assert behaviour (identity, refusal-to-fix, no CVE
+fabrication, grounding, safe framing, CVE-reference use), not exact text.
+
+```bash
+# verify the harness logic (no model needed)
+python model/evaluate.py --selftest
+
+# score a model, then compare old vs new by running twice
+VULNORAIQ_ASSISTANT_MODEL_PATH=model/assistant-output/nora-0.5b-Q6_K.gguf \
+    python model/evaluate.py
+```
+
+## Assistant identity and tools (Nora)
+
+The model is "Nora", the VulnoraIQ assistant (display name `nora-assistant`). It is
+trained to ground answers in supplied **reference material** and to never invent CVE
+ids/CVSS scores. The runtime injects that reference material from:
+
+- `docs/owasp/` + `model/knowledge/` (the extracted OWASP PDFs) via bag-of-words RAG;
+- authoritative CVE/CVSS records fetched from NVD for any CVE id named in the prompt
+  (`assistant_tools.cve_reference_lookup`);
+- `web_fetch` of a public security URL the user provides.
+
+> After changing the model name, rebuild the WebUI bundle (`webui/console`) so the
+> served frontend picks up `nora-assistant`; the committed `webui/static` bundle is
+> generated, not hand-edited.
+
 ## Options
 
 | Flag | Default | Description |

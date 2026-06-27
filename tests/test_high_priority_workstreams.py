@@ -83,13 +83,13 @@ def test_assistant_backend_and_react_panel_are_live_wired() -> None:
         {
             "message": "How should I validate this?",
             "finding": {"title": "Prompt boundary review", "severity": "medium", "status": "open"},
-            "controls": {"model": "vulnoraiq-local-assistant", "temperature": 0.3, "system_prompt": "Use concise guidance."},
+            "controls": {"model": "nora-assistant", "temperature": 0.3, "system_prompt": "Use concise guidance."},
         },
         actor="tester",
     )
     panel = Path("webui/console/src/components/intelligence/AskVulnorAIQChat.tsx").read_text(encoding="utf-8")
     assert response["role"] == "assistant"
-    assert response["model"] == "vulnoraiq-local-assistant"
+    assert response["model"] == "nora-assistant"
     assert "Validation approach" in str(response["content"])
     assert "mockAssistantReply" not in panel
     assert "window.setTimeout" not in panel

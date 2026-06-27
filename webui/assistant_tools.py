@@ -95,6 +95,57 @@ def read_text_file(relative_path: str) -> str:
 
 
 _URL_RE = re.compile(r"https?://[^\s)>\]]+")
+_CVE_ID_RE = re.compile(r"\bCVE-\d{4}-\d{4,7}\b", re.I)
+
+# Authoritative public sources Nora may consult when an answer is not in the
+# bundled knowledge. ``web_fetch`` will fetch any public URL, but these are the
+# canonical references for security facts and should be preferred/cited.
+AUTHORITATIVE_SOURCES = {
+    "nvd": "https://nvd.nist.gov/vuln/detail/{id}",          # CVE / CVSS
+    "cve": "https://www.cve.org/CVERecord?id={id}",          # CVE record
+    "cvss": "https://www.first.org/cvss/",                   # CVSS spec
+    "owasp_llm": "https://genai.owasp.org/llm-top-10/",      # OWASP LLM Top 10
+    "owasp_agentic": "https://genai.owasp.org/initiatives/#agenticinitiative",
+    "owasp_cheatsheets": "https://cheatsheetseries.owasp.org/",
+    "cwe": "https://cwe.mitre.org/data/definitions/{id}.html",
+}
+
+
+def find_cve_ids(text: str) -> list[str]:
+    """Return de-duplicated, upper-cased CVE identifiers mentioned in ``text``."""
+    seen: list[str] = []
+    for m in _CVE_ID_RE.findall(text or ""):
+        cid = m.upper()
+        if cid not in seen:
+            seen.append(cid)
+    return seen
+
+
+def cve_reference_lookup(text: str, *, limit: int = 4) -> str:
+    """Fetch authoritative NVD records for CVE IDs mentioned in free text.
+
+    This is how Nora answers "what is the CVSS for CVE-xxxx" without guessing:
+    it fetches the real record from NVD. Offline/unknown ids are reported, never
+    fabricated. Returns a prompt-injectable block, or "" when no CVE is present.
+    """
+    ids = find_cve_ids(text)[:limit]
+    if not ids:
+        return ""
+    try:
+        from integrations.cve_lookup import lookup_by_id
+    except Exception:
+        return ""
+    lines: list[str] = []
+    for cid in ids:
+        rec = lookup_by_id(cid)
+        if rec:
+            lines.append(
+                f"- {rec['id']} (NVD) severity={rec.get('severity') or '?'} "
+                f"summary={(rec.get('summary') or '')[:200]} url={rec.get('url', '')}"
+            )
+        else:
+            lines.append(f"- {cid}: no authoritative NVD record retrieved (offline or unknown id).")
+    return "Authoritative CVE reference (NVD):\n" + "\n".join(lines)
 
 _DUMMY_FINDING_KEYS = {"package", "ecosystem", "title", "category", "owasp", "cwe", "affected_component"}
 

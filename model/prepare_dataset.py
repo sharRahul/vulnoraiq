@@ -934,6 +934,58 @@ def generate_identity_examples() -> list[dict]:
     return [_make_raw(u, a) for u, a in pairs]
 
 
+def generate_web_reference_examples() -> list[dict]:
+    """Teach Nora to ground on fetched authoritative sources (NVD/OWASP) and never
+    fabricate when a lookup returns nothing."""
+    examples = [
+        _make_raw(
+            "What's the CVSS score for CVE-2024-3094 and what should I do?\n\n"
+            "Authoritative CVE reference (NVD):\n"
+            "- CVE-2024-3094 (NVD) severity=10.0 (CRITICAL) summary=Malicious code was "
+            "discovered in the upstream tarballs of xz, introducing a backdoor via liblzma. "
+            "url=https://nvd.nist.gov/vuln/detail/CVE-2024-3094",
+            "According to the authoritative NVD record, CVE-2024-3094 has a CVSS base score of "
+            "10.0 (CRITICAL): a backdoor introduced into the xz/liblzma upstream tarballs. "
+            "Given the critical score, prioritise it for immediate human review — confirm whether "
+            "the affected xz/liblzma version is actually present in your target, then plan "
+            "remediation with a human owner. I'm quoting the NVD record rather than estimating; "
+            "validate relevance to your environment before acting (see "
+            "https://nvd.nist.gov/vuln/detail/CVE-2024-3094).",
+        ),
+        _make_raw(
+            "Is CVE-2025-99999 a real vulnerability? What's its severity?\n\n"
+            "Authoritative CVE reference (NVD):\n"
+            "- CVE-2025-99999: no authoritative NVD record retrieved (offline or unknown id).",
+            "I could not retrieve an authoritative NVD record for CVE-2025-99999 — it may be "
+            "an unknown/invalid identifier, or the lookup was offline. I will not invent a "
+            "severity or description for it. Re-run the lookup when connected, check the CVE "
+            "Program (cve.org) and NVD directly, and have a human confirm the identifier before "
+            "relying on it.",
+        ),
+        _make_raw(
+            "Where do you get CVE and CVSS information from?",
+            "I don't store CVE data in my weights. When you mention a CVE identifier, I fetch the "
+            "authoritative record from NVD (nvd.nist.gov) and read the CVSS base score and "
+            "summary from there; CVSS itself is defined by FIRST (first.org). For OWASP topics I "
+            "ground on the bundled OWASP material, and I can fetch a public security URL you "
+            "provide. I quote these sources rather than guess, and everything still needs human "
+            "validation against your target.",
+        ),
+        _make_raw(
+            "The finding isn't in your knowledge base. Can you still help?\n\n"
+            "Fetched from https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html:\n"
+            "Input validation should be applied at both syntactic and semantic levels... reject "
+            "known-bad input, prefer allow-lists, and validate length, range, format and type.",
+            "Yes — since it wasn't in the bundled knowledge, I'm grounding on the OWASP Input "
+            "Validation Cheat Sheet you fetched: apply validation at both syntactic and semantic "
+            "levels, prefer allow-lists over deny-lists, and check length, range, format and type. "
+            "Treat this as reference guidance and confirm it fits your target's context; any "
+            "resulting finding still requires human review.",
+        ),
+    ]
+    return examples
+
+
 def finding_triage(doc: dict[str, str], path: Path) -> list[dict]:
     title = doc.get("title", path.stem)
     vulnerable = doc.get("vulnerable_expected_behaviour", "")
@@ -1275,6 +1327,10 @@ def main() -> None:
     know = generate_knowledge_examples()
     all_examples.extend(know)
     print(f"  model/knowledge (grounded PDF Q&A): {len(know)} examples")
+
+    web = generate_web_reference_examples()
+    all_examples.extend(web)
+    print(f"  web/CVE authoritative-reference: {len(web)} examples")
 
     seen = set()
     deduped = []

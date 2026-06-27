@@ -31,7 +31,7 @@ class AssistantOrchestrator:
 
     def __init__(self) -> None:
         self.provider = os.getenv("VULNORAIQ_ASSISTANT_PROVIDER", "local").strip().lower()
-        self.default_model = os.getenv("VULNORAIQ_ASSISTANT_MODEL", "vulnoraiq-local-assistant").strip()
+        self.default_model = os.getenv("VULNORAIQ_ASSISTANT_MODEL", "nora-assistant").strip()
         self.allowed_models = {
             item.strip()
             for item in os.getenv("VULNORAIQ_ASSISTANT_ALLOWED_MODELS", self.default_model).split(",")
@@ -50,7 +50,7 @@ class AssistantOrchestrator:
             "default_system_prompt": self.DEFAULT_SYSTEM_PROMPT,
             "streaming_supported": False,
             "local_model": status,
-            "tools": ["knowledge_base", "web_fetch", "read_docs", "cve_lookup"],
+            "tools": ["knowledge_base", "web_fetch", "read_docs", "cve_lookup", "cve_reference"],
         }
 
     # ── chat ────────────────────────────────────────────────────────────────────
@@ -84,6 +84,9 @@ class AssistantOrchestrator:
         cve_block = assistant_tools.cve_lookup(finding)
         if cve_block:
             context = context + "\n\n" + cve_block if context else cve_block
+        cve_ref = assistant_tools.cve_reference_lookup(summary + " " + query)
+        if cve_ref:
+            context = context + "\n\n" + cve_ref if context else cve_ref
         if self._model.available():
             messages = [
                 {"role": "system", "content": self.DEFAULT_SYSTEM_PROMPT},
@@ -125,6 +128,11 @@ class AssistantOrchestrator:
         cve_block = assistant_tools.cve_lookup(finding)
         if cve_block:
             tools_used.append("cve_lookup")
+        # Fetch authoritative NVD records for any CVE id named in the prompt, so
+        # Nora can answer CVE/CVSS questions from the source instead of guessing.
+        cve_ref = assistant_tools.cve_reference_lookup(prompt)
+        if cve_ref:
+            tools_used.append("cve_reference")
 
         if not self._model.available():
             return self._templated_chat(prompt, finding_ctx, kb, fetched, cve_block, available=False), "templated", tools_used
@@ -134,6 +142,7 @@ class AssistantOrchestrator:
                 kb,
                 (f"Fetched from {url}:\n{fetched}" if fetched else ""),
                 cve_block,
+                cve_ref,
             ) if part
         )
         messages = [

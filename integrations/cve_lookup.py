@@ -101,6 +101,23 @@ def search_nvd(keywords: str, *, limit: int = 5, timeout: float = _TIMEOUT) -> l
     return _nvd_records(payload, limit)
 
 
+def lookup_by_id(cve_id: str, *, timeout: float = _TIMEOUT) -> dict[str, Any] | None:
+    """Fetch a single authoritative NVD record by CVE identifier.
+
+    Returns the structured record (id, CVSS severity, summary, url) or ``None``
+    when the id is unknown, offline, or the API errors.
+    """
+    cve_id = cve_id.strip().upper()
+    if not re.fullmatch(r"CVE-\d{4}-\d{4,7}", cve_id):
+        return None
+    try:
+        payload = _http_get_json(NVD_URL, {"cveId": cve_id}, timeout)
+    except Exception:
+        return None
+    records = _nvd_records(payload, limit=1)
+    return records[0] if records else None
+
+
 def search_osv(package: str, *, ecosystem: str | None = None, timeout: float = _TIMEOUT) -> list[dict[str, Any]]:
     if not package.strip():
         return []
