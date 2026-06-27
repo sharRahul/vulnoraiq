@@ -9,6 +9,7 @@ from http import HTTPStatus
 from http.server import ThreadingHTTPServer
 from urllib.parse import unquote, urlparse
 
+from integrations import cve_lookup
 from webui import hosted_server as base
 from webui.agent_lab import (
     analyze_agent_project,
@@ -139,6 +140,25 @@ class AssistantHostedWebUiHandler(base.HostedWebUiHandler):
             base._audit_structured(
                 "assistant_explain", principal, request_id, client_ip, "POST", clean_path, 200,
                 f"backend={response.get('backend')}",
+            )
+            self._send_json(response)
+            return
+        if clean_path == "/api/findings/cve":
+            principal = self._require_principal(client_ip, "POST", clean_path, request_id)
+            if not principal or not self._check_rate_limit(principal, client_ip):
+                return
+            if not base._validate_csrf(self._session_key(principal), self.headers.get("X-CSRF-Token")):
+                self._send_error_response(HTTPStatus.FORBIDDEN, "invalid or missing CSRF token")
+                return
+            if not base.AUTH_MANAGER.can(principal, "view_scans"):
+                self._forbidden()
+                return
+            payload = self._read_json()
+            finding = payload.get("finding") if isinstance(payload.get("finding"), dict) else {}
+            response = cve_lookup.lookup_for_finding(finding)
+            base._audit_structured(
+                "finding_cve_lookup", principal, request_id, client_ip, "POST", clean_path, 200,
+                f"matches={response.get('match_count')} novel={response.get('candidate_novel')}",
             )
             self._send_json(response)
             return

@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- CVE correlation for findings: a new online lookup (`integrations/cve_lookup.py`, `POST /api/findings/cve`) queries NVD by keyword/CWE (and OSV when a package is named) and surfaces matching CVE/advisory records in the WebUI intelligence panel. When a lookup succeeds with no match it flags the finding as a *candidate novel/zero-day* for human verification — never asserting a zero-day automatically. Best-effort and offline-safe (reports `online: false` instead of failing).
 - Optional in-app assistant model (`pip install -e .[assistant]`): "Ask VulnoraIQ" and AI finding explanations now run a small GGUF model locally via `llama-cpp-python` (CPU or GPU), downloaded once on first use and cached — no Ollama or external API. Answers are grounded in the bundled OWASP notes and the selected finding, with safe `web_fetch` (SSRF-guarded) and allowlisted `read_docs` tools. Degrades gracefully to templated guidance when the model is not installed. New `POST /api/assistant/explain` endpoint; see `docs/ASSISTANT_MODEL.md` (incl. a path to fine-tune your own model on a 16 GB GPU).
 - Agent Lab: a per-project **Delete** button (managed projects only; mapped projects shown read-only).
 

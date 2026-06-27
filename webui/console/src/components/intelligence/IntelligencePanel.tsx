@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CveMetadataCard } from "./CveMetadataCard";
 import { CweDescriptionCard } from "./CweDescriptionCard";
 import { IntelligenceMappingCard } from "./IntelligenceMappingCard";
+import { LiveCveLookupCard } from "./LiveCveLookupCard";
 import { AskVulnoraIQChat } from "./AskVulnoraIQChat";
 
 export function IntelligencePanel({ finding }: { finding: Finding }) {
@@ -27,6 +28,7 @@ export function IntelligencePanel({ finding }: { finding: Finding }) {
         className="flex-1 space-y-3 overflow-y-auto scrollbar-thin p-3 data-[state=inactive]:hidden"
       >
         <CveMetadataCard cve={finding.cve} />
+        <LiveCveLookupCard finding={finding} />
         <CweDescriptionCard cwe={finding.cwe} />
         <IntelligenceMappingCard mapping={finding.intelligence} />
       </TabsContent>
