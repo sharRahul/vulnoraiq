@@ -54,10 +54,14 @@ release = [
   "twine>=5.1.0"
 ]
 # Optional in-app assistant model (Ask VulnoraIQ + richer finding explanations).
-# Runs a small GGUF locally via llama.cpp on CPU or GPU; weights are downloaded
-# on first use and cached. For GPU, install a CUDA/Metal build of llama-cpp-python.
+# Runs a small GGUF locally via llama.cpp; weights are downloaded on first use.
+# Install matrix (validated for Nora's Qwen3 GGUF):
+# - NVIDIA CUDA 12.4: `pip install llama-cpp-python==0.3.31 --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cu124 --only-binary=:all:`
+# - CPU-only Windows/Linux: `pip install llama-cpp-python==0.3.19 --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu --only-binary=:all:`
+#   Newer generic Windows CPU wheels (for example 0.3.30) hit `0xc000001d` on AVX2-class consumer CPUs.
+# - macOS Metal / MLX: TODO, not implemented yet.
 assistant = [
-  "llama-cpp-python>=0.2.90"
+  "llama-cpp-python>=0.3.19"
 ]
 
 [project.scripts]

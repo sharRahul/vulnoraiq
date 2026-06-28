@@ -22,6 +22,14 @@ config/web_users.local.yaml
 config/local*.yaml
 tests/
 docs/
+# Heavy model artifacts not needed at runtime — keep only the shipped Q4 GGUF.
+# (Nora loads model/assistant-output/nora-1.7b-Q4_K_M.gguf; everything else is
+# training intermediates that would bloat the image by ~6.7GB.)
+model/assistant-output/nora-1.7b-f16.gguf
+model/assistant-output/merged/
+model/assistant-output/adapter/
+model/assistant-output/checkpoint-*/
+model/train_dataset.jsonl
 .gitignore
 Dockerfile
 docker-compose*.yml

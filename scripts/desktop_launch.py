@@ -41,6 +41,10 @@ def _prepare_desktop_environment() -> dict[str, str]:
     env = os.environ.copy()
     _set_default_env(env, "VULNORAIQ_RUN_MODE", "desktop")
     _set_default_env(env, "VULNORAIQ_AUTH_MODE", "local_admin")
+    # Nora runs in-process on the host. "auto" offloads the GGUF to the GPU first
+    # (NVIDIA/CUDA) and falls back to CPU when no GPU build is available — Desktop
+    # Mode is where Nora gets the host GPU; Docker is only for sandboxed agents.
+    _set_default_env(env, "VULNORAIQ_ASSISTANT_GPU_LAYERS", "auto")
     _set_default_env(env, "VULNORAIQ_HOST", "127.0.0.1")
     _set_default_env(env, "VULNORAIQ_PORT", "8787")
     _set_default_env(env, "VULNORAIQ_JOB_STORE_PATH", scan_root / "jobs.db")

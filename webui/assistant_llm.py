@@ -29,11 +29,16 @@ import os
 import shutil
 import threading
 import urllib.request
+import importlib.util
 from pathlib import Path
 
 DEFAULT_MODEL_REPO = os.getenv("VULNORAIQ_ASSISTANT_MODEL_REPO", "Qwen/Qwen2.5-0.5B-Instruct-GGUF")
 DEFAULT_MODEL_FILE = os.getenv("VULNORAIQ_ASSISTANT_MODEL_FILE", "qwen2.5-0.5b-instruct-q4_k_m.gguf")
+# Repo-local fine-tuned Nora build, preferred over the HF download when present
+# (see LocalAssistantModel.model_path). The shipped quant from model/assistant-output.
+DEFAULT_LOCAL_MODEL_FILE = os.getenv("VULNORAIQ_ASSISTANT_LOCAL_MODEL_FILE", "nora-1.7b-Q4_K_M.gguf")
 DEFAULT_MODEL_URL = os.getenv("VULNORAIQ_ASSISTANT_MODEL_URL", "").strip()
+_DLL_DIRECTORIES: list[object] = []
 
 
 class ModelUnavailable(RuntimeError):
@@ -55,9 +60,46 @@ def cache_dir() -> Path:
     return path
 
 
+def _register_windows_dll_dir(path: Path) -> None:
+    if os.name != "nt" or not path.is_dir():
+        return
+    resolved = str(path.resolve())
+    try:
+        handle = os.add_dll_directory(resolved)
+    except (AttributeError, OSError):
+        handle = None
+    if handle is not None:
+        _DLL_DIRECTORIES.append(handle)
+    current_path = os.environ.get("PATH", "")
+    parts = current_path.split(os.pathsep) if current_path else []
+    if resolved not in parts:
+        os.environ["PATH"] = resolved + os.pathsep + current_path if current_path else resolved
+
+
+def _prepare_windows_llama_runtime() -> None:
+    """Expose bundled DLL directories before importing llama.cpp on Windows."""
+    if os.name != "nt":
+        return
+    for name, value in os.environ.items():
+        if name.startswith("CUDA_PATH") and value:
+            _register_windows_dll_dir(Path(value) / "bin")
+    try:
+        spec = importlib.util.find_spec("llama_cpp")
+    except Exception:
+        spec = None
+    if spec and spec.origin:
+        _register_windows_dll_dir(Path(spec.origin).resolve().parent / "lib")
+    try:
+        import torch
+    except Exception:
+        return
+    _register_windows_dll_dir(Path(torch.__file__).resolve().parent / "lib")
+
+
 def runtime_available() -> bool:
     """True if ``llama-cpp-python`` is importable."""
     try:
+        _prepare_windows_llama_runtime()
         import llama_cpp  # noqa: F401
     except Exception:
         return False
@@ -73,6 +115,11 @@ class LocalAssistantModel:
     def __init__(self) -> None:
         self._llm = None
         self._load_lock = threading.Lock()
+        # A llama.cpp context holds mutable decode state and is NOT safe for
+        # concurrent calls; overlapping requests crash with "llama_decode
+        # returned -1". The UI fires several explain/chat calls at once (e.g. the
+        # Workspace auto-explains findings), so serialise generation here.
+        self._gen_lock = threading.Lock()
         self._load_error: str | None = None
 
     @classmethod
@@ -86,6 +133,16 @@ class LocalAssistantModel:
         explicit = os.getenv("VULNORAIQ_ASSISTANT_MODEL_PATH", "").strip()
         if explicit:
             return Path(explicit)
+        # Prefer the repo-local fine-tuned Nora GGUF when it is present, so a checkout
+        # runs the trained model out of the box instead of silently downloading the
+        # generic Qwen base. Env override above still wins; HF download below is the
+        # last resort (and only fires when no local Nora build exists).
+        local_nora = (
+            Path(__file__).resolve().parent.parent
+            / "model" / "assistant-output" / DEFAULT_LOCAL_MODEL_FILE
+        )
+        if local_nora.is_file():
+            return local_nora
         return cache_dir() / DEFAULT_MODEL_FILE
 
     def status(self) -> dict[str, object]:
@@ -131,6 +188,7 @@ class LocalAssistantModel:
             if self._llm is not None:
                 return self._llm
             try:
+                _prepare_windows_llama_runtime()
                 import llama_cpp
             except Exception as exc:
                 raise ModelUnavailable(
@@ -162,7 +220,8 @@ class LocalAssistantModel:
 
     def generate(self, messages: list[dict[str, str]], *, temperature: float, max_tokens: int) -> str:
         llm = self._load()
-        result = llm.create_chat_completion(
-            messages=messages, temperature=max(0.0, min(1.0, temperature)), max_tokens=max_tokens
-        )
+        with self._gen_lock:
+            result = llm.create_chat_completion(
+                messages=messages, temperature=max(0.0, min(1.0, temperature)), max_tokens=max_tokens
+            )
         return str(result["choices"][0]["message"]["content"]).strip()
