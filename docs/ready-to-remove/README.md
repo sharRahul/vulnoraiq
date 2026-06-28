@@ -4,6 +4,8 @@ This folder is a staging area for documentation that appears to be completed, su
 
 Nothing in this folder is deleted automatically. Review each file, then either delete it in a follow-up cleanup PR or move it back into the active documentation tree if it still has current value.
 
+Some original paths keep lightweight active stubs because CI validators, release checks, or external links still expect those paths to exist. The full historical content lives here until maintainers approve final deletion.
+
 ## Current candidates
 
 | File | Why it was moved here |
